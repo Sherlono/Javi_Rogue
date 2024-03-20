@@ -30,7 +30,7 @@ public:
     Player(int x, int y):
     _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
     _para(x, y + 6, 6, 6),
-    _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 2, 3))
+    _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2))
     {
         _x = x;
         _y = y;
@@ -66,6 +66,9 @@ public:
 
     void walk_update(){
         _walk.update();
+    }
+    void wait(){
+        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0)); 
     }
     
 private:

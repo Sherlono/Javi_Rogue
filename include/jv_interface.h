@@ -31,24 +31,22 @@ void move_player(bn::camera_ptr& cam, jv::Player& player, bn::vector<jv::para, 6
     if(bn::keypad::up_held() && !(tl1 && tr1)){
         cam.set_position(cam.x(), cam.y() - speed);
         player.set_position(cam.x(), cam.y() - speed);
-        if(!bn::keypad::left_held() && !bn::keypad::right_held()){  // Mejora la animacion
-            player.walk_update();
-        }
     }else if(bn::keypad::down_held() && !(bl1 && br1)){
         cam.set_position(cam.x(), cam.y() + speed);
         player.set_position(cam.x(), cam.y() + speed);
-        if(!bn::keypad::left_held() && !bn::keypad::right_held()){  // Mejora la animacion
-            player.walk_update();
-        }
     }
     if(bn::keypad::left_held() && !(tl1 && bl1)){
         cam.set_position(cam.x() - speed, cam.y());
         player.set_position(cam.x() - speed, cam.y());
-        player.walk_update();
     }else if(bn::keypad::right_held() && !(tr1 && br1)){
         cam.set_position(cam.x() + speed, cam.y());
         player.set_position(cam.x() + speed, cam.y());
+    }
+
+    if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
         player.walk_update();
+    }else{
+        player.wait();
     }
 }
 
