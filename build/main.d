@@ -36,53 +36,49 @@ main.o: \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_value_template_actions.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_limits.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_ptr.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/common/include/common_variable_8x8_sprite_font.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bpp_mode.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_item.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_tile.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_compression_type.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_palette_item.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_color.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map_ref.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_power_of_two.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_character.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_common_variable_8x8_font.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_text_generator.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_string.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_regular_bg_items_bg.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_item.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bg_palette_item.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_color.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bpp_mode.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_compression_type.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_map_item.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_size.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_map_cell.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_tiles_item.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_tile.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_environment.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rect.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_fixed.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_tileset.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_item.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_palette_item.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_math.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_point.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_interface.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_math.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sin_lut.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_reciprocal_lut.h \
- C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rule_of_three_approximation.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_text_generator.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map_ref.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_power_of_two.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_character.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_environment.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_actors.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_animate_actions.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_ptr.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_animate_actions_fwd.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_math.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sin_lut.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_reciprocal_lut.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rule_of_three_approximation.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_character.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_actors.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_math.h
@@ -122,53 +118,49 @@ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_fixed_point_f
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_value_template_actions.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_limits.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_ptr.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/common/include/common_variable_8x8_sprite_font.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bpp_mode.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_item.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_tile.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_compression_type.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_palette_item.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_color.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map_ref.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_power_of_two.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_character.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_common_variable_8x8_font.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_text_generator.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_string.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_regular_bg_items_bg.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_item.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bg_palette_item.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_color.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_bpp_mode.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_compression_type.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_map_item.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_size.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_map_cell.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_regular_bg_tiles_item.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_tile.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_environment.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rect.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_fixed.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_tileset.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_item.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_palette_item.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_math.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_point.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_interface.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_math.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sin_lut.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_reciprocal_lut.h:
-C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rule_of_three_approximation.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_text_generator.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_font.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_characters_map_ref.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_power_of_two.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_utf8_character.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_environment.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_actors.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_animate_actions.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_ptr.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_animate_actions_fwd.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_math.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sin_lut.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_reciprocal_lut.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_rule_of_three_approximation.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_character.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_actors.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/include/jv_math.h:

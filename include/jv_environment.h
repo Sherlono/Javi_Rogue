@@ -10,21 +10,17 @@
 #include "jv_math.h"
 
 namespace jv{
-class Solid{
+class Block{
 public:
-    virtual ~Solid(){}
-    virtual jv::para get_para(){
-        jv::para donotuse(0,0,8,8);
-        return donotuse;
-    }
-    jv::para _para;
+    virtual ~Block(){}
+//private:
+
 };
 
-class Wall2 : public Solid{
+class Wall2 : public Block{
 public:
     ~Wall2(){}
-    Wall2(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 64>& para_vector, unsigned char option)
-    //Wall2(int x, int y, bn::camera_ptr& cam, unsigned char option)
+    Wall2(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
     {
         unsigned char sprt_index[2];
         switch(option){
@@ -191,19 +187,15 @@ public:
         }
     }
     
-    [[nodiscard]] jv::para get_para() override{
-        return this->_para;
-    }
-    
 private:
     bn::vector<bn::sprite_ptr, 2> _sprites;
+    jv::para _para;
 };
 
-class Wall4 : public Solid{
+class Wall4 : public Block{
 public:
     ~Wall4(){}
-    Wall4(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 64>& para_vector, unsigned char option)
-    //Wall4(int x, int y, bn::camera_ptr& cam, unsigned char option)
+    Wall4(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
     {
         unsigned char sprt_index[4];
         switch(option){
@@ -281,22 +273,19 @@ public:
         para_vector.push_back(_para);
     }
     
-    [[nodiscard]] jv::para get_para() override{
-        return this->_para;
-    }
-    
 private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
+    jv::para _para;
 };
 
-class Wall6 : public Solid{
+class Wall6 : public Block{
 public:
     ~Wall6(){}
-    Wall6(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 64>& para_vector)
-    //Wall6(int x, int y, bn::camera_ptr& cam)
+    Wall6(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector)
     {
+        unsigned char sprt_index[6] = {0, 1, 0, 1, 2, 3};
         for(unsigned char i = 0; i < 6; i++){
-            bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i%3), (i%2) + 2*((i%3)==2));
+            bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i%3), sprt_index[i]);
             sprite.set_camera(cam);
             sprite.set_bg_priority(1);
             _sprites.push_back(sprite);
@@ -305,20 +294,15 @@ public:
         para_vector.push_back(_para);
     }
     
-    [[nodiscard]] jv::para get_para() override{
-        return this->_para;
-    }
-    
 private:
     bn::vector<bn::sprite_ptr, 6> _sprites;
     jv::para _para;
 };
 
-class Wall8 : public Solid{
+class Wall8 : public Block{
 public:
     ~Wall8(){}
-    Wall8(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 64>& para_vector, unsigned char option)
-    //Wall8(int x, int y, bn::camera_ptr& cam, unsigned char option)
+    Wall8(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
     {
         unsigned char sprt_index[8];
         switch(option){
@@ -398,16 +382,12 @@ public:
         para_vector.push_back(_para);
     }
     
-    [[nodiscard]] jv::para get_para() override{
-        return this->_para;
-    }
-    
 private:
     bn::vector<bn::sprite_ptr, 8> _sprites;
     jv::para _para;
 };
 
-class Floor{
+class Floor : public Block{
 public:
     ~Floor(){};
     Floor(int x, int y, bn::camera_ptr& cam, unsigned char option)
@@ -632,6 +612,7 @@ public:
                     sprite.set_bg_priority(1);
                     _sprites.push_back(sprite);
                 }
+                _sprites.shrink(2);
                 break;
             case 17:
                 sprt_index[2] = 37;
@@ -643,6 +624,7 @@ public:
                     sprite.set_bg_priority(1);
                     _sprites.push_back(sprite);
                 }
+                _sprites.shrink(2);
                 break;
             case 18:
                 sprt_index[0] = 36;
@@ -676,6 +658,7 @@ public:
                     sprite.set_bg_priority(1);
                     _sprites.push_back(sprite);
                 }
+                _sprites.shrink(2);
                 break;
             case 21:
                 sprt_index[2] = 41;
@@ -697,6 +680,7 @@ public:
                     sprite.set_bg_priority(1);
                     _sprites.push_back(sprite);
                 }
+                _sprites.shrink(2);
                 break;
             case 23:
                 for(unsigned char i = 2; i < 4; i++){
@@ -705,6 +689,7 @@ public:
                     sprite.set_bg_priority(1);
                     _sprites.push_back(sprite);
                 }
+                _sprites.shrink(2);
                 break;
             default:
                 break;
@@ -715,15 +700,30 @@ private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
 };
 
-/*class Generator{
+/*class LevelGenerator{
 public:
-    ~Generator(){};
-    Generator(){
-        
+    ~LevelGenerator(){};
+    LevelGenerator(unsigned char width, unsigned char height, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, bn::vector<jv::Block*, 36>& block_holder, unsigned char* block_array){
+        unsigned char i = 0;
+        for(size_t y = 0; y < height; y++){
+            for(size_t x = 0; x < width; x++){
+                jv::Block* newblock;
+                if(block_array[i] <= 14){
+                    newblock = new Wall2(x, y, cam, para_vector, block_array[i]);
+                }else if(block_array[i] <= 18){
+                    newblock = new Wall4(x, y, cam, para_vector, block_array[i] - 15);
+                }else if(block_array[i] <= 19){
+                    newblock = new Wall6(x, y, cam, para_vector);
+                }else if(block_array[i] <= 23){
+                    newblock = new Wall8(x, y, cam, para_vector, block_array[i] - 20);
+                }else{
+                    newblock = new Floor(x, y, cam, block_array[i] - 24);
+                }
+                block_holder.push_back(newblock);
+                i++;
+            }
+        }
     }
-
-private:
-
 };*/
 
 }
