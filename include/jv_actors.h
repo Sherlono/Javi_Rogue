@@ -38,11 +38,6 @@ public:
         _y = y;
         _sprite.set_bg_priority(0);
     }
-<<<<<<< Updated upstream
-    
-=======
-
->>>>>>> Stashed changes
     void set_x(bn::fixed x, bool sprite_follow = false){
         if(sprite_follow){
             _sprite.set_position(x, _y - 6);
@@ -73,24 +68,15 @@ public:
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0)); 
     }
     
-<<<<<<< Updated upstream
-    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_v){
-=======
     void move_player(bn::camera_ptr& cam, bn::vector<jv::para, 50>& para_v){
->>>>>>> Stashed changes
         bool tl1 = false;
         bool tr1 = false;
         bool bl1 = false;
         bool br1 = false;
 
         for(unsigned char i = 0; i < para_v.size(); i++){
-<<<<<<< Updated upstream
-            bn::fixed x_distance = bn::abs(para_v[i].x() - this->_x);
-            bn::fixed y_distance = bn::abs(para_v[i].y() -  this->_y);
-=======
             bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
             bn::fixed y_distance = bn::abs(para_v[i].y() -  this->y());
->>>>>>> Stashed changes
             if(x_distance < 24 && y_distance < 24){
                 tl1 = tl1 + para_v[i].contains_top_left(this->_para);
                 tr1 = tr1 + para_v[i].contains_top_right(this->_para);
@@ -120,19 +106,11 @@ public:
             this->wait();
         }
     }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 private:
     bn::sprite_ptr _sprite;
     jv::para _para;
     bn::sprite_animate_action<4> _walk;
     const bn::fixed _speed;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 };
 }
 #endif

@@ -13,24 +13,15 @@ namespace jv{
 class Block{
 public:
     virtual ~Block(){}
-<<<<<<< Updated upstream
-//private:
-
-=======
     [[nodiscard]] virtual jv::para get_para() {
         return jv::para(0,0,0,0); // Never use this
     }
->>>>>>> Stashed changes
 };
 
 class Wall2 : public Block{
 public:
     ~Wall2(){}
-<<<<<<< Updated upstream
-    Wall2(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
-=======
     Wall2(int x, int y, bn::camera_ptr& cam, unsigned char option)
->>>>>>> Stashed changes
     {
         unsigned char sprt_index[2];
         switch(option){
@@ -194,12 +185,9 @@ public:
         }
     }
     
-<<<<<<< Updated upstream
-=======
     [[nodiscard]] jv::para get_para() override{
         return _para;
     }
->>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 2> _sprites;
     jv::para _para;
@@ -208,11 +196,7 @@ private:
 class Wall4 : public Block{
 public:
     ~Wall4(){}
-<<<<<<< Updated upstream
-    Wall4(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
-=======
     Wall4(int x, int y, bn::camera_ptr& cam, unsigned char option)
->>>>>>> Stashed changes
     {
         unsigned char sprt_index[4];
         switch(option){
@@ -289,12 +273,9 @@ public:
         }
     }
     
-<<<<<<< Updated upstream
-=======
     [[nodiscard]] jv::para get_para() override{
         return _para;
     }
->>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
     jv::para _para;
@@ -303,16 +284,6 @@ private:
 class Wall6 : public Block{
 public:
     ~Wall6(){}
-<<<<<<< Updated upstream
-    Wall6(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector)
-    {
-        unsigned char sprt_index[6] = {0, 1, 0, 1, 2, 3};
-        for(unsigned char i = 0; i < 6; i++){
-            bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i%3), sprt_index[i]);
-            sprite.set_camera(cam);
-            sprite.set_bg_priority(1);
-            _sprites.push_back(sprite);
-=======
     Wall6(int x, int y, bn::camera_ptr& cam, unsigned char option)
     {
         switch(option){
@@ -327,16 +298,12 @@ public:
                 break;
             default:
                 break;
->>>>>>> Stashed changes
         }
     }
     
-<<<<<<< Updated upstream
-=======
     [[nodiscard]] jv::para get_para() override{
         return _para;
     }
->>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 6> _sprites;
     jv::para _para;
@@ -345,11 +312,7 @@ private:
 class Wall8 : public Block{
 public:
     ~Wall8(){}
-<<<<<<< Updated upstream
-    Wall8(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
-=======
     Wall8(int x, int y, bn::camera_ptr& cam, unsigned char option)
->>>>>>> Stashed changes
     {
         unsigned char sprt_index[8];
         switch(option){
@@ -428,12 +391,9 @@ public:
         }
     }
     
-<<<<<<< Updated upstream
-=======
     [[nodiscard]] jv::para get_para() override{
         return _para;
     }
->>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 8> _sprites;
     jv::para _para;
@@ -752,35 +712,6 @@ private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
 };
 
-<<<<<<< Updated upstream
-/*class LevelGenerator{
-public:
-    ~LevelGenerator(){};
-    LevelGenerator(unsigned char width, unsigned char height, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, bn::vector<jv::Block*, 36>& block_holder, unsigned char* block_array){
-        unsigned char i = 0;
-        for(size_t y = 0; y < height; y++){
-            for(size_t x = 0; x < width; x++){
-                jv::Block* newblock;
-                if(block_array[i] <= 14){
-                    newblock = new Wall2(x, y, cam, para_vector, block_array[i]);
-                }else if(block_array[i] <= 18){
-                    newblock = new Wall4(x, y, cam, para_vector, block_array[i] - 15);
-                }else if(block_array[i] <= 19){
-                    newblock = new Wall6(x, y, cam, para_vector);
-                }else if(block_array[i] <= 23){
-                    newblock = new Wall8(x, y, cam, para_vector, block_array[i] - 20);
-                }else{
-                    newblock = new Floor(x, y, cam, block_array[i] - 24);
-                }
-                block_holder.push_back(newblock);
-                i++;
-            }
-        }
-    }
-};*/
-
-=======
->>>>>>> Stashed changes
 }
 
 #endif
