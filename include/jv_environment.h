@@ -13,14 +13,24 @@ namespace jv{
 class Block{
 public:
     virtual ~Block(){}
+<<<<<<< Updated upstream
 //private:
 
+=======
+    [[nodiscard]] virtual jv::para get_para() {
+        return jv::para(0,0,0,0); // Never use this
+    }
+>>>>>>> Stashed changes
 };
 
 class Wall2 : public Block{
 public:
     ~Wall2(){}
+<<<<<<< Updated upstream
     Wall2(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
+=======
+    Wall2(int x, int y, bn::camera_ptr& cam, unsigned char option)
+>>>>>>> Stashed changes
     {
         unsigned char sprt_index[2];
         switch(option){
@@ -30,7 +40,7 @@ public:
                 for(unsigned char i = 0; i < 2; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16*(i%2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 + 12, y * 32 + 4, 16, 34);
@@ -42,7 +52,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8 - 16*(i%2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 - 12, y * 32 + 4, 16, 34);
@@ -51,7 +61,7 @@ public:
                 {
                 bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8, 4);
                 sprite.set_camera(cam);
-                sprite.set_bg_priority(1);
+                sprite.set_bg_priority(2);
                 _sprites.push_back(sprite);
                 _para = jv::para(x * 32 + 12, y * 32 + 12, 16, 16);
                 break;
@@ -61,7 +71,7 @@ public:
                 bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8, 4);
                 sprite.set_horizontal_flip(true);
                 sprite.set_camera(cam);
-                sprite.set_bg_priority(1);
+                sprite.set_bg_priority(2);
                 _sprites.push_back(sprite);
                 _para = jv::para(x * 32 - 12, y * 32 + 12, 16, 16);
                 break;
@@ -70,7 +80,7 @@ public:
                 for(unsigned char i = 0; i < 2; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16*(i%2), 5);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 + 12, y * 32 + 4, 16, 34);
@@ -80,7 +90,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8 - 16*(i%2), 5);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 - 12, y * 32 + 4, 16, 34);
@@ -89,7 +99,7 @@ public:
                 for(unsigned char i = 0; i < 2; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16, 35);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 + 12, y * 32 - 4, 16, 16);
@@ -99,7 +109,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8 - 16, 35);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 - 12, y * 32 - 4, 16, 16);
@@ -109,7 +119,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16*(i%2), 35);
                     if(i==1){
                         sprite.set_camera(cam);
-                        sprite.set_bg_priority(1);
+                        sprite.set_bg_priority(2);
                         _sprites.push_back(sprite);
                     }
                 }
@@ -121,7 +131,7 @@ public:
                     if(i == 1){
                         sprite.set_horizontal_flip(true);
                         sprite.set_camera(cam);
-                        sprite.set_bg_priority(1);
+                        sprite.set_bg_priority(2);
                         _sprites.push_back(sprite);
                     }
                 }
@@ -133,7 +143,7 @@ public:
                 for(unsigned char i = 0; i < 2; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16*(i%2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 + 12, y * 32 + 4, 16, 34);
@@ -145,7 +155,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8 - 16*(i%2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 - 12, y * 32 + 4, 16, 34);
@@ -154,7 +164,7 @@ public:
                 for(unsigned char i = 0; i < 2; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 + 8, y * 32 + 8 - 16*(i%2), 7);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 + 12, y * 32 + 4, 16, 34);
@@ -164,7 +174,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8, y * 32 + 8 - 16*(i%2), 7);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32 - 12, y * 32 + 4, 16, 34);
@@ -174,7 +184,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 - 24, 43);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 - 24, 34, 16);
@@ -182,11 +192,14 @@ public:
             default:
                 break;
         }
-        if(option > 1){
-            para_vector.push_back(_para);
-        }
     }
     
+<<<<<<< Updated upstream
+=======
+    [[nodiscard]] jv::para get_para() override{
+        return _para;
+    }
+>>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 2> _sprites;
     jv::para _para;
@@ -195,7 +208,11 @@ private:
 class Wall4 : public Block{
 public:
     ~Wall4(){}
+<<<<<<< Updated upstream
     Wall4(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
+=======
+    Wall4(int x, int y, bn::camera_ptr& cam, unsigned char option)
+>>>>>>> Stashed changes
     {
         unsigned char sprt_index[4];
         switch(option){
@@ -211,7 +228,7 @@ public:
                         sprite.set_x(sprite.x()-1);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 - 28, 34, 16, 8);
@@ -228,7 +245,7 @@ public:
                     }
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 - 28, 34, 16, -7);
@@ -245,7 +262,7 @@ public:
                         sprite.set_x(sprite.x()-1);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 - 44, 34, 16, 8);
@@ -262,7 +279,7 @@ public:
                     }
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 - 12, 34, 16, -7);
@@ -270,9 +287,14 @@ public:
             default:
                 break;
         }
-        para_vector.push_back(_para);
     }
     
+<<<<<<< Updated upstream
+=======
+    [[nodiscard]] jv::para get_para() override{
+        return _para;
+    }
+>>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
     jv::para _para;
@@ -281,6 +303,7 @@ private:
 class Wall6 : public Block{
 public:
     ~Wall6(){}
+<<<<<<< Updated upstream
     Wall6(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector)
     {
         unsigned char sprt_index[6] = {0, 1, 0, 1, 2, 3};
@@ -289,11 +312,31 @@ public:
             sprite.set_camera(cam);
             sprite.set_bg_priority(1);
             _sprites.push_back(sprite);
+=======
+    Wall6(int x, int y, bn::camera_ptr& cam, unsigned char option)
+    {
+        switch(option){
+            case 0:
+                for(unsigned char i = 0; i < 6; i++){
+                    bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i%3), (i%2) + 2*((i%3)==2));
+                    sprite.set_camera(cam);
+                    sprite.set_bg_priority(2);
+                    _sprites.push_back(sprite);
+                }
+                _para = jv::para(x * 32, y * 32 + 12, 34, 16);
+                break;
+            default:
+                break;
+>>>>>>> Stashed changes
         }
-        _para = jv::para(x * 32, y * 32 + 12, 34, 16);
-        para_vector.push_back(_para);
     }
     
+<<<<<<< Updated upstream
+=======
+    [[nodiscard]] jv::para get_para() override{
+        return _para;
+    }
+>>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 6> _sprites;
     jv::para _para;
@@ -302,7 +345,11 @@ private:
 class Wall8 : public Block{
 public:
     ~Wall8(){}
+<<<<<<< Updated upstream
     Wall8(int x, int y, bn::camera_ptr& cam, bn::vector<jv::para, 40>& para_vector, unsigned char option)
+=======
+    Wall8(int x, int y, bn::camera_ptr& cam, unsigned char option)
+>>>>>>> Stashed changes
     {
         unsigned char sprt_index[8];
         switch(option){
@@ -318,7 +365,7 @@ public:
                 for(unsigned char i = 0; i < 8; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 24 - 16*((i/2)%4), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 + 20, 34, 16, -7);
@@ -336,7 +383,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 24 - 16*((i/2)%4), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 + 20, 34, 16, 8);
@@ -353,7 +400,7 @@ public:
                 for(unsigned char i = 0; i < 8; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 24 - 16*((i/2)%4), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 + 20, 34, 16, -7);
@@ -371,7 +418,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32  + 24 - 16*((i/2)%4), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 _para = jv::para(x * 32, y * 32 + 20, 34, 16, 8);
@@ -379,9 +426,14 @@ public:
             default:
                 break;
         }
-        para_vector.push_back(_para);
     }
     
+<<<<<<< Updated upstream
+=======
+    [[nodiscard]] jv::para get_para() override{
+        return _para;
+    }
+>>>>>>> Stashed changes
 private:
     bn::vector<bn::sprite_ptr, 8> _sprites;
     jv::para _para;
@@ -398,7 +450,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), 20);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -410,7 +462,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -423,7 +475,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -435,7 +487,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(2);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -448,7 +500,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -460,7 +512,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -473,7 +525,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -488,7 +540,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -503,7 +555,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -518,7 +570,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -533,7 +585,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -545,7 +597,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -560,7 +612,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -572,7 +624,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -584,7 +636,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -599,7 +651,7 @@ public:
                         sprite.set_horizontal_flip(true);
                     }
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -609,7 +661,7 @@ public:
                 for(unsigned char i = 2; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 _sprites.shrink(2);
@@ -621,7 +673,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 _sprites.shrink(2);
@@ -634,7 +686,7 @@ public:
                 for(unsigned char i = 0; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -647,7 +699,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -655,7 +707,7 @@ public:
                 for(unsigned char i = 2; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), 42);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 _sprites.shrink(2);
@@ -666,7 +718,7 @@ public:
                 for(unsigned char i = 2; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 break;
@@ -677,7 +729,7 @@ public:
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), sprt_index[i]);
                     sprite.set_horizontal_flip(true);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 _sprites.shrink(2);
@@ -686,7 +738,7 @@ public:
                 for(unsigned char i = 2; i < 4; i++){
                     bn::sprite_ptr sprite = bn::sprite_items::tileset.create_sprite(x * 32 - 8 + 16*(i%2), y * 32 + 8 - 16*(i>=2), 42);
                     sprite.set_camera(cam);
-                    sprite.set_bg_priority(1);
+                    sprite.set_bg_priority(3);
                     _sprites.push_back(sprite);
                 }
                 _sprites.shrink(2);
@@ -700,6 +752,7 @@ private:
     bn::vector<bn::sprite_ptr, 4> _sprites;
 };
 
+<<<<<<< Updated upstream
 /*class LevelGenerator{
 public:
     ~LevelGenerator(){};
@@ -726,6 +779,8 @@ public:
     }
 };*/
 
+=======
+>>>>>>> Stashed changes
 }
 
 #endif
