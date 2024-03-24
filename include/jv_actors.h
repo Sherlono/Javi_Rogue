@@ -6,6 +6,7 @@
 #include "bn_math.h"
 
 #include "bn_sprite_items_character.h"
+#include "jv_constants.h"
 #include "jv_math.h"
 
 namespace jv{
@@ -36,7 +37,7 @@ public:
     {
         _x = x;
         _y = y;
-        _sprite.set_bg_priority(0);
+        _sprite.set_bg_priority(1);
     }
     void set_x(bn::fixed x, bool sprite_follow = false){
         if(sprite_follow){
@@ -61,6 +62,9 @@ public:
         _y = y;
     }
 
+    void set_visible(bool visible){
+        _sprite.set_visible(visible);
+    }
     void walk_update(){
         _walk.update();
     }
@@ -68,7 +72,7 @@ public:
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0)); 
     }
     
-    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, 50>& para_v){
+    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, constants::max_blocks>& para_v){
         bool tl1 = false;
         bool tr1 = false;
         bool bl1 = false;
