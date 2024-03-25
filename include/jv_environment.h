@@ -6,6 +6,7 @@
 #include "bn_vector.h"
 #include "bn_sprite_ptr.h"
 #include "bn_sprite_tiles_ptr.h"
+#include "bn_sprite_shape_size.h"
 
 #include "bn_sprite_items_big_floor.h"
 #include "bn_sprite_items_small_floor.h"
@@ -97,27 +98,23 @@ public:
                 _para = jv::para(x * 32 - 12, y * 32 - 4, 16, 16);
                 break;
             case 12:    // Black Diagonal
-                _sprite = bn::sprite_items::big_wall.create_sprite(0, 0);
-                _sprite.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(0));
                 _sprite.set_position(x * 32, y * 32 - 16);
                 _para = jv::para(x * 32, y * 32 + 2 - 16, 34, 16, 8);
                 break;
             case 13:    // Black Diagonal
-                _sprite = bn::sprite_items::big_wall.create_sprite(0, 0);
-                _sprite.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(0));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 16);
                 _para = jv::para(x * 32, y * 32 + 2 - 16, 34, 16, -8);
                 break;
             case 14:
-                _sprite = bn::sprite_items::big_wall.create_sprite(0, 0);
-                _sprite.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(0));
                 _sprite.set_position(x * 32, y * 32 - 16 - 16);
                 _para = jv::para(x * 32, y * 32 - 14 - 16, 34, 16, 8);
                 break;
             case 15:
-                _sprite = bn::sprite_items::big_wall.create_sprite(0, 0);
-                _sprite.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(0));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 16 - 16);
                 _para = jv::para(x * 32, y * 32 - 14 - 16, 34, 16, -8);
@@ -187,8 +184,7 @@ public:
             case 4:     // down facing horizontal wall
                 _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(1));
                 _sprite_1.set_position(x * 32, y * 32);
-                _sprite_2 = bn::sprite_items::small_wall.create_sprite(0, 0);
-                _sprite_2.set_tiles(bn::sprite_items::small_wall.tiles_item().create_tiles(6));
+                _sprite_2.set_tiles(bn::sprite_shape_size(16, 32), bn::sprite_items::small_wall.tiles_item().create_tiles(6));
                 _sprite_2.set_rotation_angle(90);
                 _sprite_2.set_position(x * 32, y * 32 - 25);
                 _para = jv::para(x * 32, y * 32 + 12, 34, 16);
@@ -212,7 +208,7 @@ private:
     jv::para _para;
 };
 
-class Floor : public Block{     // This are done yay!
+class Floor : public Block{
 public:
     ~Floor(){};
     Floor(int x, int y, bn::camera_ptr& cam, unsigned char option, int z):
@@ -350,83 +346,69 @@ public:
                 _sprite.set_position(x * 32, y * 32);
                 break;
             case 27:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(0));
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 28:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(0));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 29:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(1));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(1));
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 30:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(1));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(1));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 31:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(2));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 32:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(2));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 33:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(2));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 34:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(2));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 35:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(3));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 36:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(3));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 37:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(3));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 38:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(3));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;
             case 39:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(0));
                 _sprite.set_position(x * 32, y * 32 + 8);
                 break;
             case 40:
-                _sprite = bn::sprite_items::small_floor.create_sprite(x * 32, y * 32);
-                _sprite.set_tiles(bn::sprite_items::small_floor.tiles_item().create_tiles(0));
+                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(0));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_position(x * 32, y * 32 - 8);
                 break;

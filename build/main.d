@@ -56,6 +56,7 @@ main.o: \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_ptr.h \
+ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_big_floor.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h \
  C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h \
@@ -138,6 +139,7 @@ C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_vector_fwd.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_ptr.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_tiles_ptr.h:
+C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/games/javi-rogue/build/bn_sprite_items_big_floor.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_item.h:
 C:/Users/javie/OneDrive/Documentos/butano-master/butano/include/bn_sprite_shape_size.h:
