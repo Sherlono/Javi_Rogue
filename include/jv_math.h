@@ -2,10 +2,11 @@
 #define JV_MATH_H
 
 #include "bn_point.h"
+#include "bn_rect.h"
 #include "bn_fixed.h"
 
 namespace jv{
-bn::fixed xproduct(bn::fixed_point a, bn::fixed_point b, bn::fixed_point t){  // Keep in mind the Y axis is inverted
+int xproduct(bn::point a, bn::point b, bn::point t){  // Keep in mind the Y axis is inverted
     if (a.x() != b.x()){
         return (b.x() - a.x()) * (-t.y() + a.y()) + (b.y() - a.y()) * (t.x() - a.x());  // > 0 = above
     }else{
@@ -13,41 +14,41 @@ bn::fixed xproduct(bn::fixed_point a, bn::fixed_point b, bn::fixed_point t){  //
     }
 }
 
-class para{     // Paralelogram
+class para{     // para is for Paralelogram
 public:
     ~para(){}
     para(){}
-    para(bn::fixed x, bn::fixed y, bn::fixed width, bn::fixed height, bn::fixed vshear = 0):_x(x), _y(y){
-        _top_left = bn::fixed_point(_x - (width/2), _y - vshear - (height/2));
-        _top_right = bn::fixed_point(_x + (width/2), _y + vshear - (height/2));
-        _bottom_left = bn::fixed_point(_x - (width/2), _y - vshear + (height/2));
-        _bottom_right = bn::fixed_point(_x + (width/2), _y + vshear + (height/2));
+    para(int x, int y, bn::point id, int width, int height, int vshear = 0):_x(x), _y(y), _id_x(id.x()), _id_y(id.y()){
+        _top_left = bn::point(_x - (width/2), _y - vshear - (height/2));
+        _top_right = bn::point(_x + (width/2), _y + vshear - (height/2));
+        _bottom_left = bn::point(_x - (width/2), _y - vshear + (height/2));
+        _bottom_right = bn::point(_x + (width/2), _y + vshear + (height/2));
     }
 
-    [[nodiscard]] bn::fixed x(){
-        return _x;
+    [[nodiscard]] int x(bool id = false) const{ // Adding true in the arguments returns the "id" (simplified position) instead
+        return _x * (!id) + _id_x * id;
     }
-    [[nodiscard]] bn::fixed y(){
-        return _y;
+    [[nodiscard]] int y(bool id = false) const{
+        return _y * (!id) + _id_y * id;
     }
-    [[nodiscard]] bn::fixed_point xy(){
-        return bn::fixed_point(_x, _y);
+    [[nodiscard]] bn::point xy(bool id = false) const{
+        return bn::point(this->x(id), this->y(id));
     }
 
-    [[nodiscard]] bn::fixed_point top_left(){
+    [[nodiscard]] bn::point top_left() const{
         return _top_left;
     }
-    [[nodiscard]] bn::fixed_point top_right(){
+    [[nodiscard]] bn::point top_right() const{
         return _top_right;
     }
-    [[nodiscard]] bn::fixed_point bottom_left(){
+    [[nodiscard]] bn::point bottom_left() const{
         return _bottom_left;
     }
-    [[nodiscard]] bn::fixed_point bottom_right(){
+    [[nodiscard]] bn::point bottom_right() const{
         return _bottom_right;
     }
     
-    [[nodiscard]] bool contains_top_left(jv::para other){
+    [[nodiscard]] bool contains_top_left(jv::para other) const{
         if(xproduct(this->_top_left, this->_top_right, other.top_left()) <= 0 && xproduct(this->_top_left, this->_bottom_left, other.top_left()) <= 0){
             if(xproduct(this->_bottom_left, this->_bottom_right, other.top_left()) >= 0 && xproduct(this->_top_right, this->_bottom_right, other.top_left()) >= 0){
                 return true;
@@ -55,7 +56,7 @@ public:
         }
         return false;
     }
-    [[nodiscard]] bool contains_top_right(jv::para other){
+    [[nodiscard]] bool contains_top_right(jv::para other) const{
         if(xproduct(this->_top_left, this->_top_right, other.top_right()) <= 0 && xproduct(this->_top_left, this->_bottom_left, other.top_right()) <= 0){
             if(xproduct(this->_bottom_left, this->_bottom_right, other.top_right()) >= 0 && xproduct(this->_top_right, this->_bottom_right, other.top_right()) >= 0){
                 return true;
@@ -63,7 +64,7 @@ public:
         }
         return false;
     }
-    [[nodiscard]] bool contains_bottom_left(jv::para other){
+    [[nodiscard]] bool contains_bottom_left(jv::para other) const{
         if(xproduct(this->_top_left, this->_top_right, other.bottom_left()) <= 0 && xproduct(this->_top_left, this->_bottom_left, other.bottom_left()) <= 0){
             if(xproduct(this->_bottom_left, this->_bottom_right, other.bottom_left()) >= 0 && xproduct(this->_top_right, this->_bottom_right, other.bottom_left()) >= 0){
                 return true;
@@ -71,7 +72,7 @@ public:
         }
         return false;
     }
-    [[nodiscard]] bool contains_bottom_right(jv::para other){
+    [[nodiscard]] bool contains_bottom_right(jv::para other) const{
         if(xproduct(this->_top_left, this->_top_right, other.bottom_right()) <= 0 && xproduct(this->_top_left, this->_bottom_left, other.bottom_right()) <= 0){
             if(xproduct(this->_bottom_left, this->_bottom_right, other.bottom_right()) >= 0 && xproduct(this->_top_right, this->_bottom_right, other.bottom_right()) >= 0){
                 return true;
@@ -80,7 +81,7 @@ public:
         return false;
     }
 
-    [[nodiscard]] bool contains(bn::fixed_point point){
+    [[nodiscard]] bool contains(bn::point point) const{
         if(xproduct(this->_top_left, this->_top_right, point) <= 0 && xproduct(this->_top_left, this->_bottom_left, point) <= 0){
             if(xproduct(this->_bottom_left, this->_bottom_right, point) >= 0 && xproduct(this->_top_right, this->_bottom_right, point) >= 0){
                 return true;
@@ -89,7 +90,7 @@ public:
         return false;
     }
 
-    [[nodiscard]] bool touches(jv::para other){
+    [[nodiscard]] bool touches(jv::para other) const{
         if(this->contains(other.top_left())){           // Upper left corner check
             return true;
         }else if(this->contains(other.top_right())){    // Upper right corner check
@@ -101,7 +102,7 @@ public:
         }
         return false;
     }
-    [[nodiscard]] bool touches(bn::rect other){
+    [[nodiscard]] bool touches(bn::rect other) const{
         if(this->contains(other.top_left())){           // Upper left corner check
             return true;
         }else if(this->contains(other.top_right())){    // Upper right corner check
@@ -114,7 +115,7 @@ public:
         return false;
     }
 
-    void set_position(bn::fixed new_x, bn::fixed new_y){
+    void set_position(int new_x, int new_y){
         _top_left.set_x(new_x + (_top_left.x() - _x));
         _top_left.set_y(new_y + (_top_left.y() - _y));
         _top_right.set_x(new_x + (_top_right.x() - _x));
@@ -130,18 +131,10 @@ public:
 
     void copy(para other){
         this->set_points(other.top_left(), other.top_right(), other.bottom_left(), other.bottom_right());
-        this->_top_left.set_x(other.top_left().x());
-        this->_top_left.set_y(other.top_left().y());
-        this->_top_right.set_x(other.top_right().x());
-        this->_top_right.set_y(other.top_right().y());
-        this->_bottom_left.set_x(other.bottom_left().x());
-        this->_bottom_left.set_y(other.bottom_left().y());
-        this->_bottom_right.set_x(other.bottom_right().x());
-        this->_bottom_right.set_y(other.bottom_right().y());
     }
 
 protected:
-    void set_points(bn::fixed_point new_TL, bn::fixed_point new_TR, bn::fixed_point new_BL, bn::fixed_point new_BR){
+    void set_points(bn::point new_TL, bn::point new_TR, bn::point new_BL, bn::point new_BR){
         _top_left = new_TL;
         _top_right = new_TR;
         _bottom_left = new_BL;
@@ -149,8 +142,8 @@ protected:
     }
     
 private:
-    bn::fixed _x, _y;
-    bn::fixed_point _top_left, _top_right, _bottom_left, _bottom_right;
+    int _x, _y, _id_x, _id_y;
+    bn::point _top_left, _top_right, _bottom_left, _bottom_right;
 };
 }
 

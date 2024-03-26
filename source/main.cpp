@@ -55,7 +55,7 @@ int main()
                                                           54, 55, 56, 57, 58, 59,
                                                           54, 55, 56, 57, 58, 59};*/
                                      
-    jv::LevelGenerator(8, 6, cam, para_v, block_holder, block_array);
+    //jv::LevelGenerator(8, 6, cam, para_v, block_holder, block_array);
 
     /*bn::vector<bn::sprite_ptr, 8> v_text;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
@@ -63,6 +63,7 @@ int main()
 
     while(true){
         //text_generator.generate(-80, -55, bn::to_string<8>(i), v_text);
+        jv::LevelGenerator(8, 6, cam, para_v, block_holder, block_array);
         player1.move_player(cam, para_v);
         
         bn::core::update();

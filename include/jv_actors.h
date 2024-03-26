@@ -13,13 +13,13 @@ namespace jv{
 class Actor{
 public:
     virtual ~Actor(){};
-    [[nodiscard]] bn::fixed x(){
+    [[nodiscard]] bn::fixed x() const{
         return _x;
     }
-    [[nodiscard]] bn::fixed y(){
+    [[nodiscard]] bn::fixed y() const{
         return _y;
     }
-    [[nodiscard]] bn::fixed_point xy(){
+    [[nodiscard]] bn::fixed_point xy() const{
         return bn::fixed_point(_x, _y);
     }
     bn::fixed _x, _y;
@@ -31,7 +31,7 @@ public:
     ~Player(){};
     Player(int x, int y):
     _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
-    _para(x, y + 6, 6, 6),
+    _para(x, y + 6, bn::point(0,0), 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(1.0))
     {
