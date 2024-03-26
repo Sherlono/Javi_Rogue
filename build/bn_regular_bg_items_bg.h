@@ -13,7 +13,7 @@
 //	+ regular map (flat), not compressed, 32x32 
 //	Total size: 32 + 30048 + 2048 = 32128
 //
-//	Time-stamp: 2024-03-23, 01:02:09
+//	Time-stamp: 2024-03-25, 15:29:12
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -40,7 +40,7 @@ namespace bn::regular_bg_items
     constexpr inline regular_bg_item bg(
             regular_bg_tiles_item(span<const tile>(bg_bn_gfxTiles, 939), bpp_mode::BPP_4, compression_type::NONE), 
             bg_palette_item(span<const color>(bg_bn_gfxPal, 16), bpp_mode::BPP_4, compression_type::NONE),
-            regular_bg_map_item(bg_bn_gfxMap[0], size(32, 32), compression_type::NONE, 1, false));
+            regular_bg_map_item(bg_bn_gfxMap[0], size(32, 32), compression_type::NONE));
 }
 
 #endif
