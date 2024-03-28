@@ -73,38 +73,41 @@ public:
     }
     
     void move_player(bn::camera_ptr& cam, bn::vector<jv::para, constants::max_blocks>& para_v){
-        bool tl1 = false;
-        bool tr1 = false;
-        bool bl1 = false;
-        bool br1 = false;
-
-        for(unsigned char i = 0; i < para_v.size(); i++){
-            bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
-            bn::fixed y_distance = bn::abs(para_v[i].y() -  this->y());
-            if(x_distance < 24 && y_distance < 24){
-                tl1 = tl1 + para_v[i].contains_top_left(this->_para);
-                tr1 = tr1 + para_v[i].contains_top_right(this->_para);
-                bl1 = bl1 + para_v[i].contains_bottom_left(this->_para);
-                br1 = br1 + para_v[i].contains_bottom_right(this->_para);
-            }
-        }
-
-        if(bn::keypad::up_held() && !(tl1 && tr1)){
-            cam.set_position(cam.x(), cam.y() - _speed);
-            this->set_position(cam.x(), cam.y() - _speed);
-        }else if(bn::keypad::down_held() && !(bl1 && br1)){
-            cam.set_position(cam.x(), cam.y() + _speed);
-            this->set_position(cam.x(), cam.y() + _speed);
-        }
-        if(bn::keypad::left_held() && !(tl1 && bl1)){
-            cam.set_position(cam.x() - _speed, cam.y());
-            this->set_position(cam.x() - _speed, cam.y());
-        }else if(bn::keypad::right_held() && !(tr1 && br1)){
-            cam.set_position(cam.x() + _speed, cam.y());
-            this->set_position(cam.x() + _speed, cam.y());
-        }
-
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
+            bool tl1 = false;
+            bool tr1 = false;
+            bool bl1 = false;
+            bool br1 = false;
+
+            // Checking each player corner for colisions
+            for(unsigned char i = 0; i < para_v.size(); i++){
+                bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
+                bn::fixed y_distance = bn::abs(para_v[i].y() -  this->y());
+                if(x_distance <= 26 && y_distance <= 26){
+                    tl1 = tl1 + para_v[i].contains_top_left(this->_para);
+                    tr1 = tr1 + para_v[i].contains_top_right(this->_para);
+                    bl1 = bl1 + para_v[i].contains_bottom_left(this->_para);
+                    br1 = br1 + para_v[i].contains_bottom_right(this->_para);
+                }
+            }
+
+            // Move if direction not obstructed
+            if(bn::keypad::up_held() && !(tl1 && tr1)){
+                cam.set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
+                this->set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
+            }else if(bn::keypad::down_held() && !(bl1 && br1)){
+                cam.set_position(cam.x(), cam.y() + (_speed + bn::keypad::b_held()));
+                this->set_position(cam.x(), cam.y() + (_speed + bn::keypad::b_held()));
+            }
+            if(bn::keypad::left_held() && !(tl1 && bl1)){
+                cam.set_position(cam.x() - (_speed + bn::keypad::b_held()), cam.y());
+                this->set_position(cam.x() - (_speed + bn::keypad::b_held()), cam.y());
+            }else if(bn::keypad::right_held() && !(tr1 && br1)){
+                cam.set_position(cam.x() + (_speed + bn::keypad::b_held()), cam.y());
+                this->set_position(cam.x() + (_speed + bn::keypad::b_held()), cam.y());
+            }
+
+            // Animated character
             this->walk_update();
         }else{
             this->wait();
