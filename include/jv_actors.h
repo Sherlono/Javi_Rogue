@@ -72,14 +72,14 @@ public:
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0)); 
     }
     
-    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, constants::max_blocks>& para_v){
+    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, jv::ct::max_blocks>& para_v){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
+            // Checking each player corner for colisions
             bool tl1 = false;
             bool tr1 = false;
             bool bl1 = false;
             bool br1 = false;
 
-            // Checking each player corner for colisions
             for(unsigned char i = 0; i < para_v.size(); i++){
                 bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
                 bn::fixed y_distance = bn::abs(para_v[i].y() -  this->y());
@@ -110,6 +110,7 @@ public:
             // Animated character
             this->walk_update();
         }else{
+            // Insert idle animation here
             this->wait();
         }
     }
