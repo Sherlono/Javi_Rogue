@@ -354,14 +354,10 @@ public:
                 break;
             case jv::ct::w1w2count + 23:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(4));
-                _sprite.set_rotation_angle(90);
-                _sprite.set_y(y - 1);
                 break;
             case jv::ct::w1w2count + 24:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(4));
-                _sprite.set_rotation_angle(90);
                 _sprite.set_vertical_flip(true);
-                _sprite.set_position(x - 1, y - 1);
                 break;
             case jv::ct::w1w2count + 25:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(7));

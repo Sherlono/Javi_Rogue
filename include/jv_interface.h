@@ -19,7 +19,7 @@ struct Mapinfo{
             return 0;   // Not perfect but works if no radical changes are made to how block constructors work
         }
     }
-
+    // Members
     cuchar_t width, height, size;
 private:
     cuchar_t* _arr;
@@ -27,7 +27,7 @@ private:
 
 void LevelGenerator(const Mapinfo map, bn::camera_ptr& cam, bn::vector<jv::para, jv::ct::max_blocks>& para_vector, bn::vector<jv::Block*, jv::ct::max_blocks>& block_holder){
     static int prev_x = 999, prev_y = 999;
-    int current_x = (cam.x()/16).round_integer(), current_y = (cam.y()/16).round_integer();
+    int current_x = (cam.x()/48).round_integer(), current_y = (cam.y()/32).round_integer();
     
     if(current_x != prev_x || current_y != prev_y){
         // Clear map to make anew
@@ -38,20 +38,20 @@ void LevelGenerator(const Mapinfo map, bn::camera_ptr& cam, bn::vector<jv::para,
         block_holder.clear();
 
         // Redraw map inside window
-        int i = 0;
+        unsigned int i = 0;
         for(size_t y = 0; y < map.height; y++){
             for(size_t x = 0; x < map.width; x++){
-                if(map[i] && map[i] <= jv::ct::block_type_count){
+                if(map[i] && map[i] <= jv::ct::block_type_count){   // if block type is not 0 and is not above block type count
                     int x32 = x * 32, y32 = y * 32;
                     bool in_screen = x32 >= cam.x() - 180 && x32 <= cam.x() + 180 && y32 >= cam.y() - 125 && y32 <= cam.y() + 125;
                     if(in_screen){      // Create block
                         jv::Block* newblock;
                         if(map[i] <= jv::ct::w1count){
-                            newblock = new Wall1(x32, y32, cam, map[i], y);
+                            newblock = new Wall1(x32, y32, cam, map[i], jv::ct::block_type_count - y);
                         }else if(map[i] <= jv::ct::w1w2count){
-                            newblock = new Wall2(x32, y32, cam, map[i], y);
+                            newblock = new Wall2(x32, y32, cam, map[i], jv::ct::block_type_count - y);
                         }else{
-                            newblock = new Floor(x32, y32, cam, map[i], y);
+                            newblock = new Floor(x32, y32, cam, map[i], jv::ct::block_type_count - y);
                         }
                         para_vector.push_back(newblock->get_para());
                         block_holder.push_back(newblock);
