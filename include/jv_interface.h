@@ -26,6 +26,7 @@ private:
 };
 
 void LevelGenerator(const Mapinfo map, bn::camera_ptr& cam, bn::vector<jv::para, jv::ct::max_blocks>& para_vector, bn::vector<jv::Block*, jv::ct::max_blocks>& block_holder){
+    // Did the player move enough to load assets
     static int prev_x = 999, prev_y = 999;
     int current_x = (cam.x()/48).round_integer(), current_y = (cam.y()/32).round_integer();
     
@@ -37,27 +38,30 @@ void LevelGenerator(const Mapinfo map, bn::camera_ptr& cam, bn::vector<jv::para,
         para_vector.clear();
         block_holder.clear();
 
-        // Redraw map inside window
-        unsigned int i = 0;
-        for(size_t y = 0; y < map.height; y++){
-            for(size_t x = 0; x < map.width; x++){
-                if(map[i] && map[i] <= jv::ct::block_type_count){   // if block type is not 0 and is not above block type count
-                    int x32 = x * 32, y32 = y * 32;
-                    bool in_screen = x32 >= cam.x() - 180 && x32 <= cam.x() + 180 && y32 >= cam.y() - 125 && y32 <= cam.y() + 125;
-                    if(in_screen){      // Create block
-                        jv::Block* newblock;
-                        if(map[i] <= jv::ct::w1count){
-                            newblock = new Wall1(x32, y32, cam, map[i], jv::ct::block_type_count - y);
-                        }else if(map[i] <= jv::ct::w1w2count){
-                            newblock = new Wall2(x32, y32, cam, map[i], jv::ct::block_type_count - y);
-                        }else{
-                            newblock = new Floor(x32, y32, cam, map[i], jv::ct::block_type_count - y);
-                        }
-                        para_vector.push_back(newblock->get_para());
-                        block_holder.push_back(newblock);
+        // Defining the MAP ARRAY bounds to redraw the map
+        int aux_x1 = ((cam.x() - 192)/32).round_integer(), aux_y1 = ((cam.y() - 128)/32).round_integer();
+        int aux_x2 = ((cam.x() + 192)/32).round_integer(), aux_y2 = ((cam.y() + 128)/32).round_integer();
+        unsigned int left_bound = aux_x1 * (aux_x1 > 0), right_bound = aux_x2 * (aux_x2 <= map.width) + map.width * (aux_x2 > map.width);
+        unsigned int top_bound = aux_y1 * (aux_y1 > 0), bottom_bound = aux_y2 * (aux_y2 <= map.height) + map.height * (aux_y2 > map.height);
+
+        // Redraw map inside bounds
+        for(size_t y = top_bound; y < bottom_bound; y++){
+            for(size_t x = left_bound; x < right_bound; x++){
+
+                unsigned char index = x + y * map.width;
+
+                if(map[index] && map[index] <= jv::ct::block_type_count){   // if block type is not 0 and is not above block type count
+                    jv::Block* newblock;
+                    if(map[index] <= jv::ct::w1count){
+                        newblock = new Wall1(x*32, y*32, cam, map[index], jv::ct::max_blocks - y);
+                    }else if(map[index] <= jv::ct::w1w2count){
+                        newblock = new Wall2(x*32, y*32, cam, map[index], jv::ct::max_blocks - y);
+                    }else{
+                        newblock = new Floor(x*32, y*32, cam, map[index], jv::ct::max_blocks - y);
                     }
+                    para_vector.push_back(newblock->get_para());
+                    block_holder.push_back(newblock);
                 }
-                i++;
             }
         }
     }

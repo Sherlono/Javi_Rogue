@@ -3,9 +3,9 @@
 #include "bn_camera_actions.h"
 #include "bn_regular_bg_ptr.h"
 
-/*#include "common_variable_8x8_sprite_font.h"
+#include "common_variable_8x8_sprite_font.h"
 #include "bn_sprite_text_generator.h"
-#include "bn_string.h"*/
+#include "bn_string.h"
 
 #include "bn_music_items.h"
 
@@ -19,21 +19,22 @@
 int main()
 {
     bn::core::init();
-    bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-
     bn::point initial_pos (16 + 2*32,16 + 3*32);
-    bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
     jv::Player player1(initial_pos.x(), initial_pos.y());
+    bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
+
+    bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
+    background.set_camera(cam);
 
     bn::vector<jv::para, jv::ct::max_blocks> para_v;
     bn::vector<jv::Block*, jv::ct::max_blocks> block_holder;
 
     bn::point map_shape(23, 10);
-    cuchar_t block_array[23 * 10] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 25, 2 ,
-                                     5 , 29, 37, 38, 30, 28, 28, 28, 28, 29, 37, 49, 38, 30, 28, 28, 28, 28, 29, 37, 38, 30, 6 ,
-                                     7 , 51, 53, 54, 78, 72, 72, 72, 72, 77, 54, 53, 53, 78, 72, 72, 72, 72, 77, 53, 53, 52, 8 ,
-                                     9 , 45, 55, 53, 46, 18, 23, 23, 19, 45, 55, 53, 53, 46, 18, 23, 23, 19, 45, 53, 55, 46, 10,
-                                     11, 15, 21, 22, 16, 12, 0 , 0 , 11, 15, 21, 69, 22, 16, 12, 0 , 0 , 11, 15, 21, 22, 16, 12, 
+    cuchar_t block_array[23 * 10] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,
+                                     5 , 29, 37, 38, 30, 28, 28, 28, 28, 29, 37, 49, 49, 49, 49, 49, 49, 49, 49, 49, 38, 30, 6 ,
+                                     7 , 51, 53, 54, 78, 72, 72, 72, 72, 77, 54, 53, 53, 53, 53, 53, 55, 53, 54, 53, 53, 52, 8 ,
+                                     9 , 45, 55, 53, 46, 18, 23, 23, 19, 45, 55, 53, 53, 55, 53, 53, 53, 55, 53, 53, 55, 46, 10,
+                                     11, 15, 21, 22, 16, 12, 0 , 0 , 11, 15, 21, 69, 20, 20, 20, 20, 20, 20, 20, 20, 22, 16, 12, 
                                      1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 56, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 25, 2 ,
                                      5 , 29, 37, 38, 30, 28, 28, 28, 28, 29, 37, 63, 38, 30, 28, 28, 28, 28, 29, 37, 38, 30, 6 ,
                                      7 , 51, 53, 54, 78, 72, 72, 72, 72, 77, 54, 53, 53, 78, 72, 72, 72, 72, 77, 53, 53, 52, 8 ,
@@ -56,8 +57,8 @@ int main()
     jv::Mapinfo map1(map_shape.x(), map_shape.y(), block_array);
 
     /*// On screen text stuff (mostly for debugging)
-    bn::vector<bn::sprite_ptr, 16> v_text;
-    bn::string<64> mytext = "";
+    bn::vector<bn::sprite_ptr, 14> v_text;
+    bn::string<32> mytext = "";
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);*/
     
@@ -66,8 +67,8 @@ int main()
     jv::LevelGenerator(map1, cam, para_v, block_holder);
 
     while(true){
-        /*mytext = "c.x: " + bn::to_string<32>(cam.x()) + " c.y: " + bn::to_string<32>(cam.y());
-        text_generator.generate(-100, -65, mytext, v_text);*/
+        /*mytext = "c.x: " + bn::to_string<16>(aux_x1 * (aux_x1 > 0)) + " c.y: " + bn::to_string<16>(aux_y1 * (aux_y1 > 0));
+        text_generator.generate(-110, -65, mytext, v_text);*/
 
         player1.move_player(cam, para_v);
         jv::LevelGenerator(map1, cam, para_v, block_holder);
