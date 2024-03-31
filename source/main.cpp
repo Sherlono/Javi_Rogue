@@ -3,9 +3,9 @@
 #include "bn_camera_actions.h"
 #include "bn_regular_bg_ptr.h"
 
-#include "common_variable_8x8_sprite_font.h"
+/*#include "common_variable_8x8_sprite_font.h"
 #include "bn_sprite_text_generator.h"
-#include "bn_string.h"
+#include "bn_string.h"*/
 
 #include "bn_music_items.h"
 
@@ -19,7 +19,7 @@
 int main()
 {
     bn::core::init();
-    bn::point initial_pos (16 + 2*32,16 + 3*32);
+    bn::point initial_pos (16 + 2*32,16 + 2*32);
     jv::Player player1(initial_pos.x(), initial_pos.y());
     bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
 
@@ -54,7 +54,7 @@ int main()
                                     73, 74, 75, 76, 77, 78, 79, 80,
                                     81, 82, 83, 84, 85, 86, 87, 88};*/
     
-    jv::Mapinfo map1(map_shape.x(), map_shape.y(), block_array);
+    jv::GameMap map1(map_shape.x(), map_shape.y(), block_array);
 
     /*// On screen text stuff (mostly for debugging)
     bn::vector<bn::sprite_ptr, 14> v_text;
@@ -64,15 +64,15 @@ int main()
     
     bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
     
-    jv::LevelGenerator(map1, cam, para_v, block_holder);
+    jv::LevelMaker::update(map1, cam, para_v, block_holder);
 
     while(true){
-        /*mytext = "c.x: " + bn::to_string<16>(aux_x1 * (aux_x1 > 0)) + " c.y: " + bn::to_string<16>(aux_y1 * (aux_y1 > 0));
+        /*mytext = "Direction: " + bn::to_string<16>();
         text_generator.generate(-110, -65, mytext, v_text);*/
 
         player1.move_player(cam, para_v);
-        jv::LevelGenerator(map1, cam, para_v, block_holder);
         
+        jv::LevelMaker::update(map1, cam, para_v, block_holder);
         bn::core::update();
         //v_text.clear();
     }

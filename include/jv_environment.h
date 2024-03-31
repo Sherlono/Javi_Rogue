@@ -140,25 +140,25 @@ public:
                 break;
             case 18:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(5));
-                _para = jv::para(x, y+3, bn::point(x, y), 34, 34);
+                _para = jv::para(x, y + 3, bn::point(x, y), 34, 34);
                 break;
             case 19:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(5));
                 _sprite.set_horizontal_flip(true);
-                _para = jv::para(x, y+3, bn::point(x, y), 34, 34);
+                _para = jv::para(x, y + 3, bn::point(x, y), 34, 34);
                 break;
             case 20:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(6));
-                _para = jv::para(x, y + 8, bn::point(x, y), 34, 16);
+                _para = jv::para(x, y + 10, bn::point(x, y), 34, 18);
                 break;
             case 21:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(7));
-                _para = jv::para(x, y + 12, bn::point(x, y), 34, 20);
+                _para = jv::para(x, y + 12, bn::point(x, y), 34, 22);
                 break;
             case 22:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 32), bn::sprite_items::big_wall.tiles_item().create_tiles(7));
                 _sprite.set_horizontal_flip(true);
-                _para = jv::para(x, y + 12, bn::point(x, y), 34, 20);
+                _para = jv::para(x, y + 12, bn::point(x, y), 34, 22);
                 break;
             case 23:
                 _sprite.set_tiles(bn::sprite_items::small_wall.tiles_item().create_tiles(7));

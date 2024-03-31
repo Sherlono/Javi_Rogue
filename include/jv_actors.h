@@ -33,7 +33,9 @@ public:
     _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
     _para(x, y + 6, bn::point(0,0), 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
-    _speed(bn::fixed(1.0))
+    _speed(bn::fixed(1.0)),
+    _prev_dir(2),
+    _dir(2)
     {
         _x = x;
         _y = y;
@@ -66,10 +68,28 @@ public:
         _sprite.set_visible(visible);
     }
     void walk_update(){
+        _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
+        if(_prev_dir != _dir){
+            if(_dir == 1 || _dir == 4 || _dir == 7){  // UP
+                this->_sprite.set_horizontal_flip(false);
+                _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 6, 7, 6, 8);
+            }else if(_dir == 7 || _dir == 6 || _dir == 8){  // RIGHT
+                this->_sprite.set_horizontal_flip(false);
+                _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
+            }else if(_dir == 2 || _dir == 5 || _dir == 6){   // DOWN
+                this->_sprite.set_horizontal_flip(false);
+                _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2);
+            }else if(_dir == 3 || _dir == 4 || _dir == 5){   // LEFT
+                this->_sprite.set_horizontal_flip(true);
+                _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
+            }
+        }
+        _prev_dir = _dir;
         _walk.update();
     }
     void wait(){
-        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0)); 
+        _sprite.set_horizontal_flip(_dir == 3);
+        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
     }
     
     void move_player(bn::camera_ptr& cam, bn::vector<jv::para, jv::ct::max_blocks>& para_v){
@@ -90,8 +110,8 @@ public:
                     br1 = br1 + para_v[i].contains_bottom_right(this->_para);
                 }
             }
-
-            // Move if direction not obstructed
+            
+            // Move if dir not obstructed
             if(bn::keypad::up_held() && !(tl1 && tr1)){
                 cam.set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
                 this->set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
@@ -119,6 +139,7 @@ private:
     jv::para _para;
     bn::sprite_animate_action<4> _walk;
     const bn::fixed _speed;
+    unsigned char _prev_dir, _dir;
 };
 }
 #endif
