@@ -28,7 +28,7 @@ private:
 
 namespace LevelMaker{
 // Update must be run every frame
-void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, ct::max_blocks>& para_vector, bn::vector<Block*, ct::max_blocks>& block_holder){
+void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_holder){
     // Did the player move enough to load assets
     static int prev_x = 999, prev_y = 999;
     int current_x = (cam.x()/48).round_integer(), current_y = (cam.y()/32).round_integer();
@@ -52,14 +52,14 @@ void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, ct::max_blo
             for(int x = left_bound; x < right_bound; x++){
                 unsigned char index = x + y * map.width;
 
-                if(map[index] && map[index] <= ct::block_type_count){   // if block type is not 0 and is not above block type count
+                if(map[index] && map[index] <= BLOCK_TYPE_COUNT){   // if block type is not 0 and is not above block type count
                     Block* newblock;
-                    if(map[index] <= ct::w1count){
-                        newblock = new Wall1(x*32, y*32, cam, map[index], ct::max_blocks - y);
-                    }else if(map[index] <= ct::w1w2count){
-                        newblock = new Wall2(x*32, y*32, cam, map[index], ct::max_blocks - y);
+                    if(map[index] <= W1_COUNT){
+                        newblock = new Wall1(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
+                    }else if(map[index] <= W1W2_COUNT){
+                        newblock = new Wall2(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
                     }else{
-                        newblock = new Floor(x*32, y*32, cam, map[index], ct::max_blocks - y);
+                        newblock = new Floor(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
                     }
                     para_vector.push_back(newblock->get_para());
                     block_holder.push_back(newblock);

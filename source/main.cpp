@@ -26,8 +26,8 @@ int main()
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_camera(cam);
 
-    bn::vector<jv::para, jv::ct::max_blocks> para_v;
-    bn::vector<jv::Block*, jv::ct::max_blocks> block_holder;
+    bn::vector<jv::para, MAX_BLOCKS> para_v;
+    bn::vector<jv::Block*, MAX_BLOCKS> block_holder;
 
     bn::point map_shape(23, 10);
     cuchar_t block_array[23 * 10] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,

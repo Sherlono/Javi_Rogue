@@ -4,11 +4,10 @@
 namespace {
     typedef const unsigned char cuchar_t;
     typedef const char cchar_t;
-}
-namespace jv::ct{
-    cuchar_t w1count = 23, w2count = 5, fcount = 50;  // The count for each different block type. Crucial to keep up to date!!!
-    constexpr cuchar_t w1w2count = w1count + w2count, block_type_count = w1w2count + fcount;
-    const int max_blocks = 13 * 9;  // Not arbitrary
+    
+    cuchar_t W1_COUNT = 23, W2_COUNT = 5, F_COUNT = 50;  // The count for each different block type. Crucial to keep up to date!!!
+    constexpr cuchar_t W1W2_COUNT = W1_COUNT + W2_COUNT, BLOCK_TYPE_COUNT = W1W2_COUNT + F_COUNT;
+    constexpr int MAX_BLOCKS = 13 * 9;  // Not arbitrary
 }
 
 #endif

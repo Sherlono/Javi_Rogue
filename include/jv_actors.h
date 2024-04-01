@@ -88,11 +88,11 @@ public:
         _walk.update();
     }
     void wait(){
-        _sprite.set_horizontal_flip(_dir == 3);
+        _sprite.set_horizontal_flip(false);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
     }
     
-    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, jv::ct::max_blocks>& para_v){
+    void move_player(bn::camera_ptr& cam, bn::vector<jv::para, MAX_BLOCKS>& para_v){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
             // Checking each player corner for colisions
             bool tl1 = false;
@@ -113,18 +113,22 @@ public:
             
             // Move if dir not obstructed
             if(bn::keypad::up_held() && !(tl1 && tr1)){
-                cam.set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
-                this->set_position(cam.x(), cam.y() - (_speed + bn::keypad::b_held()));
+                bn::fixed target_y = cam.y() - (_speed + bn::keypad::b_held());
+                cam.set_position(cam.x(), target_y);
+                this->set_position(cam.x(), target_y);
             }else if(bn::keypad::down_held() && !(bl1 && br1)){
-                cam.set_position(cam.x(), cam.y() + (_speed + bn::keypad::b_held()));
-                this->set_position(cam.x(), cam.y() + (_speed + bn::keypad::b_held()));
+                bn::fixed target_y = cam.y() + (_speed + bn::keypad::b_held());
+                cam.set_position(cam.x(), target_y);
+                this->set_position(cam.x(), target_y);
             }
             if(bn::keypad::left_held() && !(tl1 && bl1)){
-                cam.set_position(cam.x() - (_speed + bn::keypad::b_held()), cam.y());
-                this->set_position(cam.x() - (_speed + bn::keypad::b_held()), cam.y());
+                bn::fixed target_x = cam.x() - (_speed + bn::keypad::b_held());
+                cam.set_position(target_x, cam.y());
+                this->set_position(target_x, cam.y());
             }else if(bn::keypad::right_held() && !(tr1 && br1)){
-                cam.set_position(cam.x() + (_speed + bn::keypad::b_held()), cam.y());
-                this->set_position(cam.x() + (_speed + bn::keypad::b_held()), cam.y());
+                bn::fixed target_x = cam.x() + (_speed + bn::keypad::b_held());
+                cam.set_position(target_x, cam.y());
+                this->set_position(target_x, cam.y());
             }
 
             // Animated character
