@@ -26,17 +26,43 @@ private:
     cuchar_t* _arr;
 };
 
+int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
+    static int i = 0;
+    if(bn::keypad::r_pressed()){
+        if(i >= 0 && i < W_COUNT){
+            delete myblock;
+            i++;
+            myblock = new jv::Wall(0, 0, cam, i);
+        }else if(i < BLOCK_TYPE_COUNT){
+            delete myblock;
+            i++;
+            myblock = new jv::Floor(0, 0, cam, i);
+        }
+    }else if(bn::keypad::l_pressed()){
+        if(i > W_COUNT + 1){
+            delete myblock;
+            i--;
+            myblock = new jv::Floor(0, 0, cam, i);
+        }else if(i > 0){
+            delete myblock;
+            i--;
+            myblock = new jv::Wall(0, 0, cam, i);
+        }
+    }
+    return i;
+}
+
 namespace LevelMaker{
 // Update must be run every frame
 void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_holder){
     // Did the player move enough to load assets
     static int prev_x = 999, prev_y = 999;
-    int current_x = (cam.x()/48).round_integer(), current_y = (cam.y()/32).round_integer();
+    int current_x = (cam.x().integer())/48, current_y = cam.y().integer()/32;
     
     if(current_x != prev_x || current_y != prev_y){
         // Defining the MAP ARRAY bounds to redraw the map
-        int aux_x1 = ((cam.x() - 192)/32).round_integer()   ,   aux_x2 = ((cam.x() + 192)/32).round_integer();                              // Horizontal block load bound not truncated to map width
-        int aux_y1 = ((cam.y() - 128)/32).round_integer()   ,   aux_y2 = ((cam.y() + 128)/32).round_integer();                              // Vertical block load bound not truncated to map height
+        int aux_x1 = (cam.x().integer() - 176)/32   ,   aux_x2 = (cam.x().integer() + 208)/32;                              // Horizontal block load bound not truncated to map width
+        int aux_y1 = (cam.y().integer() - 128)/32   ,   aux_y2 = (cam.y().integer() + 128 + 32)/32;                              // Vertical block load bound not truncated to map height
         int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = aux_x2 * (aux_x2 <= map.width) + map.width * (aux_x2 > map.width);        // Truncated final result
         int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = aux_y2 * (aux_y2 <= map.height) + map.height * (aux_y2 > map.height);    // Truncated final result
 
@@ -54,10 +80,8 @@ void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>
 
                 if(map[index] && map[index] <= BLOCK_TYPE_COUNT){   // if block type is not 0 and is not above block type count
                     Block* newblock;
-                    if(map[index] <= W1_COUNT){
-                        newblock = new Wall1(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
-                    }else if(map[index] <= W1W2_COUNT){
-                        newblock = new Wall2(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
+                    if(map[index] <= W_COUNT){
+                        newblock = new Wall(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
                     }else{
                         newblock = new Floor(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
                     }

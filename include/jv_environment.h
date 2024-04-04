@@ -8,6 +8,7 @@
 
 #include "bn_sprite_items_big_floor.h"
 #include "bn_sprite_items_small_floor.h"
+#include "bn_sprite_items_huge_wall.h"
 #include "bn_sprite_items_big_wall.h"
 #include "bn_sprite_items_small_wall.h"
 
@@ -39,10 +40,10 @@ private:
 };
 
 
-class Wall1 : public Block{
+class Wall : public Block{
 public:
-    ~Wall1(){}
-    Wall1(int x, int y, bn::camera_ptr& cam, unsigned char option, int z):
+    ~Wall(){}
+    Wall(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
     _sprite(bn::sprite_items::small_wall.create_sprite(x, y))
     {
         switch(option){
@@ -166,6 +167,29 @@ public:
                 _sprite.set_y(y - 9);
                 _para = jv::para(x, y - 8, bn::point(x, y), 34, 12);
                 break;
+            case 24:    // Huge Walls
+                _sprite.set_tiles(bn::sprite_shape_size(32, 64), bn::sprite_items::huge_wall.tiles_item().create_tiles(2));
+                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
+                break;
+            case 25:
+                _sprite.set_tiles(bn::sprite_shape_size(32, 64), bn::sprite_items::huge_wall.tiles_item().create_tiles(2));
+                _sprite.set_horizontal_flip(true);
+                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
+                break;
+            case 26:
+                _sprite.set_tiles(bn::sprite_shape_size(32, 64), bn::sprite_items::huge_wall.tiles_item().create_tiles(1));
+                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
+                break;
+            case 27:
+                _sprite.set_tiles(bn::sprite_shape_size(32, 64), bn::sprite_items::huge_wall.tiles_item().create_tiles(1));
+                _sprite.set_horizontal_flip(true);
+                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
+                break;
+            case 28:     // down facing horizontal wall
+                _sprite.set_tiles(bn::sprite_shape_size(32, 64), bn::sprite_items::huge_wall.tiles_item().create_tiles(0));
+                _sprite.set_y(y - 16);
+                _para = jv::para(x, y + 3, bn::point(x, y), 34, 34);
+                break;
             default:
                 break;
         }
@@ -187,279 +211,206 @@ private:
     jv::para _para;
 };
 
-class Wall2 : public Block{
-public:
-    ~Wall2(){}
-    Wall2(int x, int y, bn::camera_ptr& cam, unsigned char option, int z):
-    _sprite_1(bn::sprite_items::big_wall.create_sprite(x, y)),
-    _sprite_2(bn::sprite_items::big_wall.create_sprite(x, y))
-    {
-        switch(option){
-            case W1_COUNT + 1:
-                _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(2));
-                _sprite_1.set_y(y - 16);
-                _sprite_2.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(4));
-                _sprite_2.set_y(y + 16);
-                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
-                break;
-            case W1_COUNT + 2:
-                _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(2));
-                _sprite_1.set_horizontal_flip(true);
-                _sprite_1.set_y(y - 16);
-                _sprite_2.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(4));
-                _sprite_2.set_horizontal_flip(true);
-                _sprite_2.set_y(y + 16);
-                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
-                break;
-            case W1_COUNT + 3:
-                _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(3));
-                _sprite_1.set_y(y - 16);
-                _sprite_2.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(4));
-                _sprite_2.set_y(y + 16);
-                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
-                break;
-            case W1_COUNT + 4:
-                _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(3));
-                _sprite_1.set_horizontal_flip(true);
-                _sprite_1.set_y(y - 16);
-                _sprite_2.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(4));
-                _sprite_2.set_horizontal_flip(true);
-                _sprite_2.set_y(y + 16);
-                _para = jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
-                break;
-            case W1_COUNT + 5:     // down facing horizontal wall
-                _sprite_1.set_tiles(bn::sprite_items::big_wall.tiles_item().create_tiles(1));
-                _sprite_1.set_y(y);
-                _sprite_2.set_tiles(bn::sprite_shape_size(16, 32), bn::sprite_items::small_wall.tiles_item().create_tiles(6));
-                _sprite_2.set_rotation_angle(90);
-                _sprite_2.set_y(y - 25);
-                _para = jv::para(x, y + 3, bn::point(x, y), 34, 34);
-                break;
-            default:
-                break;
-        }
-        _sprite_1.set_camera(cam);
-        _sprite_1.set_bg_priority(3);
-        _sprite_1.set_z_order(z);
-        _sprite_2.set_camera(cam);
-        _sprite_2.set_bg_priority(3);
-        _sprite_2.set_z_order(z);
-        this->set_xy(x, y);
-    }
-    
-    [[nodiscard]] jv::para get_para() const override{
-        return _para;
-    }
-
-    void set_camera(bn::camera_ptr& new_cam){
-        _sprite_1.set_camera(new_cam);
-        _sprite_2.set_camera(new_cam);
-    }
-private:
-    bn::sprite_ptr _sprite_1, _sprite_2;
-    jv::para _para;
-};
-
 class Floor : public Block{
 public:
     ~Floor(){};
-    Floor(int x, int y, bn::camera_ptr& cam, unsigned char option, int z):
+    Floor(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
     _sprite(bn::sprite_items::big_floor.create_sprite(x, y))
     {
         switch(option){
-            case W1W2_COUNT + 1:
+            case W_COUNT + 1:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(0));
                 break;
-            case W1W2_COUNT + 2:
+            case W_COUNT + 2:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(0));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 3:
+            case W_COUNT + 3:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(0));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 4:
+            case W_COUNT + 4:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(0));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 5:
+            case W_COUNT + 5:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(1));
                 break;
-            case W1W2_COUNT + 6:
+            case W_COUNT + 6:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(1));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 7:
+            case W_COUNT + 7:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(1));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 8:
+            case W_COUNT + 8:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(1));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 9:
+            case W_COUNT + 9:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(2));
                 break;
-            case W1W2_COUNT + 10:
+            case W_COUNT + 10:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(2));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 11:
+            case W_COUNT + 11:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 12:
+            case W_COUNT + 12:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 13:
+            case W_COUNT + 13:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(3));
                 break;
-            case W1W2_COUNT + 14:
+            case W_COUNT + 14:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(3));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 15:    // Side Floors
+            case W_COUNT + 15:    // Side Floors
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(5));
                 break;
-            case W1W2_COUNT + 16:
+            case W_COUNT + 16:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(5));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 17:    // Side Floors
+            case W_COUNT + 17:    // Side Floors
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(5));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 18:
+            case W_COUNT + 18:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(5));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 19:    // Side Floors
+            case W_COUNT + 19:    // Side Floors
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(6));
                 break;
-            case W1W2_COUNT + 20:
+            case W_COUNT + 20:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(6));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 21:
+            case W_COUNT + 21:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(10));
                 break;
-            case W1W2_COUNT + 22:
+            case W_COUNT + 22:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(10));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 23:
+            case W_COUNT + 23:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(4));
                 break;
-            case W1W2_COUNT + 24:
+            case W_COUNT + 24:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(4));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 25:
+            case W_COUNT + 25:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(7));
                 break;
-            case W1W2_COUNT + 26:
+            case W_COUNT + 26:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(8));
                 break;
-            case W1W2_COUNT + 27:
+            case W_COUNT + 27:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(9));
                 break;
-            case W1W2_COUNT + 28:
+            case W_COUNT + 28:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(15));
                 break;
-            case W1W2_COUNT + 29:
+            case W_COUNT + 29:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(1));
                 _sprite.set_y(y + 8);
                 break;
-            case W1W2_COUNT + 30:
+            case W_COUNT + 30:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(1));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 31:
+            case W_COUNT + 31:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_y(y + 8);
                 break;
-            case W1W2_COUNT + 32:
+            case W_COUNT + 32:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_y(y + 8);
                 break;
-            case W1W2_COUNT + 33:
+            case W_COUNT + 33:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 34:
+            case W_COUNT + 34:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(2));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 35:
+            case W_COUNT + 35:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(13));
                 break;
-            case W1W2_COUNT + 36:
-                _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(13));
+            case W_COUNT + 36:
+                _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(13));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 37:
+            case W_COUNT + 37:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 38:
+            case W_COUNT + 38:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(3));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 39:
+            case W_COUNT + 39:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(4));
                 _sprite.set_y(y + 8);
                 break;
-            case W1W2_COUNT + 40:
+            case W_COUNT + 40:
                 _sprite.set_tiles(bn::sprite_shape_size(32, 16), bn::sprite_items::small_floor.tiles_item().create_tiles(4));
                 _sprite.set_vertical_flip(true);
                 _sprite.set_y(y - 8);
                 break;
-            case W1W2_COUNT + 41:
+            case W_COUNT + 41:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(17));
                 break;
-            case W1W2_COUNT + 42:
+            case W_COUNT + 42:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(16));
                 break;
-            case W1W2_COUNT + 43:
+            case W_COUNT + 43:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(16));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 44:
+            case W_COUNT + 44:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(11));
                 break;
-            case W1W2_COUNT + 45:
+            case W_COUNT + 45:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(12));
                 break;
-            case W1W2_COUNT + 46:
+            case W_COUNT + 46:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(12));
                 _sprite.set_horizontal_flip(true);
                 break;
-            case W1W2_COUNT + 47:
+            case W_COUNT + 47:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(12));
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 48:
+            case W_COUNT + 48:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(12));
                 _sprite.set_horizontal_flip(true);
                 _sprite.set_vertical_flip(true);
                 break;
-            case W1W2_COUNT + 49:
+            case W_COUNT + 49:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(14));
                 break;
-            case W1W2_COUNT + 50:
+            case W_COUNT + 50:
                 _sprite.set_tiles(bn::sprite_items::big_floor.tiles_item().create_tiles(14));
                 _sprite.set_horizontal_flip(true);
                 break;

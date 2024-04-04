@@ -45,21 +45,21 @@ public:
         if(sprite_follow){
             _sprite.set_position(x, _y - 6);
         }
-        _para.set_position(x.round_integer(), _y.round_integer() + 6);
+        _para.set_position(x.integer(), _y.integer() + 6);
         _x = x;
     }
     void set_y(bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
             _sprite.set_position(_x, y - 6);
         }
-        _para.set_position(_x.round_integer(), y.round_integer() + 6);
+        _para.set_position(_x.integer(), y.integer() + 6);
         _y = y;
     }
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
             _sprite.set_position(x, y - 6);
         }
-        _para.set_position(x.round_integer(), y.round_integer() + 6);
+        _para.set_position(x.integer(), y.integer() + 6);
         _x = x;
         _y = y;
     }
@@ -73,13 +73,13 @@ public:
             if(_dir == 1 || _dir == 4 || _dir == 7){  // UP
                 this->_sprite.set_horizontal_flip(false);
                 _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 6, 7, 6, 8);
-            }else if(_dir == 7 || _dir == 6 || _dir == 8){  // RIGHT
+            }else if(_dir == 6){  // RIGHT
                 this->_sprite.set_horizontal_flip(false);
                 _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
-            }else if(_dir == 2 || _dir == 5 || _dir == 6){   // DOWN
+            }else if(_dir == 2 || _dir == 5 || _dir == 8){   // DOWN
                 this->_sprite.set_horizontal_flip(false);
                 _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2);
-            }else if(_dir == 3 || _dir == 4 || _dir == 5){   // LEFT
+            }else if(_dir == 3){   // LEFT
                 this->_sprite.set_horizontal_flip(true);
                 _walk = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
             }
@@ -88,7 +88,7 @@ public:
         _walk.update();
     }
     void wait(){
-        _sprite.set_horizontal_flip(false);
+        _sprite.set_horizontal_flip(_dir == 3);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
     }
     
