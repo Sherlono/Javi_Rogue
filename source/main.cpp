@@ -20,8 +20,7 @@
 int main()
 {
     bn::core::init();
-    //const bn::point initial_pos (16 + 2*32,16 + 2*32);
-    const bn::point initial_pos (1*32, 0);
+    const bn::point initial_pos (16 + 2*32,16 + 2*32);
     jv::Player player1(initial_pos.x(), initial_pos.y());
     bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
 
@@ -56,7 +55,7 @@ int main()
                                     64, 65, 66, 67, 68, 69, 70, 71, 72,
                                     73, 74, 75, 76, 77, 78, 79, 80, 81};*/
     
-    /*// On screen text stuff (mostly for debugging)
+    /*/ On screen text stuff (mostly for debugging)
     bn::vector<bn::sprite_ptr, 14> v_text;
     bn::string<32> mytext = "";
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
@@ -72,7 +71,7 @@ int main()
     jv::npc cow(2*32, 7*32 , cam);
 
     while(true){
-        /*mytext = "Block: " + bn::to_string<16>(jv::block_scroll(myblock, cam));
+        /*mytext = "xl: " + bn::to_string<16>(left_bound) + " xr: " + bn::to_string<16>(right_bound);
         text_generator.generate(-110, -65, mytext, v_text);*/
 
         player1.move_player(cam, para_v);

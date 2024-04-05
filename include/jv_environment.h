@@ -33,9 +33,9 @@ public:
     [[nodiscard]] bn::point xy() const{
         return bn::point(_x, _y);
     }
-    virtual void set_block(int , int , unsigned char , bn::camera_ptr& , int = 0){}
+    virtual void set_block(int , int , bn::camera_ptr& , unsigned char , int = 0){}
 protected:
-    bn::sprite_ptr build_sprite(int x, int y, unsigned char option){
+    bn::sprite_ptr sprite_factory(int x, int y, unsigned char option){
         switch(option){
             case 1:{
                 bn::sprite_builder builder(bn::sprite_items::small_wall, 0);
@@ -496,7 +496,7 @@ protected:
         }
     }
 
-    jv::para build_para(int x, int y, unsigned char option){
+    jv::para para_factory(int x, int y, unsigned char option){
         switch(option){
             case 1:
                 return jv::para(x + 12, y + 4, bn::point(x, y), 16, 34);
@@ -572,8 +572,8 @@ class Wall : public Block{
 public:
     ~Wall(){}
     Wall(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
-    _sprite(this->build_sprite(x, y, option)),
-    _para(this->build_para(x, y, option))
+    _sprite(this->sprite_factory(x, y, option)),
+    _para(this->para_factory(x, y, option))
     {
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(3);
@@ -589,12 +589,12 @@ public:
         _sprite.set_camera(new_cam);
     }
 
-    void set_block(int x, int y, unsigned char option, bn::camera_ptr& cam, int z = 0) override{
-        _sprite = this->build_sprite(x, y, option);
+    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0) override{
+        _sprite = this->sprite_factory(x, y, option);
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(3);
         _sprite.set_z_order(z);
-        _para = build_para(x, y, option);
+        _para = para_factory(x, y, option);
         this->set_xy(x, y);
     }
 private:
@@ -606,7 +606,7 @@ class Floor : public Block{
 public:
     ~Floor(){};
     Floor(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
-    _sprite(this->build_sprite(x, y, option))
+    _sprite(this->sprite_factory(x, y, option))
     {
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(3);
@@ -618,8 +618,8 @@ public:
         _sprite.set_camera(new_cam);
     }
 
-    void set_block(int x, int y, unsigned char option, bn::camera_ptr& cam, int z = 0) override{
-        _sprite = this->build_sprite(x, y, option);
+    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0) override{
+        _sprite = this->sprite_factory(x, y, option);
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(3);
         _sprite.set_z_order(z);
