@@ -129,8 +129,12 @@ public:
         _y = new_y;
     }
 
-    void copy(para other){
+    void copy(int x, int y, bn::point id, para other){
         this->set_points(other.top_left(), other.top_right(), other.bottom_left(), other.bottom_right());
+        _x = x;
+        _y = y;
+        _id_x = id.x();
+        _id_y = id.y();
     }
 
 protected:

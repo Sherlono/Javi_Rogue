@@ -54,40 +54,55 @@ int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
 
 namespace LevelMaker{
 // Update must be run every frame
-void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_holder){
-    // Did the player move enough to load assets
-    static int prev_x = 999, prev_y = 999;
-    int current_x = (cam.x().integer())/48, current_y = cam.y().integer()/32;
-    
-    if(current_x != prev_x || current_y != prev_y){
-        // Defining the MAP ARRAY bounds to redraw the map
-        int aux_x1 = (cam.x().integer() - 176)/32   ,   aux_x2 = (cam.x().integer() + 208)/32;                              // Horizontal block load bound not truncated to map width
-        int aux_y1 = (cam.y().integer() - 128)/32   ,   aux_y2 = (cam.y().integer() + 128 + 32)/32;                              // Vertical block load bound not truncated to map height
-        int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = aux_x2 * (aux_x2 <= map.width) + map.width * (aux_x2 > map.width);        // Truncated final result
-        int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = aux_y2 * (aux_y2 <= map.height) + map.height * (aux_y2 > map.height);    // Truncated final result
 
-        // Clear map to make anew
-        para_vector.clear();
-        for(int b = 0; b < block_holder.size(); b++){
-            delete block_holder[b];
-        }
-        block_holder.clear();
+void init(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_holder){
+    static bool flag = false;
+    if(!flag){
+        // Defining the MAP ARRAY bounds to redraw the map
+        int aux_x1 = (cam.x().integer() - 176)/32;                              // Horizontal block load bound not truncated to map width
+        int aux_y1 = (cam.y().integer() - 128)/32;                              // Vertical block load bound not truncated to map height
+        int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = left_bound + 13;        // Truncated final result
+        int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = top_bound + 9;    // Truncated final result
 
         // Redraw map inside bounds
         for(int y = top_bound; y < bottom_bound; y++){
             for(int x = left_bound; x < right_bound; x++){
                 unsigned char index = x + y * map.width;
 
-                if(map[index] && map[index] <= BLOCK_TYPE_COUNT){   // if block type is not 0 and is not above block type count
-                    Block* newblock;
-                    if(map[index] <= W_COUNT){
-                        newblock = new Wall(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
-                    }else{
-                        newblock = new Floor(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
-                    }
-                    para_vector.push_back(newblock->get_para());
-                    block_holder.push_back(newblock);
+                jv::Block* newblock;
+                if(map[index] <= W_COUNT){
+                    newblock = new jv::Wall(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
+                }else{
+                    newblock = new jv::Floor(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
                 }
+                para_vector.push_back(newblock->get_para());
+                block_holder.push_back(newblock);
+            }
+        }
+    }
+}
+
+void update(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_holder){
+    // Did the player move enough to load assets
+    static int prev_x = 999, prev_y = 999;
+    int current_x = (cam.x().integer())/48  ,   current_y = cam.y().integer()/32;
+    
+    if(current_x != prev_x || current_y != prev_y){
+        // Defining the MAP ARRAY bounds to redraw the map
+        int left_bound = (cam.x().integer() - 176)/32   ,   right_bound = (cam.x().integer() + 208)/32;                              // Horizontal block load bound not truncated to map width
+        int top_bound = (cam.y().integer() - 128)/32    ,   bottom_bound = (cam.y().integer() + 160)/32;                              // Vertical block load bound not truncated to map height
+
+        // Clear map to make anew
+        para_vector.clear();
+
+        // Redraw map inside bounds
+        unsigned int i = 0;
+        for(int y = top_bound; y < bottom_bound; y++){
+            for(int x = left_bound; x < right_bound; x++){
+                unsigned char index = x + y * map.width;
+                block_holder[i]->set_block(x*32, y*32, index, cam, MAX_BLOCKS - y);
+                para_vector.push_back(block_holder[i]->get_para());
+                i++;
             }
         }
     }

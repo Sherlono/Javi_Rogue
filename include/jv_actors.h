@@ -6,6 +6,7 @@
 #include "bn_math.h"
 
 #include "bn_sprite_items_character.h"
+#include "bn_sprite_items_cow.h"
 #include "jv_constants.h"
 #include "jv_math.h"
 
@@ -29,7 +30,7 @@ public:
 class Player: public Actor{
 public:
     ~Player(){};
-    Player(int x, int y):
+    Player(unsigned int x, unsigned int y):
     _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
     _para(x, y + 6, bn::point(0,0), 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
@@ -112,23 +113,31 @@ public:
             }
             
             // Move if dir not obstructed
-            if(bn::keypad::up_held() && !(tl1 && tr1)){
-                bn::fixed target_y = cam.y() - (_speed + bn::keypad::b_held());
-                cam.set_position(cam.x(), target_y);
-                this->set_position(cam.x(), target_y);
-            }else if(bn::keypad::down_held() && !(bl1 && br1)){
-                bn::fixed target_y = cam.y() + (_speed + bn::keypad::b_held());
-                cam.set_position(cam.x(), target_y);
-                this->set_position(cam.x(), target_y);
+            if(bn::keypad::up_held()){
+                if((!tl1 * !tr1) + (!tl1 * br1) + (!tr1 * bl1)){
+                    bn::fixed target_y = cam.y() - (_speed + bn::keypad::b_held());
+                    cam.set_position(cam.x(), target_y);
+                    this->set_position(cam.x(), target_y);
+                }
+            }else if(bn::keypad::down_held()){
+                if((!bl1 * !br1) + (!bl1 * tr1) + (!br1 * tl1)){
+                    bn::fixed target_y = cam.y() + (_speed + bn::keypad::b_held());
+                    cam.set_position(cam.x(), target_y);
+                    this->set_position(cam.x(), target_y);
+                }
             }
-            if(bn::keypad::left_held() && !(tl1 && bl1)){
-                bn::fixed target_x = cam.x() - (_speed + bn::keypad::b_held());
-                cam.set_position(target_x, cam.y());
-                this->set_position(target_x, cam.y());
-            }else if(bn::keypad::right_held() && !(tr1 && br1)){
-                bn::fixed target_x = cam.x() + (_speed + bn::keypad::b_held());
-                cam.set_position(target_x, cam.y());
-                this->set_position(target_x, cam.y());
+            if(bn::keypad::left_held()){
+                if((!tl1 * !bl1) + (!tl1 * br1) + (!bl1 * tr1)){
+                    bn::fixed target_x = cam.x() - (_speed + bn::keypad::b_held());
+                    cam.set_position(target_x, cam.y());
+                    this->set_position(target_x, cam.y());
+                }
+            }else if(bn::keypad::right_held()){
+                if((!tr1 * !br1) + (!tr1 * bl1) + (!br1 * tl1)){
+                    bn::fixed target_x = cam.x() + (_speed + bn::keypad::b_held());
+                    cam.set_position(target_x, cam.y());
+                    this->set_position(target_x, cam.y());    
+                }
             }
 
             // Animated character
@@ -142,8 +151,52 @@ private:
     bn::sprite_ptr _sprite;
     jv::para _para;
     bn::sprite_animate_action<4> _walk;
-    const bn::fixed _speed;
+    bn::fixed _speed;
     unsigned char _prev_dir, _dir;
+};
+
+class npc: public Actor{
+public:
+    ~npc(){}
+    npc(int x, int y, bn::camera_ptr cam):
+    _sprite(bn::sprite_items::cow.create_sprite(x , y - 6)),
+    _para(x, y + 6, bn::point(0,0), 10, 10)
+    {
+        _x = x;
+        _y = y;
+        _sprite.set_bg_priority(1);
+        _sprite.set_camera(cam);
+    }
+    void set_x(bn::fixed x, bool sprite_follow = false){
+        if(sprite_follow){
+            _sprite.set_position(x, _y - 6);
+        }
+        _para.set_position(x.integer(), _y.integer() + 6);
+        _x = x;
+    }
+    void set_y(bn::fixed y, bool sprite_follow = false){
+        if(sprite_follow){
+            _sprite.set_position(_x, y - 6);
+        }
+        _para.set_position(_x.integer(), y.integer() + 6);
+        _y = y;
+    }
+    void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false){
+        if(sprite_follow){
+            _sprite.set_position(x, y - 6);
+        }
+        _para.set_position(x.integer(), y.integer() + 6);
+        _x = x;
+        _y = y;
+    }
+
+    void set_visible(bool visible){
+        _sprite.set_visible(visible);
+    }
+    
+private:
+    bn::sprite_ptr _sprite;
+    jv::para _para;
 };
 }
 #endif
