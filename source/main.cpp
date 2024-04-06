@@ -2,7 +2,6 @@
 #include "bn_keypad.h"
 #include "bn_camera_actions.h"
 #include "bn_regular_bg_ptr.h"
-#include "bn_sprites.h"
 
 #include "common_variable_8x8_sprite_font.h"
 #include "bn_sprite_text_generator.h"
@@ -30,7 +29,7 @@ int main()
     bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
 
     bn::vector<jv::para, MAX_BLOCKS> para_v;
-    bn::vector<jv::Block*, MAX_BLOCKS> block_holder;
+    bn::vector<jv::Block*, MAX_BLOCKS> block_v;
 
     bn::point map_shape(23, 10);
     cuchar_t block_array[23 * 10] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,
@@ -55,29 +54,28 @@ int main()
                                     64, 65, 66, 67, 68, 69, 70, 71, 72,
                                     73, 74, 75, 76, 77, 78, 79, 80, 81};*/
     
-    /*/ On screen text stuff (mostly for debugging)
-    bn::vector<bn::sprite_ptr, 14> v_text;
+    // On screen text stuff (mostly for debugging)
+    bn::vector<bn::sprite_ptr, 14> text_v;
     bn::string<32> mytext = "";
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);*/
+    text_generator.set_bg_priority(0);
 
     /*jv::Block* myblock;
     myblock = new jv::Wall(0, 0, cam, 1);
     para_v.push_back(myblock->get_para());*/
     
     jv::GameMap map1(map_shape.x(), map_shape.y(), block_array);
-    jv::LevelMaker::init(map1, cam, para_v, block_holder);
-
+    jv::LevelMaker::init(map1, cam, para_v, block_v);
     jv::npc cow(2*32, 7*32 , cam);
 
     while(true){
-        /*mytext = "xl: " + bn::to_string<16>(left_bound) + " xr: " + bn::to_string<16>(right_bound);
-        text_generator.generate(-110, -65, mytext, v_text);*/
+        /*mytext = "missf: " + bn::to_string<16>(bn::core::last_missed_frames());
+        text_generator.generate(-110, -65, mytext, text_v);*/
 
         player1.move_player(cam, para_v);
         
-        jv::LevelMaker::update(map1, cam, para_v, block_holder);
+        jv::LevelMaker::update(map1, cam, para_v, block_v);
         bn::core::update();
-        //v_text.clear();
+        //text_v.clear();
     }
 }

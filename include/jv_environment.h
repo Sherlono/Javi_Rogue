@@ -16,13 +16,17 @@
 #include "jv_math.h"
 
 namespace jv{
-
-
 class Block{
 public:
-    virtual ~Block(){}
-    [[nodiscard]] virtual jv::para get_para() const{
-        return jv::para(0,0,bn::point(0,0),0,0); // Never use this
+    ~Block(){}
+    Block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
+    _sprite(this->sprite_factory(x, y, option)),
+    _para(this->para_factory(x, y, option))
+    {
+        _sprite.set_camera(cam);
+        _sprite.set_bg_priority(3);
+        _sprite.set_z_order(z);
+        this->set_xy(x, y);
     }
     [[nodiscard]] int x() const{
         return _x;
@@ -33,7 +37,22 @@ public:
     [[nodiscard]] bn::point xy() const{
         return bn::point(_x, _y);
     }
-    virtual void set_block(int , int , bn::camera_ptr& , unsigned char , int = 0){}
+    [[nodiscard]] jv::para get_para(){
+        return _para;
+    }
+
+    void set_camera(bn::camera_ptr& new_cam){
+        _sprite.set_camera(new_cam);
+    }
+
+    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0){
+        _sprite = sprite_factory(x, y, option);
+        _sprite.set_camera(cam);
+        _sprite.set_bg_priority(3);
+        _sprite.set_z_order(z);
+        _para = para_factory(x, y, option);
+        this->set_xy(x, y);
+    }
 protected:
     bn::sprite_ptr sprite_factory(int x, int y, unsigned char option){
         switch(option){
@@ -103,14 +122,12 @@ protected:
                 builder.set_horizontal_flip(true);
                 return builder.build();
             }
-            case 13:    // Black Diagonal
-                {
+            case 13:{   // Black Diagonal
                 bn::sprite_builder builder(bn::sprite_items::big_wall, 0);
                 builder.set_position(x, y + 16);
                 return builder.build();
             }
-            case 14:    // Black Diagonal
-                {
+            case 14:{   // Black Diagonal
                 bn::sprite_builder builder(bn::sprite_items::big_wall, 0);
                 builder.set_position(x, y + 16);
                 builder.set_horizontal_flip(true);
@@ -127,48 +144,46 @@ protected:
                 builder.set_horizontal_flip(true);
                 return builder.build();
             }
-            case 17:    // Black Upward facing wall
-                {
-                bn::sprite_builder builder(bn::sprite_items::small_wall, 7);
+            case 17:{   // Black Upward facing wall
+                bn::sprite_builder builder(bn::sprite_items::small_wall, 6);
                 builder.set_position(x, y - 25);
                 builder.set_rotation_angle(90);
                 return builder.build();
             }
             case 18:{
-                bn::sprite_builder builder(bn::sprite_items::big_wall, 5);
+                bn::sprite_builder builder(bn::sprite_items::big_wall, 1);
                 builder.set_position(x, y);
                 return builder.build();
             }
             case 19:{
-                bn::sprite_builder builder(bn::sprite_items::big_wall, 5);
+                bn::sprite_builder builder(bn::sprite_items::big_wall, 1);
                 builder.set_position(x, y);
                 builder.set_horizontal_flip(true);
                 return builder.build();
             }
             case 20:{
-                bn::sprite_builder builder(bn::sprite_items::big_wall, 6);
+                bn::sprite_builder builder(bn::sprite_items::big_wall, 2);
                 builder.set_position(x, y);
                 return builder.build();
             }
             case 21:{
-                bn::sprite_builder builder(bn::sprite_items::big_wall, 7);
+                bn::sprite_builder builder(bn::sprite_items::big_wall, 3);
                 builder.set_position(x, y);
                 return builder.build();
             }
             case 22:{
-                bn::sprite_builder builder(bn::sprite_items::big_wall, 7);
+                bn::sprite_builder builder(bn::sprite_items::big_wall, 3);
                 builder.set_position(x, y);
                 builder.set_horizontal_flip(true);
                 return builder.build();
             }
             case 23:{
-                bn::sprite_builder builder(bn::sprite_items::small_wall, 7);
+                bn::sprite_builder builder(bn::sprite_items::small_wall, 6);
                 builder.set_position(x, y - 9);
                 builder.set_rotation_angle(90);
                 return builder.build();
             }
-            case 24:    // Huge Walls
-            {
+            case 24:{   // Huge Walls
                 bn::sprite_builder builder(bn::sprite_items::huge_wall, 2);
                 builder.set_position(x, y);
                 return builder.build();
@@ -190,8 +205,7 @@ protected:
                 builder.set_horizontal_flip(true);
                 return builder.build();
             }
-            case 28:     // down facing horizontal wall
-                {
+            case 28:{   // down facing horizontal wall
                 bn::sprite_builder builder(bn::sprite_items::huge_wall, 0);
                 builder.set_position(x, y - 16);
                 return builder.build();
@@ -499,134 +513,74 @@ protected:
     jv::para para_factory(int x, int y, unsigned char option){
         switch(option){
             case 1:
-                return jv::para(x + 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x + 12, y + 4, 16, 34);
             case 2:
-                return jv::para(x - 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x - 12, y + 4, 16, 34);
             case 3:
-                return jv::para(x + 12, y + 8, bn::point(x, y), 16, 16);
+                return jv::para(x + 12, y + 8, 16, 16);
             case 4:
-                return jv::para(x - 12, y + 8, bn::point(x, y), 16, 16);
+                return jv::para(x - 12, y + 8, 16, 16);
             case 5:
-                return jv::para(x + 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x + 12, y + 4, 16, 34);
             case 6:
-                return jv::para(x - 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x - 12, y + 4, 16, 34);
             case 7:
-                return jv::para(x + 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x + 12, y + 4, 16, 34);
             case 8:
-                return jv::para(x - 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x - 12, y + 4, 16, 34);
             case 9:
-                return jv::para(x + 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x + 12, y + 4, 16, 34);
             case 10:
-                return jv::para(x - 12, y + 4, bn::point(x, y), 16, 34);
+                return jv::para(x - 12, y + 4, 16, 34);
             case 11:
-                return jv::para(x + 12, y - 4, bn::point(x, y), 16, 16);
+                return jv::para(x + 12, y - 4, 16, 16);
             case 12:
-                return jv::para(x - 12, y - 4, bn::point(x, y), 16, 16);
+                return jv::para(x - 12, y - 4, 16, 16);
             case 13:    // Black Diagonal
-                return jv::para(x, y + 18, bn::point(x, y), 34, 16, 8);
+                return jv::para(x, y + 18, 34, 16, 8);
             case 14:    // Black Diagonal
-                return jv::para(x, y + 18, bn::point(x, y), 34, 16, -8);
+                return jv::para(x, y + 18, 34, 16, -8);
             case 15:
-                return jv::para(x, y + 2, bn::point(x, y), 34, 16, 8);
+                return jv::para(x, y + 2, 34, 16, 8);
             case 16:
-                return jv::para(x, y + 2, bn::point(x, y), 34, 16, -8);
+                return jv::para(x, y + 2, 34, 16, -8);
             case 17:    // Black Upward facing wall
-                return jv::para(x, y - 22, bn::point(x, y), 34, 16);
+                return jv::para(x, y - 22, 34, 16);
             case 18:
-                return jv::para(x, y + 3, bn::point(x, y), 34, 34);
+                return jv::para(x, y + 3, 34, 34);
             case 19:
-                return jv::para(x, y + 3, bn::point(x, y), 34, 34);
+                return jv::para(x, y + 3, 34, 34);
             case 20:
-                return jv::para(x, y + 10, bn::point(x, y), 34, 18);
+                return jv::para(x, y + 10, 34, 18);
             case 21:
-                return jv::para(x, y + 12, bn::point(x, y), 34, 22);
+                return jv::para(x, y + 12, 34, 22);
             case 22:
-                return jv::para(x, y + 12, bn::point(x, y), 34, 22);
+                return jv::para(x, y + 12, 34, 22);
             case 23:
-                return jv::para(x, y - 8, bn::point(x, y), 34, 12);
+                return jv::para(x, y - 8, 34, 12);
             case 24:    // Huge Walls
-                return jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
+                return jv::para(x, y + 20, 34, 16, -8);
             case 25:
-                return jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
+                return jv::para(x, y + 20, 34, 16, 8);
             case 26:
-                return jv::para(x, y + 20, bn::point(x, y), 34, 16, -8);
+                return jv::para(x, y + 20, 34, 16, -8);
             case 27:
-                return jv::para(x, y + 20, bn::point(x, y), 34, 16, 8);
+                return jv::para(x, y + 20, 34, 16, 8);
             case 28:     // Down facing horizontal wall
-                return jv::para(x, y + 3, bn::point(x, y), 34, 34);
+                return jv::para(x, y + 3, 34, 34);
             default:
-                return jv::para(0, 0, bn::point(0, 0), 0, 0);
+                return jv::para(0, 0, 0, 0);
         }
     }
-protected:
+
     void set_xy(int x, int y){
         _x = x;
         _y = y;
     }
 private:
-    int _x, _y;
-};
-
-
-class Wall : public Block{
-public:
-    ~Wall(){}
-    Wall(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
-    _sprite(this->sprite_factory(x, y, option)),
-    _para(this->para_factory(x, y, option))
-    {
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        this->set_xy(x, y);
-    }
-    
-    [[nodiscard]] jv::para get_para() const override{
-        return _para;
-    }
-
-    void set_camera(bn::camera_ptr& new_cam){
-        _sprite.set_camera(new_cam);
-    }
-
-    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0) override{
-        _sprite = this->sprite_factory(x, y, option);
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        _para = para_factory(x, y, option);
-        this->set_xy(x, y);
-    }
-private:
     bn::sprite_ptr _sprite;
     jv::para _para;
-};
-
-class Floor : public Block{
-public:
-    ~Floor(){};
-    Floor(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
-    _sprite(this->sprite_factory(x, y, option))
-    {
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        this->set_xy(x, y);
-    }
-
-    void set_camera(bn::camera_ptr& new_cam){
-        _sprite.set_camera(new_cam);
-    }
-
-    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0) override{
-        _sprite = this->sprite_factory(x, y, option);
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        this->set_xy(x, y);
-    }
-private:
-    bn::sprite_ptr _sprite;
+    int _x, _y;
 };
 
 }

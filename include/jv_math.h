@@ -18,21 +18,21 @@ class para{     // para is for Paralelogram
 public:
     ~para(){}
     para(){}
-    para(int x, int y, bn::point id, int width, int height, int vshear = 0):_x(x), _y(y), _id_x(id.x()), _id_y(id.y()){
+    para(int x, int y, int width, int height, int vshear = 0):_x(x), _y(y){
         _top_left = bn::point(_x - (width/2), _y - vshear - (height/2));
         _top_right = bn::point(_x + (width/2), _y + vshear - (height/2));
         _bottom_left = bn::point(_x - (width/2), _y - vshear + (height/2));
         _bottom_right = bn::point(_x + (width/2), _y + vshear + (height/2));
     }
 
-    [[nodiscard]] int x(bool id = false) const{ // Adding true in the arguments returns the "id" (simplified position) instead
-        return _x * (!id) + _id_x * id;
+    [[nodiscard]] int x() const{ // Adding true in the arguments returns the "id" (simplified position) instead
+        return _x;
     }
-    [[nodiscard]] int y(bool id = false) const{
-        return _y * (!id) + _id_y * id;
+    [[nodiscard]] int y() const{
+        return _y;
     }
-    [[nodiscard]] bn::point xy(bool id = false) const{
-        return bn::point(this->x(id), this->y(id));
+    [[nodiscard]] bn::point xy() const{
+        return bn::point(this->x(), this->y());
     }
 
     [[nodiscard]] bn::point top_left() const{
@@ -129,12 +129,10 @@ public:
         _y = new_y;
     }
 
-    void copy(int x, int y, bn::point id, para other){
+    void copy(para other){
         this->set_points(other.top_left(), other.top_right(), other.bottom_left(), other.bottom_right());
-        _x = x;
-        _y = y;
-        _id_x = id.x();
-        _id_y = id.y();
+        _x = other.x();
+        _y = other.y();
     }
 
 protected:
@@ -146,7 +144,7 @@ protected:
     }
     
 private:
-    int _x, _y, _id_x, _id_y;
+    int _x, _y;
     bn::point _top_left, _top_right, _bottom_left, _bottom_right;
 };
 }

@@ -32,7 +32,7 @@ public:
     ~Player(){};
     Player(unsigned int x, unsigned int y):
     _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
-    _para(x, y + 6, bn::point(0,0), 6, 6),
+    _para(x, y + 6, 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(1.0)),
     _prev_dir(2),
@@ -96,44 +96,44 @@ public:
     void move_player(bn::camera_ptr& cam, bn::vector<jv::para, MAX_BLOCKS>& para_v){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
             // Checking each player corner for colisions
-            bool tl1 = false;
-            bool tr1 = false;
-            bool bl1 = false;
-            bool br1 = false;
+            bool tl = false;
+            bool tr = false;
+            bool bl = false;
+            bool br = false;
 
             for(unsigned char i = 0; i < para_v.size(); i++){
                 bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
-                bn::fixed y_distance = bn::abs(para_v[i].y() -  this->y());
-                if(x_distance <= 26 && y_distance <= 26){
-                    tl1 = tl1 + para_v[i].contains_top_left(this->_para);
-                    tr1 = tr1 + para_v[i].contains_top_right(this->_para);
-                    bl1 = bl1 + para_v[i].contains_bottom_left(this->_para);
-                    br1 = br1 + para_v[i].contains_bottom_right(this->_para);
+                bn::fixed y_distance = bn::abs(para_v[i].y() - this->y());
+                if(x_distance <= 32 && y_distance <= 32){
+                    tl = tl + para_v[i].contains_top_left(this->_para);
+                    tr = tr + para_v[i].contains_top_right(this->_para);
+                    bl = bl + para_v[i].contains_bottom_left(this->_para);
+                    br = br + para_v[i].contains_bottom_right(this->_para);
                 }
             }
             
             // Move if dir not obstructed
             if(bn::keypad::up_held()){
-                if((!tl1 * !tr1) + (!tl1 * br1) + (!tr1 * bl1)){
+                if((!tl * !tr) + (!tl * br) + (!tr * bl)){
                     bn::fixed target_y = cam.y() - (_speed + bn::keypad::b_held());
-                    cam.set_position(cam.x(), target_y);
-                    this->set_position(cam.x(), target_y);
+                    cam.set_position(cam.x(), target_y);    // Move camera
+                    this->set_position(cam.x(), target_y);  // Move player (position and paralelogram)
                 }
             }else if(bn::keypad::down_held()){
-                if((!bl1 * !br1) + (!bl1 * tr1) + (!br1 * tl1)){
+                if((!bl * !br) + (!bl * tr) + (!br * tl)){
                     bn::fixed target_y = cam.y() + (_speed + bn::keypad::b_held());
                     cam.set_position(cam.x(), target_y);
                     this->set_position(cam.x(), target_y);
                 }
             }
             if(bn::keypad::left_held()){
-                if((!tl1 * !bl1) + (!tl1 * br1) + (!bl1 * tr1)){
+                if((!tl * !bl) + (!tl * br) + (!bl * tr)){
                     bn::fixed target_x = cam.x() - (_speed + bn::keypad::b_held());
                     cam.set_position(target_x, cam.y());
                     this->set_position(target_x, cam.y());
                 }
             }else if(bn::keypad::right_held()){
-                if((!tr1 * !br1) + (!tr1 * bl1) + (!br1 * tl1)){
+                if((!tr * !br) + (!tr * bl) + (!br * tl)){
                     bn::fixed target_x = cam.x() + (_speed + bn::keypad::b_held());
                     cam.set_position(target_x, cam.y());
                     this->set_position(target_x, cam.y());    
@@ -160,7 +160,7 @@ public:
     ~npc(){}
     npc(int x, int y, bn::camera_ptr cam):
     _sprite(bn::sprite_items::cow.create_sprite(x , y - 6)),
-    _para(x, y + 6, bn::point(0,0), 10, 10)
+    _para(x, y + 6, 10, 10)
     {
         _x = x;
         _y = y;
