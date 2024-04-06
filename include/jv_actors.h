@@ -31,38 +31,38 @@ class Player: public Actor{
 public:
     ~Player(){};
     Player(unsigned int x, unsigned int y):
-    _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 16)),
-    _para(x, y, 6, 6),
+    _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 8)),
+    _para(x, y + 8, 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(1.0)),
     _prev_dir(2),
     _dir(2)
     {
-        _x = x;
-        _y = y;
         _sprite.set_bg_priority(1);
+        _x = x;
+        _y = y + 8;
     }
     void set_x(bn::fixed x, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, _y - 16);
+            _sprite.set_position(x, _y - 8);
         }
-        _para.set_position(x.integer(), _y.integer());
+        _para.set_position(x.integer(), _y.integer() + 8);
         _x = x;
     }
     void set_y(bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(_x, y - 16);
+            _sprite.set_position(_x, y - 8);
         }
-        _para.set_position(_x.integer(), y.integer());
-        _y = y;
+        _para.set_position(_x.integer(), y.integer() + 8);
+        _y = y + 8;
     }
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, y - 16);
+            _sprite.set_position(x, y - 8);
         }
-        _para.set_position(x.integer(), y.integer());
+        _para.set_position(x.integer(), y.integer() + 8);
         _x = x;
-        _y = y;
+        _y = y + 8;
     }
 
     jv::para get_para(){
