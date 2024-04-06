@@ -31,8 +31,8 @@ class Player: public Actor{
 public:
     ~Player(){};
     Player(unsigned int x, unsigned int y):
-    _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 6)),
-    _para(x, y + 6, 6, 6),
+    _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 16)),
+    _para(x, y, 6, 6),
     _walk(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(1.0)),
     _prev_dir(2),
@@ -44,27 +44,30 @@ public:
     }
     void set_x(bn::fixed x, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, _y - 6);
+            _sprite.set_position(x, _y - 16);
         }
-        _para.set_position(x.integer(), _y.integer() + 6);
+        _para.set_position(x.integer(), _y.integer());
         _x = x;
     }
     void set_y(bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(_x, y - 6);
+            _sprite.set_position(_x, y - 16);
         }
-        _para.set_position(_x.integer(), y.integer() + 6);
+        _para.set_position(_x.integer(), y.integer());
         _y = y;
     }
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, y - 6);
+            _sprite.set_position(x, y - 16);
         }
-        _para.set_position(x.integer(), y.integer() + 6);
+        _para.set_position(x.integer(), y.integer());
         _x = x;
         _y = y;
     }
 
+    jv::para get_para(){
+        return _para;
+    }
     void set_visible(bool visible){
         _sprite.set_visible(visible);
     }
@@ -104,6 +107,7 @@ public:
             for(unsigned char i = 0; i < para_v.size(); i++){
                 bn::fixed x_distance = bn::abs(para_v[i].x() - this->x());
                 bn::fixed y_distance = bn::abs(para_v[i].y() - this->y());
+                // The following is not replaceable by "intersects()" because it is important to know which corner is contained
                 if(x_distance <= 32 && y_distance <= 32){
                     tl = tl + para_v[i].contains_top_left(this->_para);
                     tr = tr + para_v[i].contains_top_right(this->_para);
@@ -159,8 +163,8 @@ class npc: public Actor{
 public:
     ~npc(){}
     npc(int x, int y, bn::camera_ptr cam):
-    _sprite(bn::sprite_items::cow.create_sprite(x , y - 6)),
-    _para(x, y + 6, 10, 10)
+    _sprite(bn::sprite_items::cow.create_sprite(x , y - 16)),
+    _para(x, y + 6, 12, 12)
     {
         _x = x;
         _y = y;
@@ -169,21 +173,21 @@ public:
     }
     void set_x(bn::fixed x, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, _y - 6);
+            _sprite.set_position(x, _y - 16);
         }
         _para.set_position(x.integer(), _y.integer() + 6);
         _x = x;
     }
     void set_y(bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(_x, y - 6);
+            _sprite.set_position(_x, y - 16);
         }
         _para.set_position(_x.integer(), y.integer() + 6);
         _y = y;
     }
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false){
         if(sprite_follow){
-            _sprite.set_position(x, y - 6);
+            _sprite.set_position(x, y - 16);
         }
         _para.set_position(x.integer(), y.integer() + 6);
         _x = x;
@@ -194,6 +198,17 @@ public:
         _sprite.set_visible(visible);
     }
     
+    void update(jv::Player& player){
+        if(this->y() < player.y()){
+            _sprite.set_z_order(1);
+        }else{
+            _sprite.set_z_order(-1);
+        }
+
+        if(_para.intersects(player.get_para()) && bn::keypad::a_pressed()){
+            jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+        }
+    }
 private:
     bn::sprite_ptr _sprite;
     jv::para _para;

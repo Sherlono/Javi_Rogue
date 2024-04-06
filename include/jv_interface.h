@@ -3,7 +3,7 @@
 
 #include "bn_math.h"
 #include "bn_vector.h"
-#include "bn_unordered_set.h"
+#include "bn_random.h"
 
 #include "jv_constants.h"
 #include "jv_environment.h"
@@ -11,31 +11,23 @@
 #include "jv_math.h"
 
 namespace jv{
-/*int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
+int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
     static int i = 0;
     if(bn::keypad::r_pressed()){
-        if(i >= 0 && i < W_COUNT){
+        if(i < BLOCK_TYPE_COUNT){
             delete myblock;
             i++;
-            myblock = new jv::Wall(0, 0, cam, i);
-        }else if(i < BLOCK_TYPE_COUNT){
-            delete myblock;
-            i++;
-            myblock = new jv::Floor(0, 0, cam, i);
+            myblock = new jv::Block(0, 0, cam, i);
         }
     }else if(bn::keypad::l_pressed()){
-        if(i > W_COUNT + 1){
+        if(i > 0){
             delete myblock;
             i--;
-            myblock = new jv::Floor(0, 0, cam, i);
-        }else if(i > 0){
-            delete myblock;
-            i--;
-            myblock = new jv::Wall(0, 0, cam, i);
+            myblock = new jv::Block(0, 0, cam, i);
         }
     }
     return i;
-}*/
+}
 
 struct GameMap{
     GameMap(cuchar_t x, cuchar_t y, cuchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
@@ -51,6 +43,10 @@ struct GameMap{
 private:
     cuchar_t* _arr;
 };
+
+/*GameMap GameMapGenerator(const unsigned int x, const unsigned int y, bn::random randomizer;){
+
+}*/
 
 namespace LevelMaker{
 // Init must be called Only Once
@@ -68,11 +64,9 @@ void init(const GameMap map, bn::camera_ptr& cam, bn::vector<para, MAX_BLOCKS>& 
 
             jv::Block* newblock;
             bool not_outside = (x <= map.width && y <= map.height);
+            newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
             if(map[index] <= W_COUNT){
-                newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
                 para_vector.push_back(newblock->get_para());
-            }else{
-                newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
             }
             block_v.push_back(newblock);
         }

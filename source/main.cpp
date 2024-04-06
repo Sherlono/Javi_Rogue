@@ -3,14 +3,11 @@
 #include "bn_camera_actions.h"
 #include "bn_regular_bg_ptr.h"
 
-#include "common_variable_8x8_sprite_font.h"
-#include "bn_sprite_text_generator.h"
-#include "bn_string.h"
-
 #include "bn_music_items.h"
 
 #include "bn_regular_bg_items_bg.h"
 #include "jv_constants.h"
+#include "jv_dialog.h"
 #include "jv_environment.h"
 #include "jv_interface.h"
 #include "jv_actors.h"
@@ -20,7 +17,7 @@ int main()
 {
     bn::core::init();
     const bn::point initial_pos (16 + 2*32,16 + 2*32);
-    jv::Player player1(initial_pos.x(), initial_pos.y());
+    jv::Player cat(initial_pos.x(), initial_pos.y());
     bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
 
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
@@ -55,10 +52,10 @@ int main()
                                     73, 74, 75, 76, 77, 78, 79, 80, 81};*/
     
     // On screen text stuff (mostly for debugging)
-    bn::vector<bn::sprite_ptr, 14> text_v;
+    /*bn::vector<bn::sprite_ptr, 14> text_v;
     bn::string<32> mytext = "";
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);
+    text_generator.set_bg_priority(0);*/
 
     /*jv::Block* myblock;
     myblock = new jv::Wall(0, 0, cam, 1);
@@ -69,11 +66,13 @@ int main()
     jv::npc cow(2*32, 7*32 , cam);
 
     while(true){
-        /*mytext = "missf: " + bn::to_string<16>(bn::core::last_missed_frames());
-        text_generator.generate(-110, -65, mytext, text_v);*/
+        /*mytext = "cowY: " + bn::to_string<16>(cow.y());
+        text_generator.generate(-110, -65, mytext, text_v);
+        mytext = "catY: " + bn::to_string<16>(cat.y());
+        text_generator.generate(-110, -55, mytext, text_v);*/
 
-        player1.move_player(cam, para_v);
-        
+        cat.move_player(cam, para_v);
+        cow.update(cat);
         jv::LevelMaker::update(map1, cam, para_v, block_v);
         bn::core::update();
         //text_v.clear();

@@ -90,7 +90,7 @@ public:
         return false;
     }
 
-    [[nodiscard]] bool touches(jv::para other) const{
+    [[nodiscard]] bool intersects(jv::para other) const{
         if(this->contains(other.top_left())){           // Upper left corner check
             return true;
         }else if(this->contains(other.top_right())){    // Upper right corner check
@@ -102,7 +102,7 @@ public:
         }
         return false;
     }
-    [[nodiscard]] bool touches(bn::rect other) const{
+    [[nodiscard]] bool intersects(bn::rect other) const{
         if(this->contains(other.top_left())){           // Upper left corner check
             return true;
         }else if(this->contains(other.top_right())){    // Upper right corner check
@@ -127,12 +127,6 @@ public:
 
         _x = new_x;
         _y = new_y;
-    }
-
-    void copy(para other){
-        this->set_points(other.top_left(), other.top_right(), other.bottom_left(), other.bottom_right());
-        _x = other.x();
-        _y = other.y();
     }
 
 protected:
