@@ -5,7 +5,6 @@
 #include "bn_vector.h"
 #include "bn_random.h"
 
-#include "jv_constants.h"
 #include "jv_environment.h"
 #include "jv_actors.h"
 #include "jv_math.h"

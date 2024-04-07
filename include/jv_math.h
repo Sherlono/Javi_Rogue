@@ -6,7 +6,7 @@
 #include "bn_fixed.h"
 
 namespace jv{
-int xproduct(bn::point a, bn::point b, bn::point t){  // Keep in mind the Y axis is inverted
+inline int xproduct(bn::point a, bn::point b, bn::point t){  // Keep in mind the Y axis is inverted
     if (a.x() != b.x()){
         return (b.x() - a.x()) * (-t.y() + a.y()) + (b.y() - a.y()) * (t.x() - a.x());  // > 0 = above
     }else{

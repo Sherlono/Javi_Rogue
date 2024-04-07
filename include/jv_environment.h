@@ -1,8 +1,6 @@
 #ifndef JV_ENVIRONMENT_H
 #define JV_ENVIRONMENT_H
 
-#include "bn_point.h"
-#include "bn_fixed.h"
 #include "bn_sprite_ptr.h"
 #include "bn_sprite_tiles_ptr.h"
 #include "bn_sprite_builder.h"
@@ -13,21 +11,14 @@
 #include "bn_sprite_items_big_wall.h"
 #include "bn_sprite_items_small_wall.h"
 
+#include "jv_constants.h"
 #include "jv_math.h"
 
 namespace jv{
 class Block{
 public:
     ~Block(){}
-    Block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0):
-    _sprite(this->sprite_factory(x, y, option)),
-    _para(this->para_factory(x, y, option))
-    {
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        this->set_xy(x, y);
-    }
+    Block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z_order = 0);
     [[nodiscard]] int x() const{
         return _x;
     }
@@ -41,18 +32,9 @@ public:
         return _para;
     }
 
-    void set_camera(bn::camera_ptr& new_cam){
-        _sprite.set_camera(new_cam);
-    }
+    void set_camera(bn::camera_ptr& new_cam);
 
-    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z = 0){
-        _sprite = sprite_factory(x, y, option);
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(3);
-        _sprite.set_z_order(z);
-        _para = para_factory(x, y, option);
-        this->set_xy(x, y);
-    }
+    void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z_order = 0);
 protected:
     bn::sprite_ptr sprite_factory(int x, int y, unsigned char option){
         switch(option){
