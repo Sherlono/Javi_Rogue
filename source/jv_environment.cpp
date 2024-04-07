@@ -9,7 +9,8 @@ _para(this->para_factory(x, y, option))
     _sprite.set_camera(cam);
     _sprite.set_bg_priority(3);
     _sprite.set_z_order(z_order);
-    this->set_xy(x, y);
+    _x = x;
+    _y = y;
 }
 void Block::set_camera(bn::camera_ptr& new_cam){
     _sprite.set_camera(new_cam);
@@ -20,7 +21,8 @@ void Block::set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, i
     _sprite.set_bg_priority(3);
     _sprite.set_z_order(z_order);
     _para = para_factory(x, y, option);
-    this->set_xy(x, y);
+    _x = x;
+    _y = y;
 }
 
 }

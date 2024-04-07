@@ -19,6 +19,7 @@ class Block{
 public:
     ~Block(){}
     Block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z_order = 0);
+    // Getters
     [[nodiscard]] int x() const{
         return _x;
     }
@@ -31,9 +32,8 @@ public:
     [[nodiscard]] jv::para get_para(){
         return _para;
     }
-
+    // Setters
     void set_camera(bn::camera_ptr& new_cam);
-
     void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z_order = 0);
 protected:
     bn::sprite_ptr sprite_factory(int x, int y, unsigned char option){
@@ -553,11 +553,6 @@ protected:
             default:
                 return jv::para(0, 0, 0, 0);
         }
-    }
-
-    void set_xy(int x, int y){
-        _x = x;
-        _y = y;
     }
 private:
     bn::sprite_ptr _sprite;

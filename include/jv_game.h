@@ -9,7 +9,7 @@ void game_scene(jv::Player& cat, bn::camera_ptr& cam){
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_camera(cam);
 
-    bn::vector<jv::para, MAX_BLOCKS> para_v;
+    bn::vector<jv::para, MAX_PARA> para_v;
     bn::vector<jv::Block*, MAX_BLOCKS> block_v;
 
     bn::point map_shape(23, 10);
@@ -47,7 +47,9 @@ void game_scene(jv::Player& cat, bn::camera_ptr& cam){
     
     jv::GameMap map1(map_shape.x(), map_shape.y(), block_array);
     jv::LevelMaker::init(map1, cam, para_v, block_v);
-    jv::npc cow(2*32, 7*32 , cam);
+    jv::NPC cow(2*32, 7*32 , cam);
+    //jv::Enemy badcat(16*32, 2*32, cam);
+    jv::Enemy badcat(2*32, 2*32, cam);
 
     while(true){
         /*mytext = "cowY: " + bn::to_string<16>(cow.y());
@@ -55,10 +57,12 @@ void game_scene(jv::Player& cat, bn::camera_ptr& cam){
         mytext = "catY: " + bn::to_string<16>(cat.y());
         text_generator.generate(-110, -55, mytext, text_v);*/
 
-        cat.move_player(cam, para_v);
+        cat.update(cam, para_v);
+        badcat.update(cat, para_v);
         cow.update(cat);
-        jv::LevelMaker::update(map1, cam, para_v, block_v);
+        jv::LevelMaker::update(map1, cam, block_v);
         bn::core::update();
+        jv::resetcombo();
         //text_v.clear();
     }
 }
