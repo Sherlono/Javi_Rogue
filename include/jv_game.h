@@ -48,8 +48,7 @@ void game_scene(jv::Player& cat, bn::camera_ptr& cam){
     jv::GameMap map1(map_shape.x(), map_shape.y(), block_array);
     jv::LevelMaker::init(map1, cam, para_v, block_v);
     jv::NPC cow(2*32, 7*32 , cam);
-    //jv::Enemy badcat(16*32, 2*32, cam);
-    jv::Enemy badcat(2*32, 2*32, cam);
+    jv::Enemy badcat(16*32, 2*32, cam);
 
     while(true){
         /*mytext = "cowY: " + bn::to_string<16>(cow.y());

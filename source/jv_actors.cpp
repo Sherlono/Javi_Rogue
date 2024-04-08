@@ -84,12 +84,8 @@ void NPC::set_visible(bool visible){
 }
 
 void NPC::update(jv::Player& player){
-    // Change sprite priority to draw behind or above player
-    if(this->y() < player.y()){
-        _sprite.set_z_order(1);
-    }else{
-        _sprite.set_z_order(-1);
-    }
+    priority_update(player.y());
+    
     // Speak
     if(_para.intersects(player.get_para()) && bn::keypad::a_pressed()){
         jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
@@ -142,12 +138,8 @@ void Enemy::set_visible(bool visible){
 
 void Enemy::update(jv::Player& player, bn::vector<jv::para, MAX_PARA>& para_v){
     // Change sprite priority to draw behind or above player
-    if(this->y() < player.y()){
-        _sprite.set_z_order(1);
-    }else{
-        _sprite.set_z_order(-1);
-    }
-
+    priority_update(player.y());
+    
     this->move(para_v);
 }
 }

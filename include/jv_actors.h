@@ -69,6 +69,13 @@ protected:
         _prev_dir = _dir;
         _animation.update();
     }
+    void priority_update(bn::fixed player_y){
+        if(this->y() < player_y){
+            _sprite.set_z_order(1);
+        }else{
+            _sprite.set_z_order(-1);
+        }
+    }
     void wait(){
         _sprite.set_horizontal_flip(_dir == 3);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
@@ -148,6 +155,15 @@ public:
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
     void set_visible(bool visible);
     void update(jv::Player& player);
+protected:
+    void priority_update(bn::fixed player_y){
+        if(this->y() < player_y){
+            _sprite.set_z_order(1);
+        }else{
+            _sprite.set_z_order(-1);
+        }
+    }
+    
 private:
     bn::sprite_ptr _sprite;
     jv::para _para;
@@ -183,6 +199,13 @@ protected:
         }
         _prev_dir = _dir;
         _animation.update();
+    }
+    void priority_update(bn::fixed player_y){
+        if(this->y() < player_y){
+            _sprite.set_z_order(1);
+        }else{
+            _sprite.set_z_order(-1);
+        }
     }
     void wait(){
         _sprite.set_horizontal_flip(_dir == 3);
@@ -260,6 +283,7 @@ private:
 
     bn::random _randomizer;
 };
+
 }
 
 #endif
