@@ -1,12 +1,7 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
-#include "bn_vector.h"
-#include "bn_random.h"
-
-#include "jv_environment.h"
-#include "jv_actors.h"
-#include "jv_math.h"
+//#include "bn_random.h"
 
 namespace jv{
 void resetcombo(){
@@ -14,7 +9,7 @@ void resetcombo(){
         bn::core::reset();
     }
 }
-int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
+/*int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
     static int i = 0;
     if(bn::keypad::r_pressed()){
         if(i < BLOCK_TYPE_COUNT){
@@ -30,11 +25,10 @@ int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
         }
     }
     return i;
-}
+}*/
 
 struct GameMap{
-    ~GameMap(){}
-    GameMap(cuchar_t x, cuchar_t y, cuchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
+    GameMap(cuchar_t x, cuchar_t y, uchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
     unsigned char operator[](unsigned int index) const{
         if(index < size){
             return _arr[index];
@@ -44,11 +38,10 @@ struct GameMap{
     }
     // Members
     cuchar_t width, height, size;
-    cuchar_t* _arr;
+    uchar_t* _arr;
 };
-
 // Insert room into the main map starting by the top left corner
-/*void insert_room(jv::GameMap room, jv::GameMap& map, bn::point top_left){
+void insert_room(jv::GameMap room, jv::GameMap& map, bn::point top_left){
     uchar_t y_begin = top_left.y()  ,   y_end = y_begin + room.height;
     uchar_t x_begin = top_left.x()  ,   x_end = x_begin + room.width;
     for(uchar_t y = y_begin; y < y_end; y++){
@@ -58,9 +51,9 @@ struct GameMap{
             map._arr[map_index] = room._arr[room_index];
         }
     }
-}*/
+}
 
-/*GameMap RoomGenerator(unsigned char option){
+GameMap RoomGenerator(unsigned char option){
     switch(option){
         case 1:{
             bn::point map_shape(6, 5);
@@ -85,15 +78,14 @@ struct GameMap{
             return jv::GameMap(map_shape.x(), map_shape.y(), block_array);
         }
     }
-}*/
-
+}
 /*GameMap GameMapGenerator(const unsigned int x, const unsigned int y, bn::random randomizer){
 
 }*/
 
 namespace LevelMaker{
 // Init must be called Only Once
-void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>& para_vector, bn::vector<Block*, MAX_BLOCKS>& block_v){
+void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>& para_vector, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_v){
     para_vector.clear();
     for(int y = 0; y < map.height; y++){
         for(int x = 0; x < map.width; x++){
@@ -118,18 +110,19 @@ void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>
             unsigned int index = x + y * map.width;
 
             jv::Block* newblock;
-            bool not_outside = (x <= map.width && y <= map.height);
+            bool not_outside = (x < map.width && y < map.height);
             newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
-            block_v.push_back(newblock);
+            block_v.push_back(newblock->get_sprite_ptr());
+            delete newblock;
         }
     }
 }
 
 // Update must be run every frame
-void update(const GameMap map, bn::camera_ptr& cam, bn::vector<Block*, MAX_BLOCKS>& block_v){
+static int prev_x = 0, prev_y = 0;
+void update(const GameMap map, bn::camera_ptr& cam, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_v){
     // Did the player move enough to load assets
     int current_x = (cam.x().integer())/48  ,   current_y = (cam.y().integer())/32;
-    static int prev_x = current_x, prev_y = current_y;
     
     if(current_x != prev_x || current_y != prev_y){
         // Defining the MAP ARRAY bounds to redraw the map
@@ -143,7 +136,9 @@ void update(const GameMap map, bn::camera_ptr& cam, bn::vector<Block*, MAX_BLOCK
         for(int y = top_bound; y < bottom_bound; y++){
             for(int x = left_bound; x < right_bound; x++){
                 unsigned int index = x + y * map.width;
-                block_v[i]->set_block(x*32, y*32, cam, map[index] * (x < map.width && y < map.height), MAX_BLOCKS - y);
+                bool not_outside = (x < map.width && y < map.height);
+                jv::Block newblock(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
+                block_v[i] = newblock.get_sprite_ptr();
                 i++;
             }
         }

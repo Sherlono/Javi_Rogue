@@ -1,6 +1,9 @@
 #ifndef JV_GAME_H
 #define JV_GAME_H
 
+#include "jv_environment.h"
+#include "jv_actors.h"
+#include "jv_math.h"
 #include "jv_interface.h"
 
 namespace jv::game{
@@ -18,7 +21,7 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     jv::Enemy badcat(16*32, 2*32, cam, random_ptr);
 
     bn::vector<jv::para, MAX_PARA> para_v;
-    bn::vector<jv::Block*, MAX_BLOCKS> block_v;
+    bn::vector<bn::sprite_ptr, MAX_BLOCKS> block_v;
 
     bn::point map_shape(23, 10);
     uchar_t block_array[23 * 10] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,
@@ -32,11 +35,11 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
                                     9 , 45, 55, 53, 46, 18, 23, 23, 19, 45, 55, 53, 53, 46, 18, 23, 23, 19, 45, 53, 55, 46, 10,
                                     11, 15, 21, 22, 16, 12, 0 , 0 , 11, 15, 21, 20, 22, 16, 12, 0 , 0 , 11, 15, 21, 22, 16, 12};
     
-    /*// On screen text stuff (mostly for debugging)
+    // On screen text stuff (mostly for debugging)
     bn::vector<bn::sprite_ptr, 14> text_v;
     bn::string<32> mytext = "";
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);*/
+    text_generator.set_bg_priority(0);
 
     /*jv::Block* myblock;
     myblock = new jv::Wall(0, 0, cam, 1);
@@ -47,9 +50,9 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     jv::LevelMaker::init(map1, cam, para_v, block_v);
 
     while(true){
-        /*mytext = "cowY: " + bn::to_string<16>(cow.y());
+        mytext = "lmf: " + bn::to_string<16>(bn::core::last_missed_frames());
         text_generator.generate(-110, -65, mytext, text_v);
-        mytext = "catY: " + bn::to_string<16>(cat.y());
+        /*mytext = "catY: " + bn::to_string<16>(cat.y());
         text_generator.generate(-110, -55, mytext, text_v);*/
 
         cat.update(cam, para_v);
@@ -58,10 +61,8 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
         jv::LevelMaker::update(map1, cam, block_v);
         jv::resetcombo();
         bn::core::update();
-        //text_v.clear();
+        text_v.clear();
     }
 }
-
-
 }
 #endif
