@@ -1,7 +1,6 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
-#include "bn_math.h"
 #include "bn_vector.h"
 #include "bn_random.h"
 
@@ -34,6 +33,7 @@ int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
 }
 
 struct GameMap{
+    ~GameMap(){}
     GameMap(cuchar_t x, cuchar_t y, cuchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
     unsigned char operator[](unsigned int index) const{
         if(index < size){
@@ -44,9 +44,48 @@ struct GameMap{
     }
     // Members
     cuchar_t width, height, size;
-private:
     cuchar_t* _arr;
 };
+
+// Insert room into the main map starting by the top left corner
+/*void insert_room(jv::GameMap room, jv::GameMap& map, bn::point top_left){
+    uchar_t y_begin = top_left.y()  ,   y_end = y_begin + room.height;
+    uchar_t x_begin = top_left.x()  ,   x_end = x_begin + room.width;
+    for(uchar_t y = y_begin; y < y_end; y++){
+        for(uchar_t x = x_begin; x < x_end; x++){
+            int map_index = x + y * map.width;
+            int room_index = (x - x_begin) + ((y - y_begin) * room.width);
+            map._arr[map_index] = room._arr[room_index];
+        }
+    }
+}*/
+
+/*GameMap RoomGenerator(unsigned char option){
+    switch(option){
+        case 1:{
+            bn::point map_shape(6, 5);
+            uchar_t block_array[30] = {1 , 24, 28, 28, 25, 2 ,
+                                       5 , 29, 37, 38, 30, 6 ,
+                                       7 , 51, 53, 54, 78, 8 ,
+                                       9 , 45, 55, 53, 46, 10,
+                                       11, 15, 21, 22, 16, 12};
+            return jv::GameMap(map_shape.x(), map_shape.y(), block_array);
+        }
+        default:{    // All environment assets layed out
+            bn::point map_shape(9, 10);
+            uchar_t block_array[90] = {1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
+                                       10, 11, 12, 13, 14, 15, 16, 17, 18,
+                                       19, 20, 21, 22, 23, 24, 25, 26, 27,
+                                       28, 29, 30, 31, 32, 33, 34, 35, 36,
+                                       37, 38, 39, 40, 41, 42, 43, 44, 45,
+                                       46, 47, 48, 49, 50, 51, 52, 53, 54,
+                                       55, 56, 57, 58, 59, 60, 61, 62, 63,
+                                       64, 65, 66, 67, 68, 69, 70, 71, 72,
+                                       73, 74, 75, 76, 77, 78, 79, 80, 81};
+            return jv::GameMap(map_shape.x(), map_shape.y(), block_array);
+        }
+    }
+}*/
 
 /*GameMap GameMapGenerator(const unsigned int x, const unsigned int y, bn::random randomizer){
 

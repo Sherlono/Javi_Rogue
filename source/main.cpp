@@ -6,14 +6,15 @@
 int main()
 {
     bn::core::init();
-
-    const bn::point initial_pos (16 + 2*32,16 + 2*32);
-    bn::camera_ptr cam = bn::camera_ptr::create(initial_pos.x(), initial_pos.y());
-    jv::Player cat(initial_pos.x(), initial_pos.y());
+    //bn::random randomizer;
+    //bn::random* random_ptr = &randomizer;
+    //bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
+    bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
 
     bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
 
     while(true){
-        jv::game::game_scene(cat, cam);
+        //jv::game::game_scene(cam, random_ptr);
+        bn::core::update();
     }
 }
