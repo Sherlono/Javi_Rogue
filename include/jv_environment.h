@@ -32,6 +32,9 @@ public:
     [[nodiscard]] jv::para get_para(){
         return _para;
     }
+    [[nodiscard]] bn::sprite_ptr get_sprite_ptr(){
+        return _sprite;
+    }
     // Setters
     void set_camera(bn::camera_ptr& new_cam);
     void set_block(int x, int y, bn::camera_ptr& cam, unsigned char option, int z_order = 0);

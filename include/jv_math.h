@@ -19,10 +19,11 @@ public:
     ~para(){}
     para(){}
     para(int x, int y, int width, int height, int vshear = 0):_x(x), _y(y){
-        _top_left = bn::point(_x - (width/2), _y - vshear - (height/2));
-        _top_right = bn::point(_x + (width/2), _y + vshear - (height/2));
-        _bottom_left = bn::point(_x - (width/2), _y - vshear + (height/2));
-        _bottom_right = bn::point(_x + (width/2), _y + vshear + (height/2));
+        int target_x1 = _x - (width/2), target_x2 = _x + (width/2);
+        _top_left = bn::point(target_x1, _y - vshear - (height/2));
+        _top_right = bn::point(target_x2, _y + vshear - (height/2));
+        _bottom_left = bn::point(target_x1, _y - vshear + (height/2));
+        _bottom_right = bn::point(target_x2, _y + vshear + (height/2));
     }
 
     [[nodiscard]] int x() const{ // Adding true in the arguments returns the "id" (simplified position) instead
