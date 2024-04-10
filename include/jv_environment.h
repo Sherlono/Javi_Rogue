@@ -535,12 +535,12 @@ protected:
                 return jv::para(x, y + 3, 34, 34);
             case 19:
                 return jv::para(x, y + 3, 34, 34);
-            case 20:
-                return jv::para(x, y + 10, 34, 18);
+            case 20:    // Black
+                return jv::para(x, y + 19, 34, 34);
             case 21:
-                return jv::para(x, y + 12, 34, 22);
+                return jv::para(x, y + 19, 34, 34);
             case 22:
-                return jv::para(x, y + 12, 34, 22);
+                return jv::para(x, y + 19, 34, 34);
             case 23:
                 return jv::para(x, y - 8, 34, 12);
             case 24:    // Huge Walls
@@ -552,7 +552,7 @@ protected:
             case 27:
                 return jv::para(x, y + 20, 34, 16, 8);
             case 28:     // Down facing horizontal wall
-                return jv::para(x, y + 3, 34, 34);
+                return jv::para(x, y + 11, 34, 16);
             default:
                 return jv::para(0, 0, 0, 0);
         }
