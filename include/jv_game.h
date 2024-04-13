@@ -17,8 +17,8 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_camera(cam);
-    bn::regular_bg_ptr hud = bn::regular_bg_items::hud_item.create_bg(0, 0);
-    hud.set_priority(0);
+    /*bn::regular_bg_ptr hud = bn::regular_bg_items::hud_item.create_bg(0, 0);
+    hud.set_priority(0);*/
     
     // NPCs
     jv::NPC cow(2*32, 7*32 , cam);
@@ -27,7 +27,7 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     bn::vector<jv::para, MAX_PARA> para_v;
     bn::vector<bn::sprite_ptr, MAX_BLOCKS> block_v;
 
-    /*bn::point map_shape(23, 10);
+    bn::point map_shape(23, 10);
     uchar_t block_array[230] = {1 , 24, 28, 28, 25, 2 , 0 , 0 , 1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,
                                 5 , 29, 37, 38, 30, 28, 28, 28, 28, 29, 37, 49, 49, 49, 49, 49, 49, 49, 49, 49, 38, 30, 6 ,
                                 7 , 51, 53, 54, 78, 72, 72, 72, 72, 77, 54, 53, 53, 53, 53, 53, 55, 53, 54, 53, 53, 52, 8 ,
@@ -37,9 +37,9 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
                                 5 , 29, 37, 38, 30, 28, 28, 28, 28, 29, 37, 63, 38, 30, 28, 28, 28, 28, 29, 37, 38, 30, 6 ,
                                 7 , 51, 53, 54, 78, 72, 72, 72, 72, 77, 54, 53, 53, 78, 72, 72, 72, 72, 77, 53, 53, 52, 8 ,
                                 9 , 45, 55, 53, 46, 18, 23, 23, 19, 45, 55, 53, 53, 46, 18, 23, 23, 19, 45, 53, 55, 46, 10,
-                                11, 15, 21, 22, 16, 12, 0 , 0 , 11, 15, 21, 20, 22, 16, 12, 0 , 0 , 11, 15, 21, 22, 16, 12};*/
+                                11, 15, 21, 22, 16, 12, 0 , 0 , 11, 15, 21, 20, 22, 16, 12, 0 , 0 , 11, 15, 21, 22, 16, 12};
 
-    bn::point map_shape(15, 10);
+    /*bn::point map_shape(15, 10);
     uchar_t block_array[150] = {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
                                 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
                                 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -49,7 +49,7 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
                                 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
                                 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
                                 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
-                                0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
+                                0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };*/
 
     // On screen text stuff (mostly for debugging)
     /*bn::vector<bn::sprite_ptr, 14> text_v;
@@ -64,7 +64,7 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     // Level management
     jv::GameMap map1(map_shape.x(), map_shape.y(), block_array);
     //map1.insert_room(jv::RoomPrefab(1), bn::point(0, 0));
-    map1.insert_room(jv::RoomPrefab(3), bn::point(0, 0));
+    //map1.insert_room(jv::RoomPrefab(3), bn::point(0, 0));
 
     jv::LevelMaker::init(map1, cam, para_v, block_v);
 

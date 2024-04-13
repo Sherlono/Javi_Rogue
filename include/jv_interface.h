@@ -11,7 +11,7 @@ void resetcombo(){
 }
 
 // For debug purposes only
-/*static int i = 0;
+static int i = 0;
 int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
     if(bn::keypad::r_pressed()){
         if(i < BLOCK_TYPE_COUNT){
@@ -27,10 +27,9 @@ int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
         }
     }
     return i;
-}*/
+}
 
 struct GameMap{
-    // Methods
     GameMap():width(0), height(0), size(0){}
     GameMap(cuchar_t x, cuchar_t y, uchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
     unsigned char operator[](const unsigned int index) const{
@@ -52,7 +51,6 @@ struct GameMap{
             }
         }
     }
-    // Members
     uchar_t width, height, size;
     uchar_t* _arr;
 };
@@ -124,7 +122,7 @@ void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>
     }
     // Defining the MAP ARRAY bounds to redraw the map
     int aux_x1 = (cam.x().integer() - 144)/32;      // Horizontal block load bound
-    int aux_y1 = (cam.y().integer() - 96)/32;      // Vertical block load bound
+    int aux_y1 = (cam.y().integer() - 96)/32;       // Vertical block load bound
     int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = left_bound + 11;
     int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = top_bound + 7;
 
