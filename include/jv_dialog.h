@@ -65,9 +65,6 @@ inline void init(const bn::string_view line1, const bn::string_view line2, const
     sprites2.clear();
     sprites3.clear();
 }
-/*void update(){
-
-}*/
 }
 }
 

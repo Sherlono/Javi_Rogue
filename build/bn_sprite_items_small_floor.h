@@ -7,12 +7,12 @@
 
 //======================================================================
 //
-//	small_floor_bn_gfx, 32x80@4, 
+//	small_floor_bn_gfx, 32x128@4, 
 //	+ palette 16 entries, not compressed
-//	+ 40 tiles not compressed
-//	Total size: 32 + 1280 = 1312
+//	+ 64 tiles Metatiled by 4x2 not compressed
+//	Total size: 32 + 2048 = 2080
 //
-//	Time-stamp: 2024-03-25, 15:29:12
+//	Time-stamp: 2025-02-12, 16:10:05
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -21,8 +21,8 @@
 #ifndef GRIT_SMALL_FLOOR_BN_GFX_H
 #define GRIT_SMALL_FLOOR_BN_GFX_H
 
-#define small_floor_bn_gfxTilesLen 1280
-extern const bn::tile small_floor_bn_gfxTiles[40];
+#define small_floor_bn_gfxTilesLen 2048
+extern const bn::tile small_floor_bn_gfxTiles[64];
 
 #define small_floor_bn_gfxPalLen 32
 extern const bn::color small_floor_bn_gfxPal[16];
@@ -34,7 +34,7 @@ extern const bn::color small_floor_bn_gfxPal[16];
 namespace bn::sprite_items
 {
     constexpr inline sprite_item small_floor(sprite_shape_size(sprite_shape::WIDE, sprite_size::BIG), 
-            sprite_tiles_item(span<const tile>(small_floor_bn_gfxTiles, 40), bpp_mode::BPP_4, compression_type::NONE, 5), 
+            sprite_tiles_item(span<const tile>(small_floor_bn_gfxTiles, 64), bpp_mode::BPP_4, compression_type::NONE, 8), 
             sprite_palette_item(span<const color>(small_floor_bn_gfxPal, 16), bpp_mode::BPP_4, compression_type::NONE));
 }
 

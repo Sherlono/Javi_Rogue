@@ -9,10 +9,10 @@
 //
 //	common_variable_16x16_font_bn_gfx, 16x1760@4, 
 //	+ palette 16 entries, not compressed
-//	+ 440 tiles not compressed
+//	+ 440 tiles Metatiled by 2x2 not compressed
 //	Total size: 32 + 14080 = 14112
 //
-//	Time-stamp: 2024-03-25, 15:29:12
+//	Time-stamp: 2025-02-12, 16:10:05
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //

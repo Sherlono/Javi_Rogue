@@ -2,6 +2,7 @@
 #define JV_INTERFACE_H
 
 //#include "bn_random.h"
+#include "bn_array.h"
 
 namespace jv{
 void resetcombo(){
@@ -10,31 +11,11 @@ void resetcombo(){
     }
 }
 
-// For debug purposes only
-/*static int i = 0;
-int block_scroll(jv::Block* myblock, bn::camera_ptr& cam){
-    if(bn::keypad::r_pressed()){
-        if(i < BLOCK_TYPE_COUNT){
-            delete myblock;
-            i++;
-            myblock = new jv::Block(0, 0, cam, i);
-        }
-    }else if(bn::keypad::l_pressed()){
-        if(i > 0){
-            delete myblock;
-            i--;
-            myblock = new jv::Block(0, 0, cam, i);
-        }
-    }
-    return i;
-}*/
-
 struct GameMap{
     // Methods
-    GameMap():width(0), height(0), size(0){}
-    GameMap(cuchar_t x, cuchar_t y, uchar_t* arr):width(x), height(y), size(x*y), _arr(arr){}
+    GameMap(cuchar_t x, cuchar_t y, uchar_t* arr):width(x), height(y), _arr(arr){}
     unsigned char operator[](const unsigned int index) const{
-        if(index < size){
+        if(index < width*height){
             return _arr[index];
         }else{
             return 0;   // Not perfect but works if no radical changes are made to how block constructors work
@@ -42,8 +23,10 @@ struct GameMap{
     }
     // Insert room into the main map starting by the top left corner
     void insert_room(GameMap room, const bn::point top_left){
-        int y_begin = top_left.y()  ,   y_end = y_begin + room.height;
-        int x_begin = top_left.x()  ,   x_end = x_begin + room.width;
+        int y_begin = top_left.y()  ,   x_begin = top_left.x();
+        int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
+        int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
+
         for(int y = y_begin; y < y_end; y++){
             for(int x = x_begin; x < x_end; x++){
                 int map_index = x + y * this->width;
@@ -53,42 +36,15 @@ struct GameMap{
         }
     }
     // Members
-    uchar_t width, height, size;
+    uchar_t width, height;
     uchar_t* _arr;
 };
+
 // Make all room prefabs here
 GameMap RoomPrefab(unsigned char option){
     switch(option){
-        case 1:{
-            static uchar_t block_array[35] = {1 , 24, 28, 28, 28, 25, 2 ,
-                                              5 , 29, 37, 49, 38, 30, 6 ,
-                                              7 , 51, 53, 53, 54, 52, 8 ,
-                                              9 , 45, 55, 53, 53, 46, 10,
-                                              11, 15, 21, 20, 22, 16, 12};
-            return GameMap(7, 5, block_array);
-        }
-        case 2:{
-            static uchar_t block_array[63] = {1 , 24, 28, 28, 28, 25, 2 ,
-                                              5 , 29, 37, 49, 38, 30, 6 ,
-                                              5 , 51, 53, 54, 53, 52, 6 ,
-                                              5 , 51, 55, 53, 53, 52, 6 ,
-                                              5 , 51, 53, 53, 54, 52, 6 ,
-                                              5 , 51, 53, 55, 53, 52, 6 ,
-                                              7 , 51, 54, 53, 55, 52, 8 ,
-                                              9 , 45, 53, 53, 53, 46, 10,
-                                              11, 15, 21, 20, 22, 16, 12};
-            return GameMap(7, 9, block_array);
-        }
-        case 3:{
-            static uchar_t block_array[65] = {1 , 24, 28, 28, 28, 28, 28, 28, 28, 28, 28, 25, 2 ,
-                                              5 , 29, 37, 49, 49, 49, 49, 49, 49, 49, 38, 30, 6 ,
-                                              7 , 51, 54, 53, 53, 53, 53, 53, 54, 53, 53, 52, 8 ,
-                                              9 , 45, 55, 53, 53, 55, 53, 55, 53, 53, 55, 46, 10,
-                                              11, 15, 21, 20, 20, 20, 20, 20, 20, 20, 22, 16, 12};
-            return GameMap(13, 5, block_array);
-        }
         default:{    // All environment assets layed out
-            static uchar_t block_array[90] = {1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
+            static uchar_t block_array[82] = {1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
                                               10, 11, 12, 13, 14, 15, 16, 17, 18,
                                               19, 20, 21, 22, 23, 24, 25, 26, 27,
                                               28, 29, 30, 31, 32, 33, 34, 35, 36,
@@ -102,26 +58,175 @@ GameMap RoomPrefab(unsigned char option){
     }
 }
 
-/*GameMap GameMapGenerator(const unsigned int x, const unsigned int y, bn::random randomizer){
+// Make all floor prefabs here
+void FloorFactory(const bn::point top_left, unsigned char option, bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr){
+    static bn::array<uint16_t, 16> block_array;
+    static bn::array<bool, 16> flip_array;
+    flip_array = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-}*/
+    switch(option){
+        case 1:{
+            block_array = {1,  2,  3,  15,
+                           4,  5,  6,  15,
+                           1,  2,  3,  15,
+                           4,  5,  6,  15};
+            break;
+        }
+        case 2:{
+            block_array = {11, 10, 10, 11,
+                           19, 19, 19, 19,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        case 3:{
+            block_array = { 9, 10, 10, 11,
+                           18, 19, 19, 19,
+                           27, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        case 4:{
+            block_array = { 9, 10, 10,  9,
+                           18, 19, 19, 18,
+                           27, 15, 15, 27,
+                           15, 15, 15, 15,};
+            flip_array[3] = true;
+            flip_array[7] = true;
+            flip_array[11] = true;
+            flip_array[15] = true;
+            break;
+        }
+        case 5:{
+            block_array = {12, 13, 14, 15,
+                           26, 27, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        case 6:{
+            block_array = {16, 17, 18, 26,
+                           18, 26, 27, 15,
+                           27, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        case 7:{
+            block_array = { 0,  0,  7, 8,
+                            7,  8, 16, 17,
+                           16, 17, 18, 26,
+                           18, 26, 27, 15};
+            break;
+        }
+        case 8:{
+            block_array = { 0, 0, 0, 0,
+                            0, 0, 0, 0,
+                            0, 0, 7, 8,
+                            7, 8,16,17};
+            break;
+        }
+        case 9:{
+            block_array = { 0,  0,  7,  8,
+                            7,  8, 16, 17,
+                           23, 24, 25, 26,
+                            4,  5,  6, 15};
+            break;
+        }
+        case 10:{
+            block_array = {15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           20, 20, 20, 20,
+                           29, 28, 28, 29};
+            break;
+        }
+        case 11:{
+            block_array = {15, 15, 15, 15,
+                           22, 15, 15, 15,
+                           44, 20, 20, 20,
+                           39, 28, 28, 29};
+            break;
+        }
+        case 12:{
+            block_array = {15, 15, 15, 15,
+                           22, 15, 15, 22,
+                           44, 20, 20, 44,
+                           39, 28, 28, 39};
+            flip_array[7] = true;
+            flip_array[11] = true;
+            flip_array[15] = true;
+            break;
+        }
+        case 13:{
+            block_array = {15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           45, 22, 15, 15,
+                           30, 31, 32, 15};
+            break;
+        }
+        case 14:{
+            block_array = {15, 15, 15, 15,
+                           22, 15, 15, 15,
+                           44, 45, 22, 15,
+                           42, 43, 44, 45};
+            break;
+        }
+        case 15:{
+            block_array = {44, 45, 22, 15,
+                           42, 43, 44, 45,
+                           37, 38, 42, 43,
+                            0,  0, 37, 38};
+            break;
+        }
+        case 16:{
+            block_array = {37, 38, 42, 43,
+                            0,  0, 37, 38,
+                            0,  0,  0,  0,
+                            0,  0,  0,  0};
+            break;
+        }
+        case 17:{
+            block_array = { 1,  2,  3, 15,
+                           34, 35, 36, 45,
+                           37, 38, 42, 43,
+                            0,  0, 37, 38};
+            break;
+        }
+        case 18:{
+            block_array = {27, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        case 19:{
+            block_array = {15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           22, 15, 15, 15};
+            break;
+        }
+        case 20:{
+            block_array = {15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
+        default:{
+            block_array = {0,  0,  0,  0,
+                           0,  0,  0,  0,
+                           0,  0,  0,  0,
+                           0,  0,  0,  0};
+            break;
+        }
+    }
+    
+    bg_map_ptr->insert_block(4, 4, block_array, flip_array, blockFlip, top_left);
+}
 
 namespace LevelMaker{
 // Init must be called Once
-void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>& para_vector, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_vector){
-    para_vector.clear();
-    block_vector.clear();
-    for(int y = 0; y < map.height; y++){
-        for(int x = 0; x < map.width; x++){
-            unsigned int index = x + y * map.width;
-
-            jv::Block newblock(x*32, y*32, cam, map[index], MAX_BLOCKS - y);
-            if(map[index] <= W_COUNT){
-                jv::para newpara = newblock.get_para();
-                para_vector.push_back(newpara);
-            }
-        }
-    }
+/*void init(const GameMap map, bn::camera_ptr& cam, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_vector){
     // Defining the MAP ARRAY bounds to redraw the map
     int aux_x1 = (cam.x().integer() - 144)/32;      // Horizontal block load bound
     int aux_y1 = (cam.y().integer() - 96)/32;      // Vertical block load bound
@@ -133,11 +238,11 @@ void init(const GameMap map, bn::camera_ptr& cam, bn::vector<jv::para, MAX_PARA>
         for(int x = left_bound; x < right_bound; x++){
             unsigned int index = x + y * map.width;
 
-            jv::Block* newblock;
+            //jv::Block* newblock;
             bool not_outside = (x < map.width && y < map.height);
-            newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
-            block_vector.push_back(newblock->get_sprite_ptr());
-            delete newblock;
+            //newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
+            //block_vector.push_back(newblock->get_sprite_ptr());
+            //delete newblock;
         }
     }
 }
@@ -161,15 +266,15 @@ void update(const GameMap map, bn::camera_ptr& cam, bn::vector<bn::sprite_ptr, M
             for(int x = left_bound; x < right_bound; x++){
                 unsigned int index = x + y * map.width;
                 bool not_outside = (x < map.width && y < map.height);
-                jv::Block newblock(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
-                block_vector[i] = newblock.get_sprite_ptr();
+                //jv::Block newblock(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
+                //block_vector[i] = newblock.get_sprite_ptr();
                 i++;
             }
         }
     }
     prev_x = current_x;
     prev_y = current_y;
-}
+}*/
 }
 }
 

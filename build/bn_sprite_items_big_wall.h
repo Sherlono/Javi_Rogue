@@ -9,10 +9,10 @@
 //
 //	big_wall_bn_gfx, 32x160@4, 
 //	+ palette 16 entries, not compressed
-//	+ 80 tiles not compressed
+//	+ 80 tiles Metatiled by 4x4 not compressed
 //	Total size: 32 + 2560 = 2592
 //
-//	Time-stamp: 2024-03-25, 15:29:12
+//	Time-stamp: 2025-02-12, 16:10:05
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //

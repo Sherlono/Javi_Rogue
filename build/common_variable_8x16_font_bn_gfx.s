@@ -5,10 +5,10 @@
 @
 @	common_variable_8x16_font_bn_gfx, 8x1760@4, 
 @	+ palette 16 entries, not compressed
-@	+ 220 tiles not compressed
+@	+ 220 tiles Metatiled by 1x2 not compressed
 @	Total size: 32 + 7040 = 7072
 @
-@	Time-stamp: 2024-03-25, 15:29:13
+@	Time-stamp: 2025-02-12, 16:10:05
 @	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 @	( http://www.coranac.com/projects/#grit )
 @

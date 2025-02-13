@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Butano",
+            "includePath": [
+                "C:/Users/javie/OneDrive/Documentos/butano/butano/include",
+                "C:/Users/javie/OneDrive/Documentos/butano/common/**",
+                "${workspaceFolder}/**"
+            ],
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++23",
+            "defines": [],
+            "compilerPath": "C:/devkitPro/devkitARM/bin/arm-none-eabi-gcc.exe",
+            "intelliSenseMode": "windows-gcc-arm"
+        }
+    ],
+    "version": 4
+}
