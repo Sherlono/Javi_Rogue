@@ -1,7 +1,7 @@
 #ifndef JV_ENVIRONMENT_H
 #define JV_ENVIRONMENT_H
 
-//#include "bn_log.h"
+#include "bn_log.h"
 #include "bn_math.h"
 #include "bn_memory.h"
 #include "bn_bg_tiles.h"
@@ -16,7 +16,7 @@
 #include "jv_constants.h"
 
 namespace jv{
-
+enum Side {whole, left, right, up, down};
 }
 
 struct bg_map
@@ -49,24 +49,45 @@ struct bg_map
         current_cell = current_cell_info.cell();
     }
 
-    void insert_block(int width, int height, const auto block, const auto tileFlip, bool blockFlip, const bn::point top_left){
-        int y_begin = top_left.y()*height  ,   x_begin = top_left.x()*width;
-        int aux_y = y_begin + height   ,   aux_x = x_begin + width;
+    void insert_block(int width, int height, const auto block, const auto tileFlip, bool blockFlip, const bn::point top_left, const uchar_t crop, const uchar_t side){
+        int y_begin = top_left.y()*height   ,   x_begin = top_left.x()*width;
+        int aux_y = y_begin + height        ,   aux_x = x_begin + width;
         int y_end = aux_y * (aux_y < 32) + 32 * (aux_y >= 32)   ,   x_end = aux_x * (aux_x < 32) + 32 * (aux_x >= 32);
+        
+        if(crop == jv::Side::left){
+            width = 2;
+            if(side == jv::Side::right){
+                x_end = x_begin + 2;
+            }else if(side == jv::Side::left){
+                x_begin = x_end - 2;
+            }
+        }else if(crop == jv::Side::right){
+            width = 2;
+            if(side == jv::Side::right){
+                x_begin = x_end - 2;
+            }else if(side == jv::Side::left){
+                x_end = x_begin + 2;
+            }
+        }/*else if(crop == jv::Side::down){
+            height = 2;
+            y_end = y_begin + 2;
+        }else if(crop == jv::Side::up){
+            height = 2;
+            y_begin = y_end - 2;
+        }*/
+
         if(!blockFlip){
             for(int y = y_begin; y < y_end; y++){
                 for(int x = x_begin; x < x_end; x++){
-                    int room_index = (x - x_begin) + (y - y_begin) * width;
-                    //BN_LOG("x: ", x, " y: ", y, " index: ", room_index);
-                    this->set_cell(x, y, block[room_index], tileFlip[room_index]);
+                    int cell_index = (x - x_begin) + (y - y_begin)*width + 2*(crop != 0)*((y - y_begin) + 1*(crop == 2)) + (side==jv::Side::left)*(2*(crop==1) - 2*(crop==2));
+                    this->set_cell(x, y, block[cell_index], tileFlip[cell_index]);
                 }
             }
         }else{
             for(int y = y_begin; y < y_end; y++){
                 for(int x = x_end-1; x >= x_begin; x--){
-                    int room_index = -(x - x_end) + (y - y_begin) * width - 1;
-                    //BN_LOG("x: ", x, " y: ", y, " index: ", room_index);
-                    this->set_cell(x, y, block[room_index], !tileFlip[room_index]);
+                    int cell_index = -(x + 1 - x_end) + (y - y_begin)*width + 2*(crop != 0) * ((y - y_begin) + 1*(crop == 1)) + (side==jv::Side::left)*(2*(crop==2) - 2*(crop==1));
+                    this->set_cell(x, y, block[cell_index], !tileFlip[cell_index]);
                 }
             }
         }
