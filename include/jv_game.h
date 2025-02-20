@@ -8,25 +8,30 @@
 #include "jv_actors.h"
 #include "jv_interface.h"
 #include "bn_sprite_items_ball.h"
+#include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_hud_item.h"
 
 namespace jv::game{
-void debug_mode(bn::vector<int*, 5>& myrefs, bn::regular_bg_ptr bg, bn::regular_bg_ptr floor, jv::Player& player){
+void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_generator& text_generator, bn::vector<bn::sprite_ptr, 64>& balls , bn::regular_bg_ptr bg, bn::regular_bg_ptr floor, jv::Player& player){
     bg.set_visible(false);
     floor.set_visible(false);
     player.set_visible(false);
 
+    for(bn::sprite_ptr ball : balls){
+        ball.set_visible(false);
+    }
+
     bn::vector<bn::sprite_ptr, 128> v_text;
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);
 
     static int index = 0;
-    bn::sprite_ptr cursor = bn::sprite_items::ball.create_sprite(-25, -70 + 9*index);
+    uchar_t hold = 0;
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-25, -70 + 9*index);
 
-    bn::vector<jv::menu_option, 5> options;
-    options.push_back(jv::menu_option("Val 1", *myrefs[0]));
-    options.push_back(jv::menu_option("Column", *myrefs[1]));
-    options.push_back(jv::menu_option("Block", *myrefs[2]));
+    bn::vector<jv::menu_option, MAX_OPTIONS> options;
+    options.push_back(jv::menu_option("Val 1", *optionRefs[0]));
+    options.push_back(jv::menu_option("Val 2", *optionRefs[1]));
+    options.push_back(jv::menu_option("Val 3", *optionRefs[2]));
+    options.push_back(jv::menu_option("Val 4", *optionRefs[3]));
 
     for(int i = 0; i < options.size(); i++){
         text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
@@ -37,7 +42,7 @@ void debug_mode(bn::vector<int*, 5>& myrefs, bn::regular_bg_ptr bg, bn::regular_
     while(true){
 
         if(bn::keypad::down_pressed()){
-            if(index < options.size()){
+            if(index < options.size() - 1){
                 index++;
                 cursor.set_position(cursor.x(), cursor.y() + 9);
             }
@@ -47,27 +52,34 @@ void debug_mode(bn::vector<int*, 5>& myrefs, bn::regular_bg_ptr bg, bn::regular_
                 cursor.set_position(cursor.x(), cursor.y() - 9);
             }
         }
-        if(bn::keypad::left_pressed()){
-            options[index].data--;
-            v_text.clear();
-            for(int i = 0; i < options.size(); i++){
-                text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
-                text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
+        
+        if(bn::keypad::a_pressed()){ DebugUpdate(options, v_text, text_generator, index, true);}
+        else if(bn::keypad::b_pressed()){ DebugUpdate(options, v_text, text_generator, index, false);}
+
+        if(bn::keypad::a_held()){
+            hold++;
+            if(hold > 6){
+                DebugUpdate(options, v_text, text_generator, index, true);
+                hold = 0;
             }
-        }else if(bn::keypad::right_pressed()){
-            options[index].data++;
-            v_text.clear();
-            for(int i = 0; i < options.size(); i++){
-                text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
-                text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
+        }else if(bn::keypad::b_held()){
+            hold++;
+            if(hold > 6){
+                DebugUpdate(options, v_text, text_generator, index, false);
+                hold = 0;
             }
         }
+
+        if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
 
         if(bn::keypad::start_pressed()){
             bg.set_visible(true);
             floor.set_visible(true);
             player.set_visible(true);
             
+            for(bn::sprite_ptr ball : balls){
+                ball.set_visible(true);
+            }
             for(int i = 0; i < options.size(); i++){
                 BN_LOG(options[i]._text, ": ", options[i].data);
             }
@@ -79,27 +91,38 @@ void debug_mode(bn::vector<int*, 5>& myrefs, bn::regular_bg_ptr bg, bn::regular_
     }
 }
 
-void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
-    // Player init
-    const bn::point start_pos (-70, -80);
-    cam.set_position(start_pos.x(), start_pos.y());
-    jv::Player cat(start_pos.x(), start_pos.y(), random_ptr);
+void start_scene(bn::sprite_text_generator& text_generator, bn::random& randomizer){
+    bn::vector<bn::sprite_ptr, 64> v_text;
+    text_generator.generate(-110, 0, "Press any button to start.", v_text);
+    text_generator.set_bg_priority(0);
+    
+    while(!bn::keypad::any_pressed()){
+        randomizer.update();
+        bn::core::update();
+    }
+    v_text.clear();
+    bn::core::update();
+}
+
+void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, bn::random& randomizer){
     
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_camera(cam);
 
     bn::vector<bn::sprite_ptr, 64> balls;
-    for(int y = 0; y < 16; y++){
+    /*for(int y = 0; y < 16; y++){
         for(int x = 0; x < 4; x++){
-            bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite((x*32)-96, (y*32)-96);
+            bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(x*32, y*32);
             ball.set_camera(cam);
             balls.push_back(ball);
         }
-    }
+    }*/
+
 
     int prev_skipped = 0;
-    int val1 = 6, val2 = -1, val3 = -1;
+    int val1 = 6, val2 = -7, val3 = -2, val4 = 1;
+    
     
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
@@ -109,11 +132,11 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
     bg.set_camera(cam);
 
     uchar_t blockArr[306] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 9, 3, 2, 2, 3, 9, 0, 0, 0, 9, 3, 2, 2, 3, 9, 0,
-                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20, 5, 2, 2, 2, 5,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20,13,10,10,10,13,20,20,20,20, 1, 0,
-                              0,17,11,10,20,11,17, 0, 0, 0,17,11,20,10,11,17, 0,
+                              0, 9, 3, 2, 2, 3, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 1,20,20,20,20, 1, 0, 0, 0, 9, 3, 2, 3, 9, 0, 0,
+                              0, 1,20,20,20,20, 5, 2, 2, 2, 5,20,20,20, 1, 0, 0,
+                              0, 1,20,20,20,20,13,10,10,10,13,20,20,20, 1, 0, 0,
+                              0,17,11,10,20,11,17, 0, 0, 0,17,11,20,11,17, 0, 0,
                               0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 0, 0, 0,20,20,20,20,20, 0, 0, 0,20, 0, 0, 0, 0,
@@ -122,43 +145,53 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
                               0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 9, 3, 2,20, 3, 9, 0, 0, 0, 9, 3,20, 2, 3, 9, 0,
                               0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20, 5, 2, 2, 2, 5,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20,13,10,10,10,13,20,20,20,20, 1, 0,
+                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
+                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
                               0,17,11,10,10,11,17, 0, 0, 0,17,11,10,10,11,17, 0,
                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     bool flipArr[306] =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                             0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
                             0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
                             0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
                             0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
                             0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    game_map map1(17, 9, blockArr, flipArr);
+    game_map map1(17, 18, blockArr, flipArr);
 
-    for(int y = 0; y < 8; y++){
-        for(int x = 0; x < 8; x++){
-            //bool not_outside = (x < map1.x() && y < map1.y() && x > 0 && y > 0 && cam.x() + x * 32 < 120 && cam.y() + y * 32 < 80);
-            bool not_outside = 1;
-            int index = (x + y*map1.x()) * not_outside;
-            //BN_LOG("x: ", x, " y: ", y, " index: ", index);
-            FloorFactory(bn::point(x, y), map1._blocks[index], map1._flips[index], bg_map_ptr);
+    // Selecting random initial position
+    bn::vector<bn::point, 306> blocked;
+    for(int y = 0; y < map1.y(); y++){
+        for(int x = 0; x < map1.x(); x++){
+            if(blockArr[x+y*map1.x()]){
+                blocked.push_back(bn::point(x * 32 + 16, y * 32 + 16));
+            }
         }
     }
-    bg_map.reload_cells_ref();
+    int index = randomizer.get_int(0, blocked.size());
+    const bn::point start_pos = bn::point(blocked[index].x(), blocked[index].y());
+    //const bn::point start_pos(0, 0);
 
+    // Player init
+    jv::Player cat(start_pos.x(), start_pos.y(), randomizer);
+    cam.set_position(start_pos.x(), start_pos.y());
+
+    blocked.clear();
+    blocked.shrink(0);
+   
+    jv::LevelMaker::init(map1, cam, bg_map_ptr, bg_map);
     
     while(true){
         /*badcat.update(cat);
@@ -166,19 +199,19 @@ void game_scene(bn::camera_ptr& cam, bn::random* random_ptr){
         cat.update(cam);
         
         if(bn::keypad::start_pressed()){
-            bn::vector<int*, 5> myrefs;
-            myrefs.push_back(&val1);
-            myrefs.push_back(&val2);
-            myrefs.push_back(&val3);
-            debug_mode(myrefs, background, bg, cat);
+            bn::vector<int*, 5> optionRefs;
+            optionRefs.push_back(&val1);
+            optionRefs.push_back(&val2);
+            optionRefs.push_back(&val3);
+            optionRefs.push_back(&val4);
+            debug_mode(optionRefs, text_generator, balls, background, bg, cat);
         }
 
         int skipped = bn::core::last_missed_frames();
         if(prev_skipped != skipped && skipped != 0){ BN_LOG("Frames skipped: ", skipped);}
         prev_skipped = skipped;
 
-        jv::LevelMaker::update(map1, cam, bg_map_ptr, val1, val2, val3);
-        bg_map.reload_cells_ref();
+        jv::LevelMaker::update(map1, cam, bg_map_ptr, bg_map, val1, val2, val3, val4);
 
         jv::resetcombo();
         bn::core::update();

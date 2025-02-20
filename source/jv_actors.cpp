@@ -2,14 +2,14 @@
 
 namespace jv{
 // Constructor
-Player::Player(int x, int y, bn::random* ptr):
+Player::Player(int x, int y, bn::random& random_ref):
 _sprite(bn::sprite_items::character.create_sprite(0 , 0 - 8)),
 _animation(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
 _speed(bn::fixed(1.0)),
 _prev_dir(2),
 _dir(2),
 _hp(20),
-_random_ptr(ptr)
+_randomizer(random_ref)
 {
     _sprite.set_bg_priority(1);
     _x = x;
@@ -86,7 +86,7 @@ void NPC::update(jv::Player& player){
 }
 
 // Constructor
-Enemy::Enemy(int x, int y, bn::camera_ptr& cam, bn::random* ptr):
+Enemy::Enemy(int x, int y, bn::camera_ptr& cam, bn::random& random_ref):
 _sprite(bn::sprite_items::enemy.create_sprite(x , y - 8)),
 _animation(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
 _speed(bn::fixed(0.4)),
@@ -94,7 +94,7 @@ _prev_dir(2),
 _dir(2),
 _hp(20),
 _idle_time(0),
-_random_ptr(ptr)
+_randomizer(random_ref)
 {
     _sprite.set_bg_priority(1);
     _sprite.set_camera(cam);

@@ -1,4 +1,5 @@
 #include "bn_core.h"
+#include "bn_log.h"
 #include "bn_music_items.h"
 #include "bn_regular_bg_ptr.h"
 #include "bn_regular_bg_items_bg.h"
@@ -9,12 +10,13 @@ int main()
 {
     bn::core::init();
     bn::random randomizer;
-    bn::random* random_ptr = &randomizer;
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
+    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
-    bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
+    //bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
 
     while(true){
-        jv::game::game_scene(cam, random_ptr);
+        jv::game::start_scene(text_generator, randomizer);
+        jv::game::game_scene(cam, text_generator, randomizer);
     }
 }

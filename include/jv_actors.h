@@ -34,7 +34,7 @@ public:
 class Player: public Actor{
 public:
     ~Player(){};
-    Player(int x, int y, bn::random* ptr);
+    Player(int x, int y, bn::random& ptr);
     
     // Setters
     void set_x(bn::fixed x, bool sprite_follow);
@@ -60,7 +60,7 @@ protected:
                 this->_sprite.set_horizontal_flip(true);
                 _animation = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
             }
-            _random_ptr->update();
+            _randomizer.update();
         }
         _prev_dir = _dir;
         _animation.update();
@@ -113,7 +113,7 @@ private:
     unsigned char _prev_dir, _dir;
     unsigned char _hp;
 
-    bn::random* _random_ptr;
+    bn::random& _randomizer;
 };
 
 class NPC: public Actor{
@@ -142,7 +142,7 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(int x, int y, bn::camera_ptr& cam, bn::random* ptr);
+    Enemy(int x, int y, bn::camera_ptr& cam, bn::random& ptr);
     // Setters
     void set_x(bn::fixed x, bool sprite_follow);
     void set_y(bn::fixed y, bool sprite_follow);
@@ -184,7 +184,7 @@ protected:
     void move(){
         // Decide direction at random
         if(_idle_time == 0){
-            _dir = _random_ptr->get_int(16);
+            _dir = _randomizer.get_int(16);
             _idle_time++;
         }else if(_idle_time <= 2*60 + _dir*2){
             _idle_time++;
@@ -224,7 +224,7 @@ private:
     unsigned char _hp;
     unsigned char _idle_time;
 
-    bn::random* _random_ptr;
+    bn::random& _randomizer;
 };
 
 }

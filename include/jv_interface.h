@@ -1,8 +1,11 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
-//#include "bn_random.h"
+#include "bn_log.h"
+#include "bn_string.h"
 #include "bn_array.h"
+
+#include "jv_environment.h"
 
 namespace jv{
 void resetcombo(){
@@ -11,18 +14,35 @@ void resetcombo(){
     }
 }
 
-struct GameMap{
-    // Methods
-    GameMap(cuchar_t x, cuchar_t y, uchar_t* arr):width(x), height(y), _arr(arr){}
-    unsigned char operator[](const unsigned int index) const{
-        if(index < width*height){
-            return _arr[index];
-        }else{
-            return 0;   // Not perfect but works if no radical changes are made to how block constructors work
-        }
+struct menu_option{
+    menu_option(bn::string_view t, int& d):_text(t), data(d){}
+    bn::string_view _text;
+    int& data;
+};
+
+void DebugUpdate(bn::vector<jv::menu_option, MAX_OPTIONS>& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+    if(increase){
+        options[index].data++;
+    }else{
+        options[index].data--;
     }
+    v_text.clear();
+    for(int i = 0; i < options.size(); i++){
+        text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
+        text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
+    }
+}
+
+struct game_map{
+    game_map(cuchar_t x, cuchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
+
+    // Methods
+    [[nodiscard]] uchar_t x(){return width;}
+    [[nodiscard]] uchar_t y(){return height;}
+    [[nodiscard]] bn::point size(){return bn::point(width, height);}
+
     // Insert room into the main map starting by the top left corner
-    void insert_room(GameMap room, const bn::point top_left){
+    void insert_room(const game_map room, const bn::point top_left){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
         int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
@@ -31,250 +51,119 @@ struct GameMap{
             for(int x = x_begin; x < x_end; x++){
                 int map_index = x + y * this->width;
                 int room_index = (x - x_begin) + (y - y_begin) * room.width;
-                this->_arr[map_index] =  room._arr[room_index];
+                this->_blocks[map_index] =  room._blocks[room_index];
+                this->_flips[map_index] =  room._flips[room_index];
             }
         }
     }
     // Members
     uchar_t width, height;
-    uchar_t* _arr;
+    uchar_t* _blocks;
+    bool* _flips;
 };
-
-// Make all room prefabs here
-GameMap RoomPrefab(unsigned char option){
-    switch(option){
-        default:{    // All environment assets layed out
-            static uchar_t block_array[82] = {1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
-                                              10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                              19, 20, 21, 22, 23, 24, 25, 26, 27,
-                                              28, 29, 30, 31, 32, 33, 34, 35, 36,
-                                              37, 38, 39, 40, 41, 42, 43, 44, 45,
-                                              46, 47, 48, 49, 50, 51, 52, 53, 54,
-                                              55, 56, 57, 58, 59, 60, 61, 62, 63,
-                                              64, 65, 66, 67, 68, 69, 70, 71, 72,
-                                              73, 74, 75, 76, 77, 78, 79, 80, 81};
-            return GameMap(9, 10, block_array);
-        }
-    }
-}
-
-// Make all floor prefabs here
-void FloorFactory(const bn::point top_left, unsigned char option, bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr){
-    static bn::array<uint16_t, 16> block_array;
-    static bn::array<bool, 16> flip_array;
-    flip_array = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    switch(option){
-        case 1:{
-            block_array = {1,  2,  3,  15,
-                           4,  5,  6,  15,
-                           1,  2,  3,  15,
-                           4,  5,  6,  15};
-            break;
-        }
-        case 2:{
-            block_array = {11, 10, 10, 11,
-                           19, 19, 19, 19,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        case 3:{
-            block_array = { 9, 10, 10, 11,
-                           18, 19, 19, 19,
-                           27, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        case 4:{
-            block_array = { 9, 10, 10,  9,
-                           18, 19, 19, 18,
-                           27, 15, 15, 27,
-                           15, 15, 15, 15,};
-            flip_array[3] = true;
-            flip_array[7] = true;
-            flip_array[11] = true;
-            flip_array[15] = true;
-            break;
-        }
-        case 5:{
-            block_array = {12, 13, 14, 15,
-                           26, 27, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        case 6:{
-            block_array = {16, 17, 18, 26,
-                           18, 26, 27, 15,
-                           27, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        case 7:{
-            block_array = { 0,  0,  7, 8,
-                            7,  8, 16, 17,
-                           16, 17, 18, 26,
-                           18, 26, 27, 15};
-            break;
-        }
-        case 8:{
-            block_array = { 0, 0, 0, 0,
-                            0, 0, 0, 0,
-                            0, 0, 7, 8,
-                            7, 8,16,17};
-            break;
-        }
-        case 9:{
-            block_array = { 0,  0,  7,  8,
-                            7,  8, 16, 17,
-                           23, 24, 25, 26,
-                            4,  5,  6, 15};
-            break;
-        }
-        case 10:{
-            block_array = {15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           20, 20, 20, 20,
-                           29, 28, 28, 29};
-            break;
-        }
-        case 11:{
-            block_array = {15, 15, 15, 15,
-                           22, 15, 15, 15,
-                           44, 20, 20, 20,
-                           39, 28, 28, 29};
-            break;
-        }
-        case 12:{
-            block_array = {15, 15, 15, 15,
-                           22, 15, 15, 22,
-                           44, 20, 20, 44,
-                           39, 28, 28, 39};
-            flip_array[7] = true;
-            flip_array[11] = true;
-            flip_array[15] = true;
-            break;
-        }
-        case 13:{
-            block_array = {15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           45, 22, 15, 15,
-                           30, 31, 32, 15};
-            break;
-        }
-        case 14:{
-            block_array = {15, 15, 15, 15,
-                           22, 15, 15, 15,
-                           44, 45, 22, 15,
-                           42, 43, 44, 45};
-            break;
-        }
-        case 15:{
-            block_array = {44, 45, 22, 15,
-                           42, 43, 44, 45,
-                           37, 38, 42, 43,
-                            0,  0, 37, 38};
-            break;
-        }
-        case 16:{
-            block_array = {37, 38, 42, 43,
-                            0,  0, 37, 38,
-                            0,  0,  0,  0,
-                            0,  0,  0,  0};
-            break;
-        }
-        case 17:{
-            block_array = { 1,  2,  3, 15,
-                           34, 35, 36, 45,
-                           37, 38, 42, 43,
-                            0,  0, 37, 38};
-            break;
-        }
-        case 18:{
-            block_array = {27, 15, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        case 19:{
-            block_array = {15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           22, 15, 15, 15};
-            break;
-        }
-        case 20:{
-            block_array = {15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15,
-                           15, 15, 15, 15};
-            break;
-        }
-        default:{
-            block_array = {0,  0,  0,  0,
-                           0,  0,  0,  0,
-                           0,  0,  0,  0,
-                           0,  0,  0,  0};
-            break;
-        }
-    }
-    
-    bg_map_ptr->insert_block(4, 4, block_array, flip_array, blockFlip, top_left);
-}
 
 namespace LevelMaker{
 // Init must be called Once
-/*void init(const GameMap map, bn::camera_ptr& cam, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_vector){
+void init(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     // Defining the MAP ARRAY bounds to redraw the map
-    int aux_x1 = (cam.x().integer() - 144)/32;      // Horizontal block load bound
-    int aux_y1 = (cam.y().integer() - 96)/32;      // Vertical block load bound
-    int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = left_bound + 11;
-    int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = top_bound + 7;
+    int current_x = (cam.x().integer() + 56-32)/16  ,   current_y = (cam.y().integer() + 56)/16;
+    BN_LOG(" x: ", current_x, " y: ", current_y);
+    
+    // Redraw map bounds
+    int aux_x = current_x/2, aux_y = current_y/2;
 
-    // Redraw map inside bounds
-    for(int y = top_bound; y < bottom_bound; y++){
-        for(int x = left_bound; x < right_bound; x++){
-            unsigned int index = x + y * map.width;
+    for(int y = aux_y; y < 8 + aux_y; y++){
+        for(int x = aux_x; x < 8 + aux_x; x++){
+            int xmod = x % 8, ymod = y % 8;
+            
+            //uchar_t crop = 2 - 1*((current_x & 1) == 0);    // Checks whether to draw left or right half of the block column
+            bool not_oob = (x > 0 && y > 0 && x - 4 < map.x() && y - 4 < map.y() && cam.x() + x * 32 > 120 + 32 && cam.y() + y * 32 > 80 + 32);
+            //bool not_oob = 1;
+            
+            int block_index = (x - 4 + ((y - 4) * map.x())) * not_oob;
+            bn::point grid_pos(xmod, ymod);
 
-            //jv::Block* newblock;
-            bool not_outside = (x < map.width && y < map.height);
-            //newblock = new jv::Block(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
-            //block_vector.push_back(newblock->get_sprite_ptr());
-            //delete newblock;
+            //BN_LOG(" x: ", x, " y: ", y, " map.x(): ", map.x(), " map.y(): ", map.y());
+            FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
         }
     }
+    
+    bg_map.reload_cells_ref();
 }
 
 // Update must be run every frame
-static int prev_x = 0, prev_y = 0;
-void update(const GameMap map, bn::camera_ptr& cam, bn::vector<bn::sprite_ptr, MAX_BLOCKS>& block_vector){
+static int prev_x = 3, prev_y = 3;
+void update(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map, int val1, int val2, int val3, int val4){
     // Did the player move enough to load assets
-    int current_x = (cam.x().integer())/48  ,   current_y = (cam.y().integer())/32;
+    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 56)/16;
+    //BN_LOG(" x: ", current_x, " y: ", current_y);
     
+    // Redraw map bounds
     if(current_x != prev_x || current_y != prev_y){
-        // Defining the MAP ARRAY bounds to redraw the map
-        int aux_x1 = (cam.x().integer() - 144)/32;      // Horizontal block load bound
-        int aux_y1 = (cam.y().integer() - 96)/32;      // Vertical block load bound
-        int left_bound = aux_x1 * (aux_x1 > 0)  ,   right_bound = left_bound + 11;
-        int top_bound = aux_y1 * (aux_y1 > 0)   ,   bottom_bound = top_bound + 7;
+        int aux_x = current_x/2, aux_y = current_y/2;
 
-        // Redraw map inside bounds
-        unsigned int i = 0;
-        for(int y = top_bound; y < bottom_bound; y++){
-            for(int x = left_bound; x < right_bound; x++){
-                unsigned int index = x + y * map.width;
-                bool not_outside = (x < map.width && y < map.height);
-                //jv::Block newblock(x*32, y*32, cam, map[index] * not_outside, MAX_BLOCKS - y);
-                //block_vector[i] = newblock.get_sprite_ptr();
-                i++;
+        for(int y = aux_y; y < 8 + aux_y; y++){
+            for(int x = aux_x; x < 8 + aux_x; x++){
+                int xmod = x % 8, ymod = y % 8;
+                uchar_t side;
+
+                // Horizontal
+                if(current_x > prev_x && xmod == (aux_x + 6) % 8){  // If moved right and currently on last column
+                    uchar_t crop = 2 - 1*((current_x & 1) == 0);    // Checks whether to draw left or right half of the block column
+                    bool not_oob = (x - 4 < map.x() && y - 4 < map.y() && x  > 0 && y - 4 > 0);
+                    
+                    int block_index = (x - 4 + ((y - 4) * map.x())) * not_oob;
+                    bn::point grid_pos(xmod, ymod);
+                    side = jv::Side::right;
+
+                    if(y == aux_y){ BN_LOG("Right ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                    FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
+                }
+                else if(current_x < prev_x && xmod == (aux_x + 5) % 8){    // If moved left
+                    uchar_t crop = 2 - 1*((current_x & 1) == 0);    // Checks whether to draw left or right half of the block column
+                    bool not_oob = (x - 10 > 0 && y > 0 && x - 10 < map.x() && y - 4 < map.y());
+                    
+                    int block_index = (x - 7 - 4 + 1*(crop == jv::Side::right) + (y - 4) * map.x()) * not_oob;
+                    bn::point grid_pos((aux_x + 6 + 1*(crop == jv::Side::right)) % 8, ymod);
+                    side = jv::Side::left;
+
+                    if(y == aux_y){ BN_LOG("Left   ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                    FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
+                }
+                
+                // Vertical
+                if(current_y > prev_y && ymod == (aux_y + 6) % 8){
+                    uchar_t crop = 2 - 1*((current_x & 1) == 0);
+                    bool not_oob = (x > 0 && y > 0 && x - 4 < map.x() && y - 4 < map.y() && cam.x() + x * 32 > 152 && cam.y() + y * 32 > 112);
+
+                    int block_index = (x - 1 - 4 + ((y - 4) * map.x())) * not_oob;
+                    bn::point grid_pos((x - 1) % 8, ymod);
+                    side = jv::Side::down;
+
+                    if(x == aux_x){ BN_LOG("Down ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                    FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
+                }
+                else if(current_y < prev_y && ymod == (aux_y + val1) % 8){
+                    uchar_t crop = 2 - 1*((current_x & 1) == 0);
+                    //bool not_oob = (x > 0 && y > 0 && cam.x() + x * 32 > 120 + 32 && cam.y() + y * 32 > 80 + 32);
+                    bool not_oob = (x - 5 + 1*(crop == jv::Side::right) > 0 && y - 4 + val2 > 0);
+                    //bool not_oob = 1;
+
+                    int block_index = (x - 6 + 1*(crop == jv::Side::right) + ((y - 4 + val2) * map.x())) * not_oob;
+                    bn::point grid_pos((x + val3 + 1*(crop == jv::Side::right)) % 8, (y + val4) % 8);
+                    side = jv::Side::up;
+
+                    if(x == aux_x){ BN_LOG("Up     ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                    FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, 0, side);
+                }
             }
         }
     }
     prev_x = current_x;
     prev_y = current_y;
-}*/
+    
+    bg_map.reload_cells_ref();
+}
 }
 }
 
