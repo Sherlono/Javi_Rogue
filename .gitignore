@@ -36,5 +36,7 @@
 *.gba
 *.sav
 
+*.png
+
 # Folders
 \build

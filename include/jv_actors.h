@@ -47,16 +47,16 @@ protected:
     void animation_update(){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
         if(_prev_dir != _dir){
-            if(_dir == 1 || _dir == 4 || _dir == 7){  // UP
+            if(_dir == 1 || _dir == 4 || _dir == 7){        // UP
                 this->_sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 6, 7, 6, 8);
-            }else if(_dir == 6){  // RIGHT
+            }else if(_dir == 6){                            // RIGHT
                 this->_sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
-            }else if(_dir == 2 || _dir == 5 || _dir == 8){   // DOWN
+            }else if(_dir == 2 || _dir == 5 || _dir == 8){  // DOWN
                 this->_sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2);
-            }else if(_dir == 3){   // LEFT
+            }else if(_dir == 3){                            // LEFT
                 this->_sprite.set_horizontal_flip(true);
                 _animation = bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
             }

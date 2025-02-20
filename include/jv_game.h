@@ -13,18 +13,15 @@
 
 namespace jv::game{
 void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_generator& text_generator, bn::vector<bn::sprite_ptr, 64>& balls , bn::regular_bg_ptr bg, bn::regular_bg_ptr floor, jv::Player& player){
+    for(bn::sprite_ptr ball : balls){ ball.set_visible(false);}
     bg.set_visible(false);
     floor.set_visible(false);
     player.set_visible(false);
 
-    for(bn::sprite_ptr ball : balls){
-        ball.set_visible(false);
-    }
-
     bn::vector<bn::sprite_ptr, 128> v_text;
-
     static int index = 0;
     uchar_t hold = 0;
+
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-25, -70 + 9*index);
 
     bn::vector<jv::menu_option, MAX_OPTIONS> options;
@@ -39,8 +36,8 @@ void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_gener
     }
 
     bn::core::update();
-    while(true){
 
+    while(!bn::keypad::start_pressed()){
         if(bn::keypad::down_pressed()){
             if(index < options.size() - 1){
                 index++;
@@ -72,22 +69,19 @@ void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_gener
 
         if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
 
-        if(bn::keypad::start_pressed()){
-            bg.set_visible(true);
-            floor.set_visible(true);
-            player.set_visible(true);
-            
-            for(bn::sprite_ptr ball : balls){
-                ball.set_visible(true);
-            }
-            for(int i = 0; i < options.size(); i++){
-                BN_LOG(options[i]._text, ": ", options[i].data);
-            }
-            break;
-        }
-
         jv::resetcombo();
         bn::core::update();
+    }
+    
+    bg.set_visible(true);
+    floor.set_visible(true);
+    player.set_visible(true);
+    
+    for(bn::sprite_ptr ball : balls){
+        ball.set_visible(true);
+    }
+    for(int i = 0; i < options.size(); i++){
+        BN_LOG(options[i]._text, ": ", options[i].data);
     }
 }
 
@@ -120,7 +114,6 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
     }*/
 
 
-    int prev_skipped = 0;
     int val1 = 6, val2 = -7, val3 = -2, val4 = 1;
     
     
@@ -172,24 +165,15 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
     game_map map1(17, 18, blockArr, flipArr);
 
     // Selecting random initial position
-    bn::vector<bn::point, 306> blocked;
-    for(int y = 0; y < map1.y(); y++){
-        for(int x = 0; x < map1.x(); x++){
-            if(blockArr[x+y*map1.x()]){
-                blocked.push_back(bn::point(x * 32 + 16, y * 32 + 16));
-            }
-        }
-    }
-    int index = randomizer.get_int(0, blocked.size());
-    const bn::point start_pos = bn::point(blocked[index].x(), blocked[index].y());
+    bn::point start_pos = random_start(randomizer, map1);
     //const bn::point start_pos(0, 0);
 
-    // Player init
+    // NPC init
     jv::Player cat(start_pos.x(), start_pos.y(), randomizer);
     cam.set_position(start_pos.x(), start_pos.y());
-
-    blocked.clear();
-    blocked.shrink(0);
+    
+    start_pos = random_start(randomizer, map1);
+    jv::NPC cow(start_pos.x(), start_pos.y(), cam);
    
     jv::LevelMaker::init(map1, cam, bg_map_ptr, bg_map);
     
@@ -197,6 +181,7 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
         /*badcat.update(cat);
         cow.update(cat);*/
         cat.update(cam);
+        cow.update(cat);
         
         if(bn::keypad::start_pressed()){
             bn::vector<int*, 5> optionRefs;
@@ -207,12 +192,10 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
             debug_mode(optionRefs, text_generator, balls, background, bg, cat);
         }
 
-        int skipped = bn::core::last_missed_frames();
-        if(prev_skipped != skipped && skipped != 0){ BN_LOG("Frames skipped: ", skipped);}
-        prev_skipped = skipped;
 
         jv::LevelMaker::update(map1, cam, bg_map_ptr, bg_map, val1, val2, val3, val4);
 
+        jv::Log_Skipped_Frames();
         jv::resetcombo();
         bn::core::update();
     }

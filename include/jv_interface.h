@@ -14,23 +14,9 @@ void resetcombo(){
     }
 }
 
-struct menu_option{
-    menu_option(bn::string_view t, int& d):_text(t), data(d){}
-    bn::string_view _text;
-    int& data;
-};
-
-void DebugUpdate(bn::vector<jv::menu_option, MAX_OPTIONS>& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
-    if(increase){
-        options[index].data++;
-    }else{
-        options[index].data--;
-    }
-    v_text.clear();
-    for(int i = 0; i < options.size(); i++){
-        text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
-        text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
-    }
+void Log_Skipped_Frames(){
+    int skipped = bn::core::last_missed_frames();
+    if(skipped != 0){ BN_LOG("Frames skipped: ", skipped);}
 }
 
 struct game_map{
@@ -39,7 +25,7 @@ struct game_map{
     // Methods
     [[nodiscard]] uchar_t x(){return width;}
     [[nodiscard]] uchar_t y(){return height;}
-    [[nodiscard]] bn::point size(){return bn::point(width, height);}
+    [[nodiscard]] int size() const {return width * height;}
 
     // Insert room into the main map starting by the top left corner
     void insert_room(const game_map room, const bn::point top_left){
@@ -62,12 +48,56 @@ struct game_map{
     bool* _flips;
 };
 
+bn::point random_start(bn::random& randomizer, game_map& map){
+    bn::point* blocked = new bn::point[map.size()];
+    int blockCount = 0;
+
+    for(int y = 0; y < map.y(); y++){
+        for(int x = 0; x < map.x(); x++){
+            int index = x + y*map.x();
+            if(map._blocks[index]){
+                blocked[blockCount] = bn::point(x * 32 + 16, y * 32 + 16);
+                blockCount++;
+            }
+        }
+    }
+
+    int block = randomizer.get_int(0, blockCount);
+    bn::point out(blocked[block].x(), blocked[block].y());
+    delete[] blocked;
+    return out;
+}
+
+struct menu_option{
+    menu_option(bn::string_view t, int& d):_text(t), data(d){}
+    bn::string_view _text;
+    int& data;
+};
+
+void DebugUpdate(bn::vector<jv::menu_option, MAX_OPTIONS>& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+    if(increase){
+        options[index].data++;
+    }else{
+        options[index].data--;
+    }
+    v_text.clear();
+    for(int i = 0; i < options.size(); i++){
+        text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
+        text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
+    }
+}
+
 namespace LevelMaker{
+static int prev_x, prev_y;
+
 // Init must be called Once
 void init(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     // Defining the MAP ARRAY bounds to redraw the map
     int current_x = (cam.x().integer() + 56-32)/16  ,   current_y = (cam.y().integer() + 56)/16;
-    BN_LOG(" x: ", current_x, " y: ", current_y);
+    prev_x = current_x;
+    prev_y = current_y;
+
+    BN_LOG("Start x: ", current_x, " Start y: ", current_y);
     
     // Redraw map bounds
     int aux_x = current_x/2, aux_y = current_y/2;
@@ -92,7 +122,6 @@ void init(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr
 }
 
 // Update must be run every frame
-static int prev_x = 3, prev_y = 3;
 void update(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map, int val1, int val2, int val3, int val4){
     // Did the player move enough to load assets
     int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 56)/16;
@@ -140,7 +169,7 @@ void update(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_p
                     bn::point grid_pos((x - 1) % 8, ymod);
                     side = jv::Side::down;
 
-                    if(x == aux_x){ BN_LOG("Down ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                    if(x == aux_x){ BN_LOG("Down", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
                     FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
                 }
                 else if(current_y < prev_y && ymod == (aux_y + val1) % 8){

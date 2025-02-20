@@ -46,7 +46,9 @@ struct bg_map
         current_cell = current_cell_info.cell();
     }
 
-    void insert_block(int width, int height, const auto block, const auto tileFlip, bool blockFlip, const bn::point top_left, const uchar_t crop, const uchar_t side){
+    
+    template <class BlockArray, class FlipArray>
+    void insert_block(int width, int height, const BlockArray block, const FlipArray tileFlip, bool blockFlip, const bn::point top_left, const uchar_t crop, const uchar_t side){
         int y_begin = top_left.y()*height   ,   x_begin = top_left.x()*width;
         int aux_y = y_begin + height        ,   aux_x = x_begin + width;
         int y_end = aux_y * (aux_y < 32) + 32 * (aux_y >= 32)   ,   x_end = aux_x * (aux_x < 32) + 32 * (aux_x >= 32);

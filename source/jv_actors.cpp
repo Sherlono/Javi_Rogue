@@ -80,9 +80,9 @@ void NPC::update(jv::Player& player){
     priority_update(player.y());
     
     // Speak
-    /*if(bn::keypad::a_pressed()){
+    if(bn::keypad::a_pressed()){
         jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
-    }*/
+    }
 }
 
 // Constructor
