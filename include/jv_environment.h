@@ -25,21 +25,17 @@ struct bg_map
     alignas(int) bn::regular_bg_map_cell cells[cells_count];
     bn::regular_bg_map_item map_item;
 
-    bg_map() :
-        map_item(cells[0], bn::size(bg_map::columns, bg_map::rows))
-    {
-        reset();
-    }
+    bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
 
-    void set_cell(int x, int y, uint16_t value, bool flip = false)
-    {
+    void set_cell(int x, int y, uint16_t value, bool flip = false){
         bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);
         if(current_cell_info.cell() != value){
             current_cell_info.set_tile_index(value);
-        }
-        if(current_cell_info.horizontal_flip() != flip){
-            current_cell_info.set_horizontal_flip(flip);
+
+            if(current_cell_info.horizontal_flip() != flip){
+                current_cell_info.set_horizontal_flip(flip);
+            }
         }
         //current_cell_info.set_palette_id(1);
         
@@ -72,17 +68,11 @@ struct bg_map
         for(int y = y_begin; y < y_end; y++){
             if(!blockFlip){
                 for(int x = x_begin; x < x_end; x++){
-                    if(side == jv::Side::down && x >= x_begin + 2){
-                        continue;
-                    }
                     int cell_index = (x - x_begin) + (y - y_begin)*width + 2*(crop != 0)*((y - y_begin) + 1*(crop == jv::Side::right)) + (side==jv::Side::left)*(2*(crop==jv::Side::left) - 2*(crop==jv::Side::right));
                     this->set_cell(x, y, block[cell_index], tileFlip[cell_index]);
                 }
             }else{
                 for(int x = x_end - 1; x >= x_begin; x--){
-                    if(side == jv::Side::down && x >= x_end - 3){
-                        continue;
-                    }
                     int cell_index = -(x + 1 - x_end) + (y - y_begin)*width + 2*(crop != 0) * ((y - y_begin) + 1*(crop == jv::Side::left)) + (side==jv::Side::left)*(2*(crop==jv::Side::right) - 2*(crop==jv::Side::left));
                     this->set_cell(x, y, block[cell_index], !tileFlip[cell_index]);
                 }
@@ -101,5 +91,5 @@ private:
 
 namespace jv{
     void FloorFactory(const bn::point top_left, const uchar_t option, bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr, const uchar_t crop = 0, const uchar_t side = 0);
-    }
+}
 #endif

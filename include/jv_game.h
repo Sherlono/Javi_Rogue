@@ -12,8 +12,7 @@
 #include "bn_regular_bg_items_hud_item.h"
 
 namespace jv::game{
-void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_generator& text_generator, bn::vector<bn::sprite_ptr, 64>& balls , bn::regular_bg_ptr bg, bn::regular_bg_ptr floor, jv::Player& player){
-    for(bn::sprite_ptr ball : balls){ ball.set_visible(false);}
+void debug_mode(auto& optionRefs, bn::sprite_text_generator& text_generator, bn::regular_bg_ptr bg, bn::regular_bg_ptr floor, jv::Player& player){
     bg.set_visible(false);
     floor.set_visible(false);
     player.set_visible(false);
@@ -77,9 +76,6 @@ void debug_mode(bn::vector<int*, MAX_OPTIONS>& optionRefs, bn::sprite_text_gener
     floor.set_visible(true);
     player.set_visible(true);
     
-    for(bn::sprite_ptr ball : balls){
-        ball.set_visible(true);
-    }
     for(int i = 0; i < options.size(); i++){
         BN_LOG(options[i]._text, ": ", options[i].data);
     }
@@ -99,24 +95,13 @@ void start_scene(bn::sprite_text_generator& text_generator, bn::random& randomiz
 }
 
 void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, bn::random& randomizer){
-    
+    // Music
+    bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
+
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_camera(cam);
 
-    bn::vector<bn::sprite_ptr, 64> balls;
-    /*for(int y = 0; y < 16; y++){
-        for(int x = 0; x < 4; x++){
-            bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(x*32, y*32);
-            ball.set_camera(cam);
-            balls.push_back(ball);
-        }
-    }*/
-
-
-    int val1 = 6, val2 = -7, val3 = -2, val4 = 1;
-    
-    
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
                 bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
@@ -128,58 +113,60 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
                               0, 9, 3, 2, 2, 3, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                               0, 1,20,20,20,20, 1, 0, 0, 0, 9, 3, 2, 3, 9, 0, 0,
                               0, 1,20,20,20,20, 5, 2, 2, 2, 5,20,20,20, 1, 0, 0,
-                              0, 1,20,20,20,20,13,10,10,10,13,20,20,20, 1, 0, 0,
-                              0,17,11,10,20,11,17, 0, 0, 0,17,11,20,11,17, 0, 0,
-                              0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
-                              0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
+                              0, 1,20,20,20,20,13,10,20,10,13,20,20,20, 1, 0, 0,
+                              0,17,11,10,20,11,17, 0,20, 0,17,11,20,11,17, 0, 0,
+                              0, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 0, 0, 0,20,20,20,20,20, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0, 0,
                               0, 0, 0, 0,20, 0, 0, 0,20,20,20,20,20, 0, 0, 0, 0,
-                              0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0,20, 0, 0, 0, 0,
-                              0, 9, 3, 2,20, 3, 9, 0, 0, 0, 9, 3,20, 2, 3, 9, 0,
-                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
-                              0, 1,20,20,20,20, 1, 0, 0, 0, 1,20,20,20,20, 1, 0,
-                              0,17,11,10,10,11,17, 0, 0, 0,17,11,10,10,11,17, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+                              0, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0,20, 0, 0, 0, 0,
+                              0, 0, 0, 0,20, 0, 9, 3,20, 3, 9, 0,20, 0, 0, 0, 0,
+                              0, 0, 0, 0,20, 0, 1,20,20,20, 1, 0,20, 0, 0, 0, 0,
+                              0, 9, 3, 2,20, 2, 5,20,20,20, 5, 2,20, 2, 3, 9, 0,
+                              0, 1,20,20,20,20,20,20,20,20,20,20,20,20,20, 1, 0,
+                              0, 1,20,20,20,20,20,20,20,20,20,20,20,20,20, 1, 0,
+                              0, 1,20,20,20,20,13,10,10,10,13,20,20,20,20, 1, 0,
+                              0,17,11,10,10,11,17, 0, 0, 0,17,11,10,10,11,17, 0};
 
-    bool flipArr[306] =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    bool flipArr[306] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+                              0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                              0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                              0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0};
 
     game_map map1(17, 18, blockArr, flipArr);
 
     // Selecting random initial position
     bn::point start_pos = random_start(randomizer, map1);
-    //const bn::point start_pos(0, 0);
+    cam.set_position(start_pos.x(), start_pos.y());
 
     // NPC init
-    jv::Player cat(start_pos.x(), start_pos.y(), randomizer);
-    cam.set_position(start_pos.x(), start_pos.y());
-    
+    jv::Player cat(start_pos.x(), start_pos.y(), randomizer, bg_map_ptr);
     start_pos = random_start(randomizer, map1);
-    jv::NPC cow(start_pos.x(), start_pos.y(), cam);
+    jv::NPC cow(start_pos.x(), start_pos.y());
+    cow.set_camera(cam);
+
    
+    int val1 = 7, val2 = -7, val3 = -2, val4 = 1;
+    
+    
     jv::LevelMaker::init(map1, cam, bg_map_ptr, bg_map);
     
     while(true){
-        /*badcat.update(cat);
-        cow.update(cat);*/
+        //badcat.update(cat);
         cat.update(cam);
         cow.update(cat);
         
@@ -189,13 +176,13 @@ void game_scene(bn::camera_ptr& cam, bn::sprite_text_generator& text_generator, 
             optionRefs.push_back(&val2);
             optionRefs.push_back(&val3);
             optionRefs.push_back(&val4);
-            debug_mode(optionRefs, text_generator, balls, background, bg, cat);
+            debug_mode(optionRefs, text_generator, background, bg, cat);
         }
 
 
         jv::LevelMaker::update(map1, cam, bg_map_ptr, bg_map, val1, val2, val3, val4);
 
-        jv::Log_Skipped_Frames();
+        //jv::Log_Skipped_Frames();
         jv::resetcombo();
         bn::core::update();
     }

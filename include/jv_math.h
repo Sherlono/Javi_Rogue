@@ -6,13 +6,8 @@
 #include "bn_fixed.h"
 
 namespace jv{
-inline int xproduct(bn::point a, bn::point b, bn::point t){  // Keep in mind the Y axis is inverted
-    if (a.x() != b.x()){
-        return (b.x() - a.x()) * (-t.y() + a.y()) + (b.y() - a.y()) * (t.x() - a.x());  // > 0 = above
-    }else{
-        return a.x() - t.x();   // > 0 = left
-    }
-}
+ // Accurately returns the modulo (as long as d is a power of two) faster.
+inline int bamod(int n, int d){ return n & (d-1);}
 
 }
 

@@ -2,18 +2,17 @@
 
 namespace jv{
 // Constructor
-Player::Player(int x, int y, bn::random& random_ref):
-_sprite(bn::sprite_items::character.create_sprite(0 , 0 - 8)),
-_animation(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
-_speed(bn::fixed(1.0)),
-_prev_dir(2),
-_dir(2),
-_hp(20),
-_randomizer(random_ref)
+Player::Player(int x, int y, bn::random& random_ref, bn::unique_ptr<bg_map>& m_r):
+    Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 20, 20)),
+    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
+    _speed(bn::fixed(1.0)),
+    _prev_dir(2),
+    _dir(2),
+    _hp(20),
+    _map_ref(m_r),
+    _randomizer(random_ref)
 {
     _sprite.set_bg_priority(1);
-    _x = x;
-    _y = y;
 }
 // Setters
 void Player::set_x(bn::fixed x, bool sprite_follow){
@@ -40,17 +39,14 @@ void Player::set_visible(bool visible){
 }
 
 void Player::update(bn::camera_ptr& cam){
-    this->move(cam);
+    move(cam);
 }
 
 // Constructor
-NPC::NPC(int x, int y, bn::camera_ptr& cam):
-_sprite(bn::sprite_items::cow.create_sprite(x , y - 8))
+NPC::NPC(int x, int y):
+    Actor(bn::sprite_items::cow.create_sprite(x , y - 8), x, y, bn::rect(x, y + 8, 20, 20))
 {
     _sprite.set_bg_priority(1);
-    _sprite.set_camera(cam);
-    _x = x;
-    _y = y;
 }
 // Setters
 void NPC::set_x(bn::fixed x, bool sprite_follow){
@@ -80,26 +76,23 @@ void NPC::update(jv::Player& player){
     priority_update(player.y());
     
     // Speak
-    if(bn::keypad::a_pressed()){
+    if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
         jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
     }
 }
 
 // Constructor
-Enemy::Enemy(int x, int y, bn::camera_ptr& cam, bn::random& random_ref):
-_sprite(bn::sprite_items::enemy.create_sprite(x , y - 8)),
-_animation(bn::create_sprite_animate_action_forever(this->_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
-_speed(bn::fixed(0.4)),
-_prev_dir(2),
-_dir(2),
-_hp(20),
-_idle_time(0),
-_randomizer(random_ref)
+Enemy::Enemy(int x, int y, bn::random& random_ref):
+    Actor(bn::sprite_items::enemy.create_sprite(x , y - 8), x, y, bn::rect(x, y, 20, 20)),
+    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
+    _speed(bn::fixed(0.4)),
+    _prev_dir(2),
+    _dir(2),
+    _hp(20),
+    _idle_time(0),
+    _randomizer(random_ref)
 {
     _sprite.set_bg_priority(1);
-    _sprite.set_camera(cam);
-    _x = x;
-    _y = y;
 }
 // Setters
 void Enemy::set_x(bn::fixed x, bool sprite_follow){
@@ -129,6 +122,6 @@ void Enemy::update(jv::Player& player){
     // Change sprite priority to draw behind or above player
     priority_update(player.y());
     
-    this->move();
+    move();
 }
 }
