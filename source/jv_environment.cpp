@@ -25,7 +25,7 @@ namespace jv{
 }*/
 
 // Make all floor prefabs here
-void FloorFactory(const bn::point top_left, const uchar_t option, bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr, const uchar_t crop, const uchar_t side){
+void FloorFactory(const bn::point top_left, const uchar_t option, const bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr, const uchar_t crop, const uchar_t side){
     static bn::array<uint16_t, 16> block_array;
     static bn::array<bool, 16> flip_array;
     flip_array = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

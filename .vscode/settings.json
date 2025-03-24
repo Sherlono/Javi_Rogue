@@ -10,6 +10,18 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cwchar": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "iterator": "cpp",
+        "random": "cpp",
+        "*.tcc": "cpp",
+        "initializer_list": "cpp",
+        "iosfwd": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp"
     }
 }

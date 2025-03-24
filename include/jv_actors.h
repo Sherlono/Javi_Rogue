@@ -177,7 +177,7 @@ public:
     // Setters
     void set_x(bn::fixed x, bool sprite_follow);
     void set_y(bn::fixed y, bool sprite_follow);
-    void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
+    void set_position(bn::fixed x, bn::fixed y);
     void set_visible(bool visible);
 
     void update(jv::Player& player);
@@ -201,6 +201,7 @@ protected:
         _prev_dir = _dir;
         _animation.update();
     }
+
     void priority_update(bn::fixed player_y){
         if(y() < player_y){
             _sprite.set_z_order(1);
@@ -208,10 +209,12 @@ protected:
             _sprite.set_z_order(-1);
         }
     }
+
     void wait(){
         _sprite.set_horizontal_flip(_dir == 3);
         _sprite.set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
     }
+
     void move(){
         // Decide direction at random
         if(_idle_time == 0){
@@ -227,13 +230,13 @@ protected:
         if(_dir != 0 && _dir < 9){
             // Move if dir not obstructed
             if(_dir == 1 || _dir == 4 || _dir == 7){  // UP
-                set_position(x(), y() - _speed, true);  // Move Enemy
+                set_position(x(), y() - _speed);  // Move Enemy
             }else if(_dir == 6){  // RIGHT
-                set_position(x() + _speed, y(), true);    
+                set_position(x() + _speed, y());    
             }else if(_dir == 2 || _dir == 5 || _dir == 8){   // DOWN
-                set_position(x(), y() + _speed, true);
+                set_position(x(), y() + _speed);
             }else if(_dir == 3){   // LEFT
-                set_position(x() - _speed, y(), true);
+                set_position(x() - _speed, y());
             }
             
             // Animated character

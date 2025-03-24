@@ -10,11 +10,9 @@ int main()
 {
     bn::core::init();
     bn::random randomizer;
-    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     while(true){
-        jv::game::start_scene(text_generator, randomizer);
-        jv::game::game_scene(cam, text_generator, randomizer);
+        jv::game::start_scene(randomizer);
+        jv::game::game_scene(randomizer);
     }
 }

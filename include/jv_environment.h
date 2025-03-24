@@ -16,6 +16,35 @@
 #include "jv_constants.h"
 
 
+struct game_map{
+    game_map(cuchar_t x, cuchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
+
+    // Methods
+    [[nodiscard]] uchar_t x(){return width;}
+    [[nodiscard]] uchar_t y(){return height;}
+    [[nodiscard]] int size() const {return width * height;}
+
+    // Insert room into the main map starting by the top left corner
+    void insert_room(const game_map room, const bn::point top_left){
+        int y_begin = top_left.y()  ,   x_begin = top_left.x();
+        int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
+        int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
+
+        for(int y = y_begin; y < y_end; y++){
+            for(int x = x_begin; x < x_end; x++){
+                int map_index = x + y * this->width;
+                int room_index = (x - x_begin) + (y - y_begin) * room.width;
+                this->_blocks[map_index] =  room._blocks[room_index];
+                this->_flips[map_index] =  room._flips[room_index];
+            }
+        }
+    }
+    // Members
+    uchar_t width, height;
+    uchar_t* _blocks;
+    bool* _flips;
+};
+
 struct bg_map
 {
     static constexpr int columns = 32;

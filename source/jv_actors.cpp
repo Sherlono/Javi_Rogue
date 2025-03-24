@@ -15,18 +15,6 @@ Player::Player(int x, int y, bn::random& random_ref, bn::unique_ptr<bg_map>& m_r
     _sprite.set_bg_priority(1);
 }
 // Setters
-void Player::set_x(bn::fixed x, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(x, _y - 8);
-    }
-    _x = x;
-}
-void Player::set_y(bn::fixed y, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(_x, y - 8);
-    }
-    _y = y;
-}
 void Player::set_position(bn::fixed x, bn::fixed y, bool sprite_follow){
     if(sprite_follow){
         _sprite.set_position(x, y - 8);
@@ -49,18 +37,6 @@ NPC::NPC(int x, int y):
     _sprite.set_bg_priority(1);
 }
 // Setters
-void NPC::set_x(bn::fixed x, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(x, _y - 16);
-    }
-    _x = x;
-}
-void NPC::set_y(bn::fixed y, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(_x, y - 8);
-    }
-    _y = y;
-}
 void NPC::set_position(bn::fixed x, bn::fixed y, bool sprite_follow){
     if(sprite_follow){
         _sprite.set_position(x, y - 8);
@@ -95,24 +71,11 @@ Enemy::Enemy(int x, int y, bn::random& random_ref):
     _sprite.set_bg_priority(1);
 }
 // Setters
-void Enemy::set_x(bn::fixed x, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(x, _y - 8);
-    }
-    _x = x;
-}
-void Enemy::set_y(bn::fixed y, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(_x, y - 8);
-    }
-    _y = y;
-}
-void Enemy::set_position(bn::fixed x, bn::fixed y, bool sprite_follow){
-    if(sprite_follow){
-        _sprite.set_position(x, y - 8);
-    }
+void Enemy::set_position(bn::fixed x, bn::fixed y){
+    _sprite.set_position(x, y - 8);
     _x = x;
     _y = y;
+    _rect.set_position(x.integer(), y.integer());
 }
 void Enemy::set_visible(bool visible){
     _sprite.set_visible(visible);
@@ -123,5 +86,10 @@ void Enemy::update(jv::Player& player){
     priority_update(player.y());
     
     move();
+    
+    // Speak
+    if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
+        jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
+    }
 }
 }

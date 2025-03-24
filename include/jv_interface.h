@@ -9,45 +9,14 @@
 #include "jv_environment.h"
 
 namespace jv{
-void resetcombo(){
-    if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){
-        bn::core::reset();
-    }
+inline void resetcombo(){
+    if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
 
-void Log_Skipped_Frames(){
+void Log_skipped_frames(){
     int skipped = bn::core::last_missed_frames();
     if(skipped != 0){BN_LOG("Frames skipped: ", skipped);}
 }
-
-struct game_map{
-    game_map(cuchar_t x, cuchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
-
-    // Methods
-    [[nodiscard]] uchar_t x(){return width;}
-    [[nodiscard]] uchar_t y(){return height;}
-    [[nodiscard]] int size() const {return width * height;}
-
-    // Insert room into the main map starting by the top left corner
-    void insert_room(const game_map room, const bn::point top_left){
-        int y_begin = top_left.y()  ,   x_begin = top_left.x();
-        int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
-        int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
-
-        for(int y = y_begin; y < y_end; y++){
-            for(int x = x_begin; x < x_end; x++){
-                int map_index = x + y * this->width;
-                int room_index = (x - x_begin) + (y - y_begin) * room.width;
-                this->_blocks[map_index] =  room._blocks[room_index];
-                this->_flips[map_index] =  room._flips[room_index];
-            }
-        }
-    }
-    // Members
-    uchar_t width, height;
-    uchar_t* _blocks;
-    bool* _flips;
-};
 
 bn::point random_start(bn::random& randomizer, game_map& map){
     bn::point* blocked = new bn::point[map.size()];
@@ -70,21 +39,72 @@ bn::point random_start(bn::random& randomizer, game_map& map){
 }
 
 struct menu_option{
-    menu_option(bn::string_view t, int& d):_text(t), data(d){}
+    enum {isInt, isFloat, isBool};
+    menu_option(int* d, bn::string_view t):_text(t),  _i(d), _type(isInt){}
+    menu_option(bn::fixed* d, bn::string_view t): _text(t), _f(d), _type(isFloat){}
+    menu_option(bool* d, bn::string_view t): _text(t), _b(d), _type(isBool){}
+
+    void increase(){
+        switch(_type){
+            case isInt:
+                *_i = *_i + 1;
+                break;
+            case isFloat:
+                *_f = *_f + 0.1f;
+                break;
+            case isBool:
+                *_b = !*_b;
+                break;
+            default:
+                break;
+        }
+    }
+    void decrease(){
+        switch(_type){
+            case isInt:
+                *_i = *_i - 1;
+                break;
+            case isFloat:
+                *_f = *_f - 0.1f;
+                break;
+            case isBool:
+                *_b = !*_b;
+                break;
+            default:
+                break;
+        }
+    }
+    void print(int x, int y, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator){
+        switch(_type){
+            case isInt:
+                text_generator.generate(x, y, bn::to_string<16>(*_i), v_text);
+                break;
+            case isFloat:
+                text_generator.generate(x, y, bn::to_string<16>(*_f), v_text);
+                break;
+            case isBool:
+                text_generator.generate(x, y, bn::to_string<16>(*_b), v_text);
+                break;
+            default:
+                break;
+        }
+    }
+    
     bn::string_view _text;
-    int& data;
+    union{ int* _i; bn::fixed* _f; bool* _b;};
+    char _type;
 };
 
-void DebugUpdate(bn::vector<jv::menu_option, MAX_OPTIONS>& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+void DebugUpdate(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
     if(increase){
-        options[index].data++;
+        options[index].increase();
     }else{
-        options[index].data--;
+        options[index].decrease();
     }
     v_text.clear();
     for(int i = 0; i < options.size(); i++){
         text_generator.generate(-110, -70 + 9*i, options[i]._text, v_text);
-        text_generator.generate(-50, -70 + 9*i, bn::to_string<16>(options[i].data), v_text);
+        options[i].print(-50, -70 + 9*i, v_text, text_generator);
     }
 }
 
@@ -92,9 +112,9 @@ namespace LevelMaker{
 static int prev_x, prev_y;
 
 // Init must be called Once
-void init(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
+void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     // Defining the MAP ARRAY bounds to redraw the map
-    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 56 - 8)/16;
+    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 48)/16;
     prev_x = current_x;
     prev_y = current_y;
 
@@ -119,9 +139,9 @@ void init(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr
 }
 
 // Update must be run every frame
-void update(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map, int val1, int val2, int val3, int val4){
+void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map, auto& opt){
     // Did the player move enough to load assets
-    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 56)/16;
+    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 48)/16;
     
     // Redraw map bounds
     if(current_x != prev_x || current_y != prev_y){
@@ -185,20 +205,24 @@ void update(game_map& map, bn::camera_ptr& cam, bn::unique_ptr<bg_map>& bg_map_p
                         FloorFactory(grid_pos, 0, false, bg_map_ptr);
                     }
                 }
-                else if(current_y < prev_y && ymod == bamod(aux_y + 6, 8)){
+                else if(current_y < prev_y && ymod == bamod(aux_y + *opt[2]._i, 8)){
                     uchar_t crop = 2 - 1*((current_x & 1) == 0);
-                    //bool not_oob = (x - 5  + 1*(crop == jv::Side::right) > 0 && y - 4 + val2 > 0);
+                    //bool not_oob = (x - 5  + 1*(crop == jv::Side::right) > 0 && y - 4 + *opt[1]._i > 0);
                     bool not_oob = 1;
-                    bn::point grid_pos(bamod(x + val3 + 1*(crop == jv::Side::right), 8), bamod(y + val4, 8));
+                    bn::point grid_pos(bamod(x + *opt[1]._i + 1, 8), bamod(y + 1, 8));
 
                     if(not_oob){
-                        int block_index = (x - 6 + 1*(crop == jv::Side::right) + ((y - 4 + val2) * map.x())) * not_oob;
+                        int block_index = (x - 4 + *opt[3]._i + *opt[1]._i + 1 + ((y - 11) * map.x())) * not_oob;
                         side = jv::Side::up;
 
-                        bool aux_check = (x == aux_x + val1) && (crop == 1);
+                        bool aux_check = (x == aux_x + *opt[0]._i) && (crop == 1);
+                        crop = 1*aux_check;
+                        side = 2*aux_check;
                         
-                        if(x == aux_x){BN_LOG("Up     ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
-                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, 1*aux_check, 2*aux_check);
+                        //if(x == aux_x){BN_LOG("Up     ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
+                        BN_LOG("Up     ", "| x: ", x, "| aux_x: ", aux_x, "| y: ", y, "| crop: ", crop, "| side: ", side);
+                        //FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
+                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
                     }else{
                         FloorFactory(grid_pos, 0, false, bg_map_ptr);
                     }
