@@ -56,7 +56,7 @@ public:
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
     void set_visible(bool visible);
 
-    void update(bn::camera_ptr& cam);
+    void update(bn::camera_ptr& cam, bool& isSolid);
 protected:
     void animation_update(){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
@@ -90,20 +90,23 @@ protected:
         _sprite.set_horizontal_flip(_dir == 3);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*((_dir == 6) || (_dir == 3)) + 6*((_dir == 1 || _dir == 4 || _dir == 7)))); 
     }
-    void move(bn::camera_ptr& cam){
+    void move(bn::camera_ptr& cam, bool& isSolid){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
-            int int_x = _x.integer() + 128, int_y = _y.integer() + 128;
-            int x = bamod(int_x, 256)/8, y = bamod(int_y, 256)/8;
-            bool obs_up, obs_down, obs_left, obs_right;
-            
-            {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y - 1 + 32*(y==0))]);
-            obs_up    = cell_info.cell() != 0;}
-            {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y + 1 - 32*(y==31))]);
-            obs_down    = cell_info.cell() != 0;}
-            {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x - 1 + 32*(x==0), y)]);
-            obs_left    = cell_info.cell() != 0;}
-            {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x + 1 - 32*(x==31), y)]);
-            obs_right    = cell_info.cell() != 0;}
+            bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
+
+            if(isSolid){
+                int int_x = _x.integer() + 128, int_y = _y.integer() + 128;
+                int x = bamod(int_x, 256)/8, y = bamod(int_y, 256)/8;
+                
+                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y - 1 + 32*(y==0))]);
+                obs_up    = cell_info.cell() != 0;}
+                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y + 1 - 32*(y==31))]);
+                obs_down  = cell_info.cell() != 0;}
+                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x - 1 + 32*(x==0) , y)]);
+                obs_left  = cell_info.cell() != 0;}
+                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x + 1 - 32*(x==31), y)]);
+                obs_right = cell_info.cell() != 0;}
+            }
 
             // Move if dir not obstructed
             if(bn::keypad::up_held() && obs_up){

@@ -27,14 +27,14 @@
 #---------------------------------------------------------------------------------------------------------------------
 TARGET      :=  $(notdir $(CURDIR))
 BUILD       :=  build
-LIBBUTANO   :=  ../../butano
+LIBBUTANO   :=  ../../butano/butano
 PYTHON      :=  python
-SOURCES     :=  source ../../common/source
-INCLUDES    :=  include ../../common/include
+SOURCES     :=  source ../../butano/common/source
+INCLUDES    :=  include ../../butano/common/include
 DATA        :=
-GRAPHICS    :=  graphics ../../common/graphics
-AUDIO       :=  audio ../../common/audio
-DMGAUDIO    :=  dmg_audio ../../common/dmg_audio
+GRAPHICS    :=  graphics ../../butano/common/graphics
+AUDIO       :=  audio ../../butano/common/audio
+DMGAUDIO    :=  dmg_audio ../../butano/common/dmg_audio
 ROMTITLE    :=  JVROGUE
 ROMCODE     :=  RG
 USERFLAGS   :=  

@@ -6,7 +6,7 @@
 #include "bn_fixed.h"
 
 namespace jv{
- // Accurately returns the modulo (as long as d is a power of two) faster.
+ // Bitwise And Modulus. Accurately returns the modulo (as long as d is a power of two) faster.
 inline int bamod(int n, int d){ return n & (d-1);}
 
 }

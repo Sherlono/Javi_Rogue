@@ -26,8 +26,8 @@ void Player::set_visible(bool visible){
     _sprite.set_visible(visible);
 }
 
-void Player::update(bn::camera_ptr& cam){
-    move(cam);
+void Player::update(bn::camera_ptr& cam, bool& isSolid){
+    move(cam, isSolid);
 }
 
 // Constructor

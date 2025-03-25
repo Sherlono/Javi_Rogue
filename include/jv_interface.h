@@ -114,117 +114,97 @@ static int prev_x, prev_y;
 // Init must be called Once
 void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     // Defining the MAP ARRAY bounds to redraw the map
-    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 48)/16;
-    prev_x = current_x;
-    prev_y = current_y;
+    int current_x = (cam.x().integer() + 56)/8  ,   current_y = (cam.y().integer() + 48)/8;
 
     BN_LOG("Start x: ", current_x, " Start y: ", current_y);
     
     // Redraw map bounds
-    int aux_x = (current_x - 2)/2, aux_y = current_y/2;
+    for(int y = current_y; y < current_y + 32; y++){
+        for(int x = current_x; x < current_x + 32; x++){
+            bool not_oob = (x - 27 > 0 && y - 26 > 0);
+            int xmod = bamod(x, 32), ymod = bamod(y, 32);
 
-    for(int y = aux_y; y < 8 + aux_y; y++){
-        for(int x = aux_x; x < 8 + aux_x; x++){
-            int xmod = bamod(x, 8), ymod = bamod(y, 8);
-            bool not_oob = (x > 0 && y > 0 && x - 4 < map.x() && y - 4 < map.y() && cam.x() + x * 32 > 120 + 32 && cam.y() + y * 32 > 80 + 32);
-            //bool not_oob = 1;
-            
-            int block_index = (x - 4 + ((y - 4) * map.x())) * not_oob;
+            if(x > current_x + 24 || y > current_y + 24){continue;}
+
             bn::point grid_pos(xmod, ymod);
-            FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
+            if(not_oob){
+                int cell_index = x - 38 + (y - 36)*map.x();
+                bg_map_ptr->set_cell(grid_pos, map._blocks[cell_index], map._flips[cell_index]);
+            }else{
+                bg_map_ptr->set_cell(grid_pos, 0);
+            }
         }
     }
     
+    prev_x = current_x;
+    prev_y = current_y;
     bg_map.reload_cells_ref();
 }
 
 // Update must be run every frame
-void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map, auto& opt){
+void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     // Did the player move enough to load assets
-    int current_x = (cam.x().integer() + 56)/16  ,   current_y = (cam.y().integer() + 48)/16;
-    
+    int current_x = (cam.x().integer() + 56)/8  ,   current_y = (cam.y().integer() + 48)/8;
+
     // Redraw map bounds
     if(current_x != prev_x || current_y != prev_y){
-        int aux_x = current_x/2, aux_y = current_y/2;
-
-        for(int y = aux_y; y < 8 + aux_y; y++){
-            for(int x = aux_x; x < 8 + aux_x; x++){
-                int xmod = bamod(x, 8), ymod = bamod(y, 8);
-                uchar_t side;
+        for(int y = current_y; y < 32 + current_y; y++){
+            for(int x = current_x; x < 32 + current_x; x++){
+                int xmod = bamod(x, 32), ymod = bamod(y, 32);
 
                 // Horizontal
-                if(current_x > prev_x && xmod == bamod(aux_x + 6, 8)){  // If moved right and currently on last column
-                    //bool not_oob = (x - 4 < map.x() && y - 4 < map.y() && x  > 0 && y - 4 > 0);
-                    bool not_oob = 1;
+                if(current_x > prev_x && xmod == bamod(current_x + 24, 32)){  // If moved Right
+                    bool not_oob = (x - 36 < map.x() && y - 26 - 8*3 < map.y());
+                    //bool not_oob = 1;
                     bn::point grid_pos(xmod, ymod);
+                    if(y == current_y){BN_LOG("Right ", "| x: ", x, "| y: ", y);}
 
                     if(not_oob){
-                        uchar_t crop = 2 - 1*((current_x & 1) == 0);
-                        int block_index = x - 4 + (y - 4)*map.x();
-                        side = jv::Side::right;
-
-                        if(y == aux_y){BN_LOG("Right ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
-                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
+                        int cell_index = x - 38 + (y - 36)*map.x();
+                        bg_map_ptr->set_cell(grid_pos, map._blocks[cell_index], map._flips[cell_index]);
                     }else{
-                        FloorFactory(grid_pos, 0, false, bg_map_ptr);
+                        bg_map_ptr->set_cell(grid_pos, 0);
                     }
                 }
-                else if(current_x < prev_x && xmod == bamod(aux_x + 5, 8)){    // If moved left
-                    uchar_t crop = 2 - 1*((current_x & 1) == 0);
-                    //bool not_oob = (x - 10 > 0 && y > 0 && x - 10 < map.x() && y - 4 < map.y());
-                    bool not_oob = 1;
-                    bn::point grid_pos(bamod(aux_x + 6 + 1*(crop == jv::Side::right), 8), ymod);
-                    
-                    if(not_oob){
-                        int block_index = (x - 11 + 1*(crop == jv::Side::right) + (y - 4)*map.x()) * not_oob;
-                        side = jv::Side::left;
+                else if(current_x < prev_x && xmod == bamod(current_x + 25, 32)){    // If moved Left
+                    bool not_oob = (x - 68 > 0 && y - 26 - 8*1 > 0);
+                    //bool not_oob = 1;
+                    bn::point grid_pos(xmod, ymod);
+                    if(y == current_y){BN_LOG("Left   ", "| x: ", x, "| y: ", y);}
 
-                        if(y == aux_y){BN_LOG("Left   ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
-                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
+                    if(not_oob){
+                        int cell_index = x - 2 + (y - 37)*map.x();
+                        bg_map_ptr->set_cell(grid_pos, map._blocks[cell_index], map._flips[cell_index]);
                     }else{
-                        FloorFactory(grid_pos, 0, false, bg_map_ptr);
+                        bg_map_ptr->set_cell(grid_pos, 0);
                     }
                 }
                 
                 // Vertical
-                if(current_y > prev_y && ymod == bamod(aux_y + 6, 8)){
+                if(current_y > prev_y && ymod == bamod(current_y + 24, 32)){    // If moved Down
                     //bool not_oob = (x > 0 && y > 0 && x - 4 < map.x() && y - 4 < map.y() && cam.x() + x * 32 > 152 && cam.y() + y * 32 > 112);
                     bool not_oob = 1;
-                    bn::point grid_pos(bamod(x - 1, 8), ymod);
+                    bn::point grid_pos(bamod(x - 7, 32), ymod);
+                    if(x == current_x){BN_LOG("Down", "| x: ", x, "| y: ", y);}
 
                     if(not_oob){
-                        uchar_t crop = 2 - 1*((current_x & 1) == 0);
-                        int block_index = (x - 1 - 4 + ((y - 4)*map.x())) * not_oob;
-                        side = jv::Side::down;
-
-                        bool aux_check = (x == aux_x + 7) && (crop == 1);
-
-                        if(x == aux_x){BN_LOG("Down", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
-                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, 1*aux_check, 2*aux_check);
+                        int cell_index = x - 45 + (y - 36)*map.x();
+                        bg_map_ptr->set_cell(grid_pos, map._blocks[cell_index], map._flips[cell_index]);
                     }else{
-                        FloorFactory(grid_pos, 0, false, bg_map_ptr);
+                        bg_map_ptr->set_cell(grid_pos, 0);
                     }
                 }
-                else if(current_y < prev_y && ymod == bamod(aux_y + *opt[2]._i, 8)){
-                    uchar_t crop = 2 - 1*((current_x & 1) == 0);
-                    //bool not_oob = (x - 5  + 1*(crop == jv::Side::right) > 0 && y - 4 + *opt[1]._i > 0);
+                else if(current_y < prev_y && ymod == bamod(current_y, 32)){   // If moved Up
+                    //bool not_oob = (x - 5 > 0 && y - 4 + *opt[1]._i > 0);
                     bool not_oob = 1;
-                    bn::point grid_pos(bamod(x + *opt[1]._i + 1, 8), bamod(y + 1, 8));
+                    bn::point grid_pos(bamod(x - 7, 32), ymod);
+                    if(x == current_x){BN_LOG("Up     ", "| x: ", x, "| y: ", y);}
 
                     if(not_oob){
-                        int block_index = (x - 4 + *opt[3]._i + *opt[1]._i + 1 + ((y - 11) * map.x())) * not_oob;
-                        side = jv::Side::up;
-
-                        bool aux_check = (x == aux_x + *opt[0]._i) && (crop == 1);
-                        crop = 1*aux_check;
-                        side = 2*aux_check;
-                        
-                        //if(x == aux_x){BN_LOG("Up     ", "| idx: ", block_index, "| x: ", x, "| y: ", y, "| crop: ", crop, "| side: ", side);}
-                        BN_LOG("Up     ", "| x: ", x, "| aux_x: ", aux_x, "| y: ", y, "| crop: ", crop, "| side: ", side);
-                        //FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr, crop, side);
-                        FloorFactory(grid_pos, map._blocks[block_index], map._flips[block_index], bg_map_ptr);
+                        int cell_index = x - 45 + (y - 36)*map.x();
+                        bg_map_ptr->set_cell(grid_pos, map._blocks[cell_index], map._flips[cell_index]);
                     }else{
-                        FloorFactory(grid_pos, 0, false, bg_map_ptr);
+                        bg_map_ptr->set_cell(grid_pos, 0);
                     }
                 }
             }

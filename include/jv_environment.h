@@ -17,32 +17,41 @@
 
 
 struct game_map{
-    game_map(cuchar_t x, cuchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
+    game_map(int x, int y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
 
     // Methods
-    [[nodiscard]] uchar_t x(){return width;}
-    [[nodiscard]] uchar_t y(){return height;}
+    [[nodiscard]] int x(){return width;}
+    [[nodiscard]] int y(){return height;}
     [[nodiscard]] int size() const {return width * height;}
 
     // Insert room into the main map starting by the top left corner
-    void insert_room(const game_map room, const bn::point top_left){
+    void insert_room(const game_map room, const bn::point top_left, const bool fliped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
         int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
 
         for(int y = y_begin; y < y_end; y++){
-            for(int x = x_begin; x < x_end; x++){
-                int map_index = x + y * this->width;
-                int room_index = (x - x_begin) + (y - y_begin) * room.width;
-                this->_blocks[map_index] =  room._blocks[room_index];
-                this->_flips[map_index] =  room._flips[room_index];
+            if(!fliped){
+                for(int x = x_begin; x < x_end; x++){
+                    int map_index = x + y * this->width;
+                    int room_index = (x - x_begin) + (y - y_begin) * room.width;
+                    this->_blocks[map_index] =  room._blocks[room_index];
+                    this->_flips[map_index] =  room._flips[room_index];
+                }
+            }else{
+                for(int x = x_end - 1; x >= x_begin; x--){
+                    int map_index = x + y * this->width;
+                    int room_index = -(x + 1 - x_end) + (y - y_begin) * room.width;
+                    this->_blocks[map_index] = room._blocks[room_index];
+                    this->_flips[map_index] = !room._flips[room_index];
+                }
             }
         }
     }
     // Members
-    uchar_t width, height;
-    uchar_t* _blocks;
-    bool* _flips;
+    const int width, height;
+    uchar_t *_blocks;
+    bool *_flips;
 };
 
 struct bg_map
@@ -56,8 +65,8 @@ struct bg_map
 
     bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
 
-    void set_cell(int x, int y, uint16_t value, bool flip = false){
-        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
+    void set_cell(bn::point position, uint16_t value, bool flip = false){
+        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(position.x(), position.y())];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);
         if(current_cell_info.cell() != value){
             current_cell_info.set_tile_index(value);
@@ -71,54 +80,13 @@ struct bg_map
         current_cell = current_cell_info.cell();
     }
 
-    
-    template <class BlockArray, class FlipArray>
-    void insert_block(int width, int height, const BlockArray block, const FlipArray tileFlip, bool blockFlip, const bn::point top_left, const uchar_t crop, const uchar_t side){
-        int y_begin = top_left.y()*height   ,   x_begin = top_left.x()*width;
-        int aux_y = y_begin + height        ,   aux_x = x_begin + width;
-        int y_end = aux_y * (aux_y < 32) + 32 * (aux_y >= 32)   ,   x_end = aux_x * (aux_x < 32) + 32 * (aux_x >= 32);
-        
-        if(crop == jv::Side::left){
-            width = 2;
-            if(side == jv::Side::right){
-                x_end = x_begin + 2;
-            }else if(side == jv::Side::left){
-                x_begin = x_end - 2;
-            }
-        }else if(crop == jv::Side::right){
-            width = 2;
-            if(side == jv::Side::right){
-                x_begin = x_end - 2;
-            }else if(side == jv::Side::left){
-                x_end = x_begin + 2;
-            }
-        }
-        
-        for(int y = y_begin; y < y_end; y++){
-            if(!blockFlip){
-                for(int x = x_begin; x < x_end; x++){
-                    int cell_index = (x - x_begin) + (y - y_begin)*width + 2*(crop != 0)*((y - y_begin) + 1*(crop == jv::Side::right)) + (side==jv::Side::left)*(2*(crop==jv::Side::left) - 2*(crop==jv::Side::right));
-                    this->set_cell(x, y, block[cell_index], tileFlip[cell_index]);
-                }
-            }else{
-                for(int x = x_end - 1; x >= x_begin; x--){
-                    int cell_index = -(x + 1 - x_end) + (y - y_begin)*width + 2*(crop != 0) * ((y - y_begin) + 1*(crop == jv::Side::left)) + (side==jv::Side::left)*(2*(crop==jv::Side::right) - 2*(crop==jv::Side::left));
-                    this->set_cell(x, y, block[cell_index], !tileFlip[cell_index]);
-                }
-            }
-        }
-    }
-
     void reset()
     {
         bn::memory::clear(cells_count, cells[0]);
     }
-
-private:
-
 };
 
 namespace jv{
-    void FloorFactory(const bn::point top_left, const uchar_t option, bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr, const uchar_t crop = 0, const uchar_t side = 0);
+    void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip);
 }
 #endif
