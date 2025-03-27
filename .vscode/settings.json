@@ -22,6 +22,13 @@
         "initializer_list": "cpp",
         "iosfwd": "cpp",
         "stdexcept": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "deque": "cpp",
+        "algorithm": "cpp",
+        "memory_resource": "cpp",
+        "string_view": "cpp",
+        "memory": "cpp"
     }
 }

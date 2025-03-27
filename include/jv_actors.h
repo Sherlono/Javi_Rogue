@@ -21,40 +21,30 @@ namespace jv{
 class Actor{
 public:
     virtual ~Actor(){};
-    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r): _sprite(s), _x(x), _y(y), _rect(r){};
+    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r): _sprite(s), _x(x), _y(y), _rect(r){}
+    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r, bn::camera_ptr& cam): _sprite(s), _x(x), _y(y), _rect(r){ _sprite.set_camera(cam);}
     // Getters
-    [[nodiscard]] bn::fixed x() const{
-        return _x;
-    }
-    [[nodiscard]] bn::fixed y() const{
-        return _y;
-    }
-    [[nodiscard]] bn::fixed_point position() const{
-        return bn::fixed_point(_x, _y);
-    }
-    [[nodiscard]] bn::rect rect() const{
-        return _rect;
-    }
+    [[nodiscard]] bn::fixed x() const{ return _x;}
+    [[nodiscard]] bn::fixed y() const{ return _y;}
+    [[nodiscard]] bn::fixed_point position() const{ return bn::fixed_point(_x, _y);}
+    [[nodiscard]] bn::rect rect() const{ return _rect;}
     // Setters
-    void set_camera(bn::camera_ptr& cam){
-        _sprite.set_camera(cam);
-    }
+    void set_camera(bn::camera_ptr& cam){ _sprite.set_camera(cam);}
+    void set_visible(bool visible){ _sprite.set_visible(visible);}
+
     bn::sprite_ptr _sprite;
     bn::fixed _x, _y;
     bn::rect _rect;
 };
 
-
 class Player: public Actor{
 public:
     ~Player(){};
-    Player(int x, int y, bn::random& ref, bn::unique_ptr<bg_map>& m_r);
+    Player(int x, int y, bn::random& ref, game_map& m_r, bn::camera_ptr& cam);
     
     // Setters
-    void set_x(bn::fixed x, bool sprite_follow);
-    void set_y(bn::fixed y, bool sprite_follow);
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
-    void set_visible(bool visible);
+    void set_position(bn::point point, bool sprite_follow = false);
 
     void update(bn::camera_ptr& cam, bool& isSolid);
 protected:
@@ -95,17 +85,12 @@ protected:
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
             if(isSolid){
-                int int_x = _x.integer() + 128, int_y = _y.integer() + 128;
-                int x = bamod(int_x, 256)/8, y = bamod(int_y, 256)/8;
+                int x = _x.integer()/8, y = _y.integer()/8;
                 
-                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y - 1 + 32*(y==0))]);
-                obs_up    = cell_info.cell() != 0;}
-                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x, y + 1 - 32*(y==31))]);
-                obs_down  = cell_info.cell() != 0;}
-                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x - 1 + 32*(x==0) , y)]);
-                obs_left  = cell_info.cell() != 0;}
-                {bn::regular_bg_map_cell_info cell_info(_map_ref->cells[_map_ref->map_item.cell_index(x + 1 - 32*(x==31), y)]);
-                obs_right = cell_info.cell() != 0;}
+                obs_up    = _map_ref.cell(x, y - 1) != 0;
+                obs_down  = _map_ref.cell(x, y + 1) != 0;
+                obs_left  = _map_ref.cell(x - 1, y) != 0;
+                obs_right = _map_ref.cell(x + 1, y) != 0;
             }
 
             // Move if dir not obstructed
@@ -113,23 +98,19 @@ protected:
                 bn::fixed target_y = cam.y() - (_speed + bn::keypad::b_held());
                 cam.set_position(cam.x(), target_y);    // Move camera
                 set_position(cam.x(), target_y);  // Move player
-                _rect.set_position(cam.x().integer(), target_y.integer());
             }else if(bn::keypad::down_held() && obs_down){
                 bn::fixed target_y = cam.y() + (_speed + bn::keypad::b_held());
                 cam.set_position(cam.x(), target_y);
                 set_position(cam.x(), target_y);
-                _rect.set_position(cam.x().integer(), target_y.integer());
             }
             if(bn::keypad::left_held() && obs_left){
                 bn::fixed target_x = cam.x() - (_speed + bn::keypad::b_held());
                 cam.set_position(target_x, cam.y());
                 set_position(target_x, cam.y());
-                _rect.set_position(target_x.integer(), cam.x().integer());
             }else if(bn::keypad::right_held() && obs_right){
                 bn::fixed target_x = cam.x() + (_speed + bn::keypad::b_held());
                 cam.set_position(target_x, cam.y());
                 set_position(target_x, cam.y());
-                _rect.set_position(target_x.integer(), cam.x().integer());
             }
 
             // Animated character
@@ -146,19 +127,17 @@ private:
     unsigned char _prev_dir, _dir;
     unsigned char _hp;
 
-    bn::unique_ptr<bg_map>& _map_ref;
+    game_map& _map_ref;
     bn::random& _randomizer;
 };
 
 class NPC: public Actor{
 public:
     ~NPC(){}
-    NPC(int x, int y);
+    NPC(int x, int y, bn::camera_ptr& cam);
     // Setters
-    void set_x(bn::fixed x, bool sprite_follow);
-    void set_y(bn::fixed y, bool sprite_follow);
-    void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
-    void set_visible(bool visible);
+    void set_position(bn::fixed x, bn::fixed y);
+    void set_position(bn::point point);
     void update(jv::Player& player);
 protected:
     void priority_update(bn::fixed player_y){
@@ -176,12 +155,10 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(int x, int y, bn::random& ref);
+    Enemy(int x, int y, bn::random& ref, game_map& m_r, bn::camera_ptr& cam);
     // Setters
-    void set_x(bn::fixed x, bool sprite_follow);
-    void set_y(bn::fixed y, bool sprite_follow);
     void set_position(bn::fixed x, bn::fixed y);
-    void set_visible(bool visible);
+    void set_position(bn::point point);
 
     void update(jv::Player& player);
 protected:
@@ -229,17 +206,25 @@ protected:
             _idle_time = 0;
         }
         
+        bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
+        int x = _x.integer()/8, y = _y.integer()/8;
+            
+        obs_up    = _map_ref.cell(x, y - 1) != 0;
+        obs_down  = _map_ref.cell(x, y + 1) != 0;
+        obs_left  = _map_ref.cell(x - 1, y) != 0;
+        obs_right = _map_ref.cell(x + 1, y) != 0;
+
         // If direction is valid
         if(_dir != 0 && _dir < 9){
             // Move if dir not obstructed
-            if(_dir == 1 || _dir == 4 || _dir == 7){  // UP
-                set_position(x(), y() - _speed);  // Move Enemy
-            }else if(_dir == 6){  // RIGHT
-                set_position(x() + _speed, y());    
-            }else if(_dir == 2 || _dir == 5 || _dir == 8){   // DOWN
-                set_position(x(), y() + _speed);
-            }else if(_dir == 3){   // LEFT
-                set_position(x() - _speed, y());
+            if((_dir == 1 || _dir == 4 || _dir == 7) && obs_up){  // UP
+                set_position(_x, _y - _speed);  // Move Enemy
+            }else if(_dir == 6 && obs_right){  // RIGHT
+                set_position(_x + _speed, _y);    
+            }else if((_dir == 2 || _dir == 5 || _dir == 8) && obs_down){   // DOWN
+                set_position(_x, _y + _speed);
+            }else if(_dir == 3 && obs_left){   // LEFT
+                set_position(_x - _speed, _y);
             }
             
             // Animated character
@@ -260,6 +245,7 @@ private:
     unsigned char _hp;
     unsigned char _idle_time;
 
+    game_map& _map_ref;
     bn::random& _randomizer;
 };
 

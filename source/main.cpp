@@ -12,7 +12,7 @@ int main()
     bn::random randomizer;
 
     while(true){
-        //jv::game::start_scene(randomizer);
+        jv::game::start_scene(randomizer);
         jv::game::game_scene(randomizer);
     }
 }

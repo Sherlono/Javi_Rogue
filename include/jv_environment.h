@@ -22,7 +22,8 @@ struct game_map{
     // Methods
     [[nodiscard]] int x(){return width;}
     [[nodiscard]] int y(){return height;}
-    [[nodiscard]] int size() const {return width * height;}
+    [[nodiscard]] int size() const {return width*height;}
+    [[nodiscard]] uchar_t cell(const int x, const int y) {return _blocks[x + (y*width)];}
 
     // Insert room into the main map starting by the top left corner
     void insert_room(const game_map room, const bn::point top_left, const bool fliped = false){

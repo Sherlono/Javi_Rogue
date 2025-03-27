@@ -171,7 +171,7 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         b_a[i] = block_array[i];
     }
 
-    static game_map piece(4, 4, b_a, flip_array);
+    game_map piece(4, 4, b_a, flip_array);
     map.insert_room(piece, top_left, blockFlip);
 }
 }
