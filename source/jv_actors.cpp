@@ -4,7 +4,7 @@ namespace jv{
 // ************ Player ************
 // Constructor
 Player::Player(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
-    Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), 16 + 32*x, 16 + 32*y, bn::rect(16 + 32*x, 16 + 32*y, 20, 20)),
+    Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 20, 20)),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(1.0)),
     _prev_dir(2),
@@ -14,7 +14,7 @@ Player::Player(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_p
     _randomizer(random_ref)
 {
     _sprite.set_bg_priority(1);
-    cam.set_position(16 + 32*x, 16 + 32*y);
+    cam.set_position(x, y);
 }
 // Setters
 void Player::set_position(bn::fixed x, bn::fixed y, bool sprite_follow){
@@ -36,7 +36,7 @@ void Player::update(bn::camera_ptr& cam, bool& isSolid){
 // ************** NPC **************
 // Constructor
 NPC::NPC(int x, int y, bn::camera_ptr& cam):
-    Actor(bn::sprite_items::cow.create_sprite(16 + 32*x, 16 + 32*y - 8), 16 + 32*x, 16 + 32*y, bn::rect(16 + 32*x, 16 + 32*y + 8, 20, 20), cam)
+    Actor(bn::sprite_items::cow.create_sprite(x, y - 8), x, y, bn::rect(x, y + 8, 20, 20), cam)
 {
     _sprite.set_bg_priority(1);
 }
@@ -65,7 +65,7 @@ void NPC::update(jv::Player& player){
 // ************* Enemy *************
 // Constructor
 Enemy::Enemy(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
-    Actor(bn::sprite_items::enemy.create_sprite(16 + 32*x, 16 + 32*y - 8), 16 + 32*x, 16 + 32*y, bn::rect(16 + 32*x, 16 + 32*y, 20, 20), cam),
+    Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 20, 20), cam),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
     _speed(bn::fixed(0.4)),
     _prev_dir(2),

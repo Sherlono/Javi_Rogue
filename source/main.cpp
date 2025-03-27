@@ -14,5 +14,6 @@ int main()
     while(true){
         jv::game::start_scene(randomizer);
         jv::game::game_scene(randomizer);
+        //jv::game::floors_scene(randomizer);
     }
 }

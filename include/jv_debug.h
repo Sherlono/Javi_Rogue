@@ -87,7 +87,7 @@ private:
 };
 namespace Debug{
 void DebugUpdate(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
-void Start(auto& options, bn::vector<bn::regular_bg_ptr, 4> bgs, bn::vector<bn::sprite_ptr, 20> sprts){
+void Start(auto& options, bn::vector<bn::regular_bg_ptr, 4> bgs, bn::vector<bn::sprite_ptr, 120> sprts){
     // Hide all previous graphics
     for(int i = 0; i < sprts.size(); i++){
         if(i < bgs.size()){ bgs[i].set_visible(false);}

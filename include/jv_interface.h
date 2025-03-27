@@ -1,8 +1,10 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
+#include "bn_core.h"
+#include "bn_vector.h"
 #include "bn_random.h"
-//#include "bn_memory.h"
+#include "bn_keypad.h"
 
 #include "jv_environment.h"
 
@@ -11,7 +13,7 @@ inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
 
-void Log_skipped_frames(){
+inline void Log_skipped_frames(){
     int skipped = bn::core::last_missed_frames();
     if(skipped != 0){
         BN_LOG("******************");

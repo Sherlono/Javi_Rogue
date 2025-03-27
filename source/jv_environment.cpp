@@ -1,14 +1,13 @@
-#include "jv_environment.h"
-
 //#include "bn_random.h"
+
+#include "jv_environment.h"
+#include "jv_interface.h"
 
 namespace jv{
 // Make all floor prefabs here
 void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
-    static uchar_t b_a[16];
-    static bn::array<uchar_t, 16> block_array;
-    //static bn::array<bool, 16> flip_array;
-    static bool flip_array[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    bn::array<uchar_t, 16> block_array;
+    bool flip_array[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     switch(option){
         case 1:{
@@ -167,11 +166,9 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
     }
 
-    for(int i = 0; i < 16; i++){
-        b_a[i] = block_array[i];
-    }
-
-    game_map piece(4, 4, b_a, flip_array);
+    game_map piece(4, 4, block_array.data(), flip_array);
     map.insert_room(piece, top_left, blockFlip);
 }
+
+
 }
