@@ -10,6 +10,7 @@
 #include "jv_level_maker.h"
 
 #include "bn_sprite_items_ball.h"
+#include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_hud_item.h"
 
 namespace jv::game{
@@ -38,13 +39,18 @@ void game_scene(bn::random& randomizer){
 
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
+    background.set_priority(3);
+    bn::regular_bg_ptr hud = bn::regular_bg_items::hud_item.create_bg(0, 0);
+    hud.set_priority(0);
 
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
                 bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
     bn::regular_bg_ptr bg = bg_item.create_bg(0, 0);
     bn::regular_bg_map_ptr bg_map = bg.map();
+    bg.set_priority(2);
 
+    // *** Level Generation ***
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
@@ -54,6 +60,7 @@ void game_scene(bn::random& randomizer){
     
     bn::vector<bn::point, 3> start_coords;
     jv::LevelFactory(map1, 1, start_coords, randomizer);
+    // ************************
 
     // ******** Camera ********
     cam.set_position(start_coords[0].x(), start_coords[0].y());
@@ -78,6 +85,7 @@ void game_scene(bn::random& randomizer){
 
     bn::vector<bn::regular_bg_ptr, 4> bgs;
     bgs.push_back(background);
+    bgs.push_back(hud);
     bgs.push_back(bg);
     bn::vector<bn::sprite_ptr, 120> sprts;
     sprts.push_back(cat._sprite);
