@@ -19,13 +19,13 @@
 #include "jv_interface.h"
 
 struct game_map{
-    game_map(int x, int y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
+    game_map(uchar_t x, uchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
 
     // Methods
-    [[nodiscard]] int x(){return width;}
-    [[nodiscard]] int y(){return height;}
+    [[nodiscard]] uchar_t x() const {return width;}
+    [[nodiscard]] uchar_t y() const {return height;}
     [[nodiscard]] int size() const {return width*height;}
-    [[nodiscard]] uchar_t cell(const int x, const int y) {return _blocks[x + (y*width)];}
+    [[nodiscard]] uchar_t cell(const int x, const int y) const {return _blocks[x + (y*width)];}
 
     // Insert room into the main map starting by the top left corner
     void insert_room(const game_map room, const bn::point top_left, const bool fliped = false){
@@ -52,7 +52,7 @@ struct game_map{
         }
     }
     // Members
-    const int width, height;
+    cuchar_t width, height;
     uchar_t *_blocks;
     bool *_flips;
 };

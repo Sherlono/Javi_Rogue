@@ -86,7 +86,7 @@ private:
     char _type;
 };
 namespace Debug{
-void DebugUpdate(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
+void debug_update(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
 void Start(auto& options, bn::vector<bn::regular_bg_ptr, 4> bgs, bn::vector<bn::sprite_ptr, 120> sprts){
     // Hide all previous graphics
     for(int i = 0; i < sprts.size(); i++){
@@ -120,19 +120,19 @@ void Start(auto& options, bn::vector<bn::regular_bg_ptr, 4> bgs, bn::vector<bn::
             }
         }
         
-        if(bn::keypad::a_pressed()){ DebugUpdate(options, v_text, text_generator, index, true);}
-        else if(bn::keypad::b_pressed()){ DebugUpdate(options, v_text, text_generator, index, false);}
+        if(bn::keypad::a_pressed()){ debug_update(options, v_text, text_generator, index, true);}
+        else if(bn::keypad::b_pressed()){ debug_update(options, v_text, text_generator, index, false);}
 
         if(bn::keypad::a_held() && !options[index].is_Bool()){
             hold++;
             if(hold > 6){
-                DebugUpdate(options, v_text, text_generator, index, true);
+                debug_update(options, v_text, text_generator, index, true);
                 hold = 0;
             }
         }else if(bn::keypad::b_held() && !options[index].is_Bool()){
             hold++;
             if(hold > 6){
-                DebugUpdate(options, v_text, text_generator, index, false);
+                debug_update(options, v_text, text_generator, index, false);
                 hold = 0;
             }
         }
@@ -157,12 +157,10 @@ void Start(auto& options, bn::vector<bn::regular_bg_ptr, 4> bgs, bn::vector<bn::
     }
 }
 
-void DebugUpdate(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
-    if(increase){
-        options[index].increase();
-    }else{
-        options[index].decrease();
-    }
+void debug_update(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+    if(increase){ options[index].increase();
+    }else{ options[index].decrease();}
+
     v_text.clear();
     for(int i = 0; i < options.size(); i++){
         text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);

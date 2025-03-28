@@ -5,11 +5,10 @@ namespace jv{
 // Constructor
 Player::Player(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
     Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 20, 20)),
+    _stats(basic_stats(10, 10, 1, 1, bn::fixed(1.0))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
-    _speed(bn::fixed(1.0)),
     _prev_dir(2),
     _dir(2),
-    _hp(20),
     _map_ref(m_r),
     _randomizer(random_ref)
 {
@@ -57,20 +56,16 @@ void NPC::set_position(bn::point point){
 void NPC::update(jv::Player& player){
     priority_update(player.y());
     
-    // Speak
-    if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
-        jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
-    }
+    speak(player, "Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
 }
 // ************* Enemy *************
 // Constructor
 Enemy::Enemy(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
     Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 20, 20), cam),
+    _stats(basic_stats(10, 10, 1, 1, bn::fixed(0.4))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
-    _speed(bn::fixed(0.4)),
     _prev_dir(2),
     _dir(2),
-    _hp(20),
     _idle_time(0),
     _map_ref(m_r),
     _randomizer(random_ref)
@@ -97,9 +92,6 @@ void Enemy::update(jv::Player& player){
     
     move();
     
-    // Speak
-    if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
-        jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
-    }
+    speak(player, "I am the evil cat. I will attack", "you in a future version of", "the game.");
 }
 }
