@@ -3,8 +3,8 @@
         {
             "name": "Butano",
             "includePath": [
-                "C:/Users/javie/OneDrive/Documentos/butano/butano/include",
-                "C:/Users/javie/OneDrive/Documentos/butano/common/**",
+                "C:/Users/javie/Desktop/GBADEV/butano/butano/include",
+                "C:/Users/javie/Desktop/GBADEV/butano/common/**",
                 "${workspaceFolder}/**"
             ],
             "cStandard": "gnu17",

@@ -1,34 +1,13 @@
-#include "jv_environment.h"
-
 //#include "bn_random.h"
 
-namespace jv{
-// Make all room prefabs here
-/*void RoomPrefab(unsigned char option, bn::unique_ptr<bg_map>& bg_map_ptr){
-    int width, height;
-    switch(option){
-        default:{    // All environment assets layed out
-            uchar_t block_array[82] = {1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,
-                                       10, 11, 12, 13, 14, 15, 16, 17, 18,
-                                       19, 20, 21, 22, 23, 24, 25, 26, 27,
-                                       28, 29, 30, 31, 32, 33, 34, 35, 36,
-                                       37, 38, 39, 40, 41, 42, 43, 44, 45,
-                                       46, 47, 48, 49, 50, 51, 52, 53, 54,
-                                       55, 56, 57, 58, 59, 60, 61, 62, 63,
-                                       64, 65, 66, 67, 68, 69, 70, 71, 72,
-                                       73, 74, 75, 76, 77, 78, 79, 80, 81};
-            width = 9;
-            height = 10;
-            break;
-        }
-    }
-}*/
+#include "jv_environment.h"
+#include "jv_interface.h"
 
+namespace jv{
 // Make all floor prefabs here
-void FloorFactory(const bn::point top_left, const uchar_t option, const bool blockFlip, bn::unique_ptr<bg_map>& bg_map_ptr, const uchar_t crop, const uchar_t side){
-    static bn::array<uint16_t, 16> block_array;
-    static bn::array<bool, 16> flip_array;
-    flip_array = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
+    bn::array<uchar_t, 16> block_array;
+    bool flip_array[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     switch(option){
         case 1:{
@@ -186,7 +165,10 @@ void FloorFactory(const bn::point top_left, const uchar_t option, const bool blo
             break;
         }
     }
-    
-    bg_map_ptr->insert_block(4, 4, block_array, flip_array, blockFlip, top_left, crop, side);
+
+    game_map piece(4, 4, block_array.data(), flip_array);
+    map.insert_room(piece, top_left, blockFlip);
 }
+
+
 }
