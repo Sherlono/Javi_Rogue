@@ -28,14 +28,14 @@ class Actor{
 public:
     virtual ~Actor(){};
     Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r): _sprite(s), _x(x), _y(y), _rect(r){}
-    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r, bn::camera_ptr& cam): _sprite(s), _x(x), _y(y), _rect(r){ _sprite.set_camera(cam);}
+    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r, bn::camera_ptr cam): _sprite(s), _x(x), _y(y), _rect(r){ _sprite.set_camera(cam);}
     // Getters
     [[nodiscard]] bn::fixed x() const{ return _x;}
     [[nodiscard]] bn::fixed y() const{ return _y;}
     [[nodiscard]] bn::fixed_point position() const{ return bn::fixed_point(_x, _y);}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
     // Setters
-    void set_camera(bn::camera_ptr& cam){ _sprite.set_camera(cam);}
+    void set_camera(bn::camera_ptr cam){ _sprite.set_camera(cam);}
     void set_visible(bool visible){ _sprite.set_visible(visible);}
 
     bn::sprite_ptr _sprite;
@@ -51,13 +51,13 @@ public:
 class Player: public Actor{
 public:
     ~Player(){};
-    Player(int x, int y, bn::random& ref, game_map& m_r, bn::camera_ptr& cam);
+    Player(int x, int y, bn::random* ref, game_map* m_r, bn::camera_ptr cam);
     
     // Setters
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
     void set_position(bn::point point, bool sprite_follow = false);
 
-    void update(bn::camera_ptr& cam, bool& isSolid);
+    void update(bn::camera_ptr cam, bool* isSolid);
 protected:
     void animation_update(){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
@@ -75,7 +75,7 @@ protected:
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
             }
-            _randomizer.update();
+            _randomizer->update();
         }
         _prev_dir = _dir;
         _animation.update();
@@ -91,17 +91,17 @@ protected:
         _sprite.set_horizontal_flip(_dir == 3);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*(_dir == 6 || _dir == 3) + 6*(_dir == 1 || _dir == 4 || _dir == 7))); 
     }
-    void move(bn::camera_ptr& cam, bool& isSolid){
+    void move(bn::camera_ptr cam, bool isSolid){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
             if(isSolid){
                 int x = _x.integer()/8, y = _y.integer()/8;
                 
-                obs_up    = _map_ref.cell(x, y - 1) != 0;
-                obs_down  = _map_ref.cell(x, y + 1) != 0;
-                obs_left  = _map_ref.cell(x - 1, y) != 0;
-                obs_right = _map_ref.cell(x + 1, y) != 0;
+                obs_up    = _map_ref->cell(x, y - 1) != 0;
+                obs_down  = _map_ref->cell(x, y + 1) != 0;
+                obs_left  = _map_ref->cell(x - 1, y) != 0;
+                obs_right = _map_ref->cell(x + 1, y) != 0;
             }
 
             // Move if dir not obstructed
@@ -141,19 +141,19 @@ private:
     bn::sprite_animate_action<4> _animation;
     unsigned char _prev_dir, _dir;
 
-    game_map& _map_ref;
-    bn::random& _randomizer;
+    game_map* _map_ref;
+    bn::random* _randomizer;
 };
 
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(int x, int y, bn::random& ref, game_map& m_r, bn::camera_ptr& cam);
+    Enemy(int x, int y, bn::random* ref, game_map* m_r, bn::camera_ptr cam);
     // Setters
     void set_position(bn::fixed x, bn::fixed y);
     void set_position(bn::point point);
 
-    void update(jv::Player& player);
+    void update(jv::Player* player);
 protected:
     void animation_update(){
         if(_prev_dir != _dir){
@@ -191,7 +191,7 @@ protected:
     void move(){
         // Decide direction at random
         if(_idle_time == 0){
-            _dir = _randomizer.get_int(16);
+            _dir = _randomizer->get_int(16);
             _idle_time++;
         }else if(_idle_time <= 2*60 + _dir*2){
             _idle_time++;
@@ -202,10 +202,10 @@ protected:
         bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
         int x = _x.integer()/8, y = _y.integer()/8;
             
-        obs_up    = _map_ref.cell(x, y - 1) != 0;
-        obs_down  = _map_ref.cell(x, y + 1) != 0;
-        obs_left  = _map_ref.cell(x - 1, y) != 0;
-        obs_right = _map_ref.cell(x + 1, y) != 0;
+        obs_up    = _map_ref->cell(x, y - 1) != 0;
+        obs_down  = _map_ref->cell(x, y + 1) != 0;
+        obs_left  = _map_ref->cell(x - 1, y) != 0;
+        obs_right = _map_ref->cell(x + 1, y) != 0;
 
         // If direction is valid
         if(_dir != 0 && _dir < 9){
@@ -233,8 +233,8 @@ protected:
         }
     }
     
-    void speak(jv::Player& player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
-        if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
+    void speak(jv::Player* player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
+        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
             jv::Dialog::init(line1, line2, line3);
         }
     }
@@ -248,19 +248,19 @@ private:
     unsigned char _prev_dir, _dir;
     unsigned char _idle_time;
 
-    game_map& _map_ref;
-    bn::random& _randomizer;
+    game_map* _map_ref;
+    bn::random* _randomizer;
 };
 
 class NPC: public Actor{
 public:
     ~NPC(){}
-    NPC(int x, int y, bn::camera_ptr& cam);
+    NPC(int x, int y, bn::camera_ptr cam);
     // Setters
     void set_position(bn::fixed x, bn::fixed y);
     void set_position(bn::point point);
 
-    void update(jv::Player& player);
+    void update(jv::Player* player);
 protected:
     void priority_update(bn::fixed player_y){
         if(y() < player_y){
@@ -269,8 +269,8 @@ protected:
             _sprite.set_z_order(-1);
         }
     }
-    void speak(jv::Player& player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
-        if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
+    void speak(jv::Player* player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
+        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
             jv::Dialog::init(line1, line2, line3);
         }
     }

@@ -18,7 +18,7 @@ void start_scene(bn::random& randomizer){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 64> v_text;
     text_generator.generate(-100, -8, "Procesors are bad at generating random", v_text);
-    text_generator.generate(-100, 0,  "numbers, to compensate for this we can", v_text);
+    text_generator.generate(-100, 0,  "numbers. To compensate for this we can", v_text);
     text_generator.generate(-100, 8,  "take advantage of the humah factor.", v_text);
     text_generator.set_bg_priority(0);
     
@@ -58,8 +58,8 @@ void game_scene(bn::random& randomizer){
     bool flipArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
-    bn::vector<bn::point, 3> start_coords;
-    jv::LevelFactory(map1, 1, start_coords, randomizer);
+    bn::vector<bn::point, 20> start_coords;
+    jv::LevelFactory(map1, 0, start_coords, randomizer);
     // ************************
 
     // ******** Camera ********
@@ -69,39 +69,57 @@ void game_scene(bn::random& randomizer){
     // ************************
 
     // Characters initialization
-    jv::Player cat(start_coords[0].x(), start_coords[0].y(), randomizer, map1, cam);
-    jv::NPC cow(start_coords[1].x(), start_coords[1].y(), cam);
-    jv::Enemy badcat(start_coords[2].x(), start_coords[2].y(), randomizer, map1, cam);
+    jv::Player cat(start_coords[0].x(), start_coords[0].y(), &randomizer, &map1, cam);
+    bn::vector<jv::Enemy, 10> v_enemies;
+    for(int i = 0; i < v_enemies.max_size(); i++){
+        v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), &randomizer, &map1, cam));
+    }
+    bn::vector<jv::NPC, 2> v_npcs;
+    v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), cam));
+    int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
+    //constexpr int actorCount = npcCount + enemyCount;
     // ************************
 
     // ****** Debug data ******
     bool val0 = true;  // Collision
     bool val1 = true;  // Update
-    //int val2 = 0;
-    bn::vector<jv::menu_option, 10> options;
+    bn::vector<jv::menu_option, 2> options;
     options.push_back(jv::menu_option(&val0, "Colision"));
     options.push_back(jv::menu_option(&val1, "Update bg"));
-    //options.push_back(jv::menu_option(&val2, "Na"));
 
-    bn::vector<bn::regular_bg_ptr, 4> bgs;
-    bgs.push_back(background);
-    bgs.push_back(hud);
-    bgs.push_back(bg);
-    bn::vector<bn::sprite_ptr, 120> sprts;
-    sprts.push_back(cat._sprite);
-    sprts.push_back(badcat._sprite);
-    sprts.push_back(cow._sprite);
+    bn::vector<bn::regular_bg_ptr, 4> v_bgs;
+    v_bgs.push_back(background);
+    v_bgs.push_back(hud);
+    v_bgs.push_back(bg);
+    bn::vector<bn::sprite_ptr, 100> v_sprts;
+    v_sprts.push_back(cat._sprite);
+    for(int i = 0; i < enemyCount; i++){
+        v_sprts.push_back(v_enemies[i]._sprite);
+    }
+    for(int i = 0; i < npcCount; i++){
+        v_sprts.push_back(v_npcs[i]._sprite);
+    }
     // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
     while(true){
-        cat.update(cam, val0);
-        cow.update(cat);
-        badcat.update(cat);
+        if(bn::keypad::r_pressed() && enemyCount > 0){
+            v_sprts.erase(v_sprts.begin() + 1);
+            v_enemies.erase(v_enemies.begin());
+            enemyCount--;
+        }
+
+        cat.update(cam, &val0);
+        for(int i = 0; i < enemyCount; i++){
+            v_enemies[i].update(&cat);
+        }
+        for(int i = 0; i < npcCount; i++){
+            v_npcs[i].update(&cat);
+        }
         
         if(val1){ jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);}
-        if(bn::keypad::start_pressed()){ jv::Debug::Start(options, bgs, sprts);}
+        if(bn::keypad::start_pressed()){ jv::Debug::Start(options, v_bgs, v_sprts);}
 
         jv::Log_skipped_frames();
         jv::resetcombo();
@@ -135,28 +153,24 @@ void floors_scene(bn::random& randomizer){
     bool flipArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
-    bn::vector<bn::point, 3> start_coords;
-
+    bn::vector<bn::point, 1> start_coords;
     jv::LevelFactory(map1, 0, start_coords, randomizer);
 
     // Characters initialization
-    jv::Player cat(0, 0, randomizer, map1, cam);
+    jv::Player cat(0, 0, &randomizer, &map1, cam);
     cam.set_position(0, 0);
     cat.set_visible(false);
     // ************************
 
     // ****** Debug data ******
     bool val0 = false;
-    bn::vector<bn::regular_bg_ptr, 4> bgs;
-    bgs.push_back(background);
-    bgs.push_back(bg);
     bn::vector<bn::sprite_ptr, 120> sprts;
     for(int y = 0; y < 5; y++){
         for(int x = 0; x < 10; x++){
             int num = (x + y*10)/2;
             if(num > F_COUNT){continue;}
             bn::string_view text = bn::to_string<8>(num);
-            text_generator.generate(x*32, 4 + y*32, text, numbers);
+            text_generator.generate(8+x*32, 12 + y*32, text, numbers);
         }
     }
     for(bn::sprite_ptr sprite : numbers){
@@ -168,7 +182,7 @@ void floors_scene(bn::random& randomizer){
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
     while(true){
-        cat.update(cam, val0);
+        cat.update(cam, &val0);
         
         jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
         if(bn::keypad::a_pressed()){

@@ -170,7 +170,7 @@ namespace jv{
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
-                        FloorFactory(map, bn::point(x*4, y*4), blockArr[index], flipArr[index]);
+                        FloorFactory(map, bn::point(1+x*4, 1+y*4), blockArr[index], flipArr[index]);
                     }
                 }
             }

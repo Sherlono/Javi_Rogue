@@ -3,7 +3,7 @@
 namespace jv{
 // ************ Player ************
 // Constructor
-Player::Player(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
+Player::Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 20, 20)),
     _stats(basic_stats(10, 10, 1, 1, bn::fixed(1.0))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
@@ -29,12 +29,12 @@ void Player::set_position(bn::point point, bool sprite_follow){
     _rect.set_position(point.x(), point.y());
 }
 
-void Player::update(bn::camera_ptr& cam, bool& isSolid){
-    move(cam, isSolid);
+void Player::update(bn::camera_ptr cam, bool* isSolid){
+    move(cam, *isSolid);
 }
 // ************** NPC **************
 // Constructor
-NPC::NPC(int x, int y, bn::camera_ptr& cam):
+NPC::NPC(int x, int y, bn::camera_ptr cam):
     Actor(bn::sprite_items::cow.create_sprite(x, y - 8), x, y, bn::rect(x, y + 8, 20, 20), cam)
 {
     _sprite.set_bg_priority(1);
@@ -53,14 +53,14 @@ void NPC::set_position(bn::point point){
     _rect.set_position(point.x(), point.y());
 }
 
-void NPC::update(jv::Player& player){
-    priority_update(player.y());
+void NPC::update(jv::Player* player){
+    priority_update(player->y());
     
     speak(player, "Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
 }
 // ************* Enemy *************
 // Constructor
-Enemy::Enemy(int x, int y, bn::random& random_ref, game_map& m_r, bn::camera_ptr& cam):
+Enemy::Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 20, 20), cam),
     _stats(basic_stats(10, 10, 1, 1, bn::fixed(0.4))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
@@ -86,9 +86,9 @@ void Enemy::set_position(bn::point point){
     _rect.set_position(point.x(), point.y());
 }
 
-void Enemy::update(jv::Player& player){
+void Enemy::update(jv::Player* player){
     // Change sprite priority to draw behind or above player
-    priority_update(player.y());
+    priority_update(player->y());
     
     move();
     
