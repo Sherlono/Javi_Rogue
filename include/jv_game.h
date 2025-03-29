@@ -35,7 +35,7 @@ void game_scene(bn::random& randomizer){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Music
-    bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
+    bn::music_items::cyberrid.play(0.25);    // Neat little song courtesy of the butano team
 
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
@@ -59,7 +59,7 @@ void game_scene(bn::random& randomizer){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
     bn::vector<bn::point, 20> start_coords;
-    jv::LevelFactory(map1, 0, start_coords, randomizer);
+    jv::LevelFactory(map1, 2, start_coords, randomizer);
     // ************************
 
     // ******** Camera ********

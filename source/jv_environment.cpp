@@ -157,6 +157,13 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            15, 15, 15, 15};
             break;
         }
+        case 21:{
+            block_array = {15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15,
+                           15, 15, 15, 15};
+            break;
+        }
         default:{
             block_array = {0,  0,  0,  0,
                            0,  0,  0,  0,

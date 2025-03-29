@@ -4,7 +4,7 @@ namespace jv{
 // ************ Player ************
 // Constructor
 Player::Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
-    Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 20, 20)),
+    Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 10, 10)),
     _stats(basic_stats(10, 10, 1, 1, bn::fixed(1.0))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
     _prev_dir(2),
@@ -61,7 +61,7 @@ void NPC::update(jv::Player* player){
 // ************* Enemy *************
 // Constructor
 Enemy::Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
-    Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 20, 20), cam),
+    Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 10, 10), cam),
     _stats(basic_stats(10, 10, 1, 1, bn::fixed(0.4))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
     _prev_dir(2),
