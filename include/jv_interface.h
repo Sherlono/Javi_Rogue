@@ -30,7 +30,7 @@ void random_coords(PointsVector& points_out, bn::random& randomizer, DataArray& 
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             int index = x + y*width;
-            if(map[index]){
+            if(map[index] > 0 && map[index] < F_COUNT){
                 // Simple dinamically growing array code. Double size when capped
                 pointCount++;
                 if(valid_points == nullptr){

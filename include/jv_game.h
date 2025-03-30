@@ -59,7 +59,7 @@ void game_scene(bn::random& randomizer){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
     bn::vector<bn::point, 20> start_coords;
-    jv::LevelFactory(map1, 2, start_coords, randomizer);
+    jv::LevelFactory(map1, 1, start_coords, randomizer);
     // ************************
 
     // ******** Camera ********
@@ -158,19 +158,21 @@ void floors_scene(bn::random& randomizer){
 
     // Characters initialization
     jv::Player cat(0, 0, &randomizer, &map1, cam);
-    cam.set_position(0, 0);
+    cam.set_position(120, 80);
     cat.set_visible(false);
     // ************************
 
     // ****** Debug data ******
     bool val0 = false;
-    bn::vector<bn::sprite_ptr, 120> sprts;
-    for(int y = 0; y < 5; y++){
+    bn::vector<bn::sprite_ptr, 128> sprts;
+    for(int y = 0; y < 10; y++){
         for(int x = 0; x < 10; x++){
-            int num = (x + y*10)/2;
-            if(num > F_COUNT){continue;}
-            bn::string_view text = bn::to_string<8>(num);
-            text_generator.generate(8+x*32, 12 + y*32, text, numbers);
+            if(bamod(x, 2) == 0){
+                int num = (x + y*10)/2;
+                if(num >= B_COUNT){break;}
+                bn::string_view text = bn::to_string<8>(num);
+                text_generator.generate(x*32, 4 + y*32, text, numbers);
+            }else{ continue;}
         }
     }
     for(bn::sprite_ptr sprite : numbers){

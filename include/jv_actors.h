@@ -96,12 +96,12 @@ protected:
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
             if(isSolid){
-                int x = _x.integer()/8, y = _y.integer()/8;
+                int x = _x.integer()/8, y = (_y.integer() + 4)/8;
                 
-                obs_up    = _map_ref->cell(x, y - 1) != 0;
-                obs_down  = _map_ref->cell(x, y + 1) != 0;
-                obs_left  = _map_ref->cell(x - 1, y) != 0;
-                obs_right = _map_ref->cell(x + 1, y) != 0;
+                obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
+                obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
+                obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
+                obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
             }
 
             // Move if dir not obstructed
@@ -200,12 +200,12 @@ protected:
         }
         
         bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
-        int x = _x.integer()/8, y = _y.integer()/8;
+        int x = _x.integer()/8, y = (_y.integer() + 4)/8;
             
-        obs_up    = _map_ref->cell(x, y - 1) != 0;
-        obs_down  = _map_ref->cell(x, y + 1) != 0;
-        obs_left  = _map_ref->cell(x - 1, y) != 0;
-        obs_right = _map_ref->cell(x + 1, y) != 0;
+        obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
+        obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
+        obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
+        obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
 
         // If direction is valid
         if(_dir != 0 && _dir < 9){
