@@ -106,23 +106,23 @@ protected:
 
             // Move if dir not obstructed
             if(bn::keypad::up_held() && obs_up){
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(bn::keypad::left_held() || bn::keypad::right_held());
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
                 bn::fixed target_y = cam.y() - (_stats.speed + bn::keypad::b_held())*diagonal;
                 cam.set_position(cam.x(), target_y);
                 set_position(cam.x(), target_y);
             }else if(bn::keypad::down_held() && obs_down){
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(bn::keypad::left_held() || bn::keypad::right_held());
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
                 bn::fixed target_y = cam.y() + (_stats.speed + bn::keypad::b_held())*diagonal;
                 cam.set_position(cam.x(), target_y);
                 set_position(cam.x(), target_y);
             }
             if(bn::keypad::left_held() && obs_left){
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(bn::keypad::up_held() || bn::keypad::down_held());
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
                 bn::fixed target_x = cam.x() - (_stats.speed + bn::keypad::b_held())*diagonal;
                 cam.set_position(target_x, cam.y());
                 set_position(target_x, cam.y());
             }else if(bn::keypad::right_held() && obs_right){
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(bn::keypad::up_held() || bn::keypad::down_held());
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
                 bn::fixed target_x = cam.x() + (_stats.speed + bn::keypad::b_held())*diagonal;
                 cam.set_position(target_x, cam.y());
                 set_position(target_x, cam.y());
@@ -211,17 +211,17 @@ protected:
         if(_dir != 0 && _dir < 9){
             // Move if dir not obstructed
             if((_dir == 1 || _dir == 4 || _dir == 7) && obs_up){          // UP
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(_dir == 4 || _dir == 7);
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 4 || _dir == 7);
                 set_position(_x, _y - _stats.speed*diagonal); 
             }else if((_dir == 2 || _dir == 5 || _dir == 8) && obs_down){  // DOWN
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(_dir == 5 || _dir == 8);
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 5 || _dir == 8);
                 set_position(_x, _y + _stats.speed*diagonal);
             }
             if((_dir == 3 || _dir == 5 || _dir == 4) && obs_left){  // LEFT
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(_dir == 4 || _dir == 5);
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 4 || _dir == 5);
                 set_position(_x - _stats.speed*diagonal, _y);
             }else if((_dir == 6 || _dir == 7 || _dir == 8) && obs_right){ // RIGHT
-                bn::fixed diagonal = 1 + SQRTTWODTWOMONE*(_dir == 7 || _dir == 8);
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 7 || _dir == 8);
                 set_position(_x + _stats.speed*diagonal, _y);
             }
             

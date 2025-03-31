@@ -59,7 +59,7 @@ void game_scene(bn::random& randomizer){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
     bn::vector<bn::point, 20> start_coords;
-    jv::LevelFactory(map1, 1, start_coords, randomizer);
+    jv::LevelFactory(map1, 2, start_coords, randomizer);
     // ************************
 
     // ******** Camera ********
@@ -127,7 +127,7 @@ void game_scene(bn::random& randomizer){
     }
 }
 
-void floors_scene(bn::random& randomizer){
+void blocks_scene(bn::random& randomizer){
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);

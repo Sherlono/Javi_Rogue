@@ -61,7 +61,7 @@ namespace jv::LevelMaker{
                         }
                     }
                     else if(current_x < prev_x && xmod == bamod(current_x + 25, 32)){    // If moved Left
-                        bool not_oob = (x - 47 > 0 && y - 15 > 0);
+                        bool not_oob = (x - 47 > 0 && y - 15 > 0 && y - 16 < map.y());
                         bn::point grid_coord(xmod, ymod);
                         //if(y == current_y){BN_LOG("Left   ", "| x: ", x, "| y: ", y);}
     
