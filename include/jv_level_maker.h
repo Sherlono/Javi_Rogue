@@ -10,7 +10,7 @@
 namespace jv::LevelMaker{
     static int prev_x, prev_y;
     
-    // Init must be called Once
+    // Init must be called ONCE before the loop begins
     void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
         // Defining the MAP ARRAY bounds to redraw the map
         int current_x = (cam.x().integer())/8  ,   current_y = (cam.y().integer() + 48)/8;

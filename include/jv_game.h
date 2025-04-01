@@ -13,14 +13,43 @@
 #include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_hud_item.h"
 
+#include "bn_sprite_items_cursor.h"
+
 namespace jv::game{
-void start_scene(bn::random& randomizer){
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
+void scene_select(bn::random& randomizer, char& option){
     bn::vector<bn::sprite_ptr, 64> v_text;
+    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
+    text_generator.set_bg_priority(0);
+    text_generator.generate(-98, -16, "Select scene", v_text);
+    text_generator.generate(-100, 0,  "Map 1", v_text);
+    text_generator.generate(-100, 8,  "Map 2", v_text);
+    text_generator.generate(-100, 16,  "Tile Showcase", v_text);
+
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, 0);
+    
+    while(!bn::keypad::a_pressed()){
+        if(bn::keypad::down_pressed() && option < 2){
+            option++;
+            cursor.set_position(-20, cursor.y() + 8);
+        }else if(bn::keypad::up_pressed() && option > 0){
+            option--;
+            cursor.set_position(-20, cursor.y() - 8);
+        }
+
+        randomizer.update();
+        bn::core::update();
+    }
+    v_text.clear();
+    bn::core::update();
+}
+
+void start_scene(bn::random& randomizer){
+    bn::vector<bn::sprite_ptr, 64> v_text;
+    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
+    text_generator.set_bg_priority(0);
     text_generator.generate(-100, -8, "Procesors are bad at generating random", v_text);
     text_generator.generate(-100, 0,  "numbers. To compensate for this we can", v_text);
     text_generator.generate(-100, 8,  "take advantage of the humah factor.", v_text);
-    text_generator.set_bg_priority(0);
     
     while(!bn::keypad::any_pressed()){
         randomizer.update();
@@ -30,7 +59,7 @@ void start_scene(bn::random& randomizer){
     bn::core::update();
 }
 
-void game_scene(bn::random& randomizer){
+void game_scene(bn::random& randomizer, char option){
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
@@ -59,7 +88,7 @@ void game_scene(bn::random& randomizer){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
     bn::vector<bn::point, 20> start_coords;
-    jv::LevelFactory(map1, 2, start_coords, randomizer);
+    jv::LevelFactory(map1, option, start_coords, randomizer);
     // ************************
 
     // ******** Camera ********
@@ -165,10 +194,11 @@ void blocks_scene(bn::random& randomizer){
     // ****** Debug data ******
     bool val0 = false;
     bn::vector<bn::sprite_ptr, 128> sprts;
-    for(int y = 0; y < 10; y++){
-        for(int x = 0; x < 10; x++){
+    int width = 12, height = 10;
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++){
             if(bamod(x, 2) == 0){
-                int num = (x + y*10)/2;
+                int num = (x + y*width)/2;
                 if(num >= B_COUNT){break;}
                 bn::string_view text = bn::to_string<8>(num);
                 text_generator.generate(x*32, 4 + y*32, text, numbers);
@@ -185,6 +215,20 @@ void blocks_scene(bn::random& randomizer){
     
     while(true){
         cat.update(cam, &val0);
+        if(cam.x() > width*32){
+            cam.set_position(width*32, cam.y());
+            cat.set_position(width*32, cat.y());
+        }else if(cam.x() < -16){
+            cam.set_position(-16, cam.y());
+            cat.set_position(-16, cat.y());
+        }
+        if(cam.y() > (height - 1)*32){
+            cam.set_position(cam.x(), (height - 1)*32);
+            cat.set_position(cam.x(), (height - 1)*32);
+        }else if(cam.y() < -16){
+            cam.set_position(cam.x(), -16);
+            cat.set_position(cam.x(), -16);
+        }
         
         jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
         if(bn::keypad::a_pressed()){
@@ -192,7 +236,7 @@ void blocks_scene(bn::random& randomizer){
                 sprite.set_visible(!sprite.visible());
             }
         }
-
+        
         jv::Log_skipped_frames();
         jv::resetcombo();
         bn::core::update();

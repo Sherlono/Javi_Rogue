@@ -76,14 +76,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
             block_array = {11, 10, 10, 11,
                            19, 19, 19, 19,
                            20, 20, 20, 20,
-                           29, 28, 28, 29};
+                           29, 28, 28, 29}; 
             break;
         }
         case 9:{
-            block_array = { 0,  0,  7,  8,
-                            7,  8, 16, 17,
-                           23, 24, 25, 26,
-                            4,  5,  6, 15};
+            block_array = {  1,  2,  3, 15,
+                             4,  5,  6, 15,
+                            12, 13, 14, 15,
+                            26, 27, 15, 15 };
             break;
         }
         case 10:{
@@ -128,21 +128,21 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
             block_array = {44, 45, 22, 15,
                            42, 43, 44, 45,
                            37, 38, 42, 43,
-                           93, 94, 37, 38};
+                           90, 90, 37, 38};
             break;
         }
         case 16:{
             block_array = { 37, 38, 42, 43,
-                            93, 94, 37, 38,
-                             0,  0, 93, 94,
-                             0,  0,  0,  0};
+                            90, 90, 37, 38,
+                            93, 94, 90, 90,
+                             0,  0, 93, 94};
             break;
         }
         case 17:{
             block_array = { 1,  2,  3, 15,
                            34, 35, 36, 45,
                            37, 38, 42, 43,
-                           93, 94, 37, 38};
+                           90, 90, 37, 38};
             break;
         }
         case 18:{
@@ -292,16 +292,16 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
         case 34:{
             block_array = { 0,  0, 79, 80,
-                            0,  0, 83, 84,
                             0,  0, 81, 82,
-                            0,  0, 85, 86};
+                            0,  0, 83, 84,
+                            0,  0, 81, 82};
             break;
         }
         case 35:{
             block_array = { 0,  0, 81, 82,
-                            0,  0, 85, 86,
+                            0,  0, 83, 84,
                             0,  0, 81, 82,
-                            0,  0, 85, 86};
+                            0,  0, 83, 84};
             break;
         }
         case 36:{
@@ -320,7 +320,7 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
         case 38:{
             block_array = {82, 81,  0,  0,
-                           86, 85,  0,  0,
+                           84, 83,  0,  0,
                            46, 47, 47, 46,
                            48, 49, 49, 48 };
             flip_array[0] = true;
@@ -335,7 +335,7 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
         case 39:{
             block_array = {82, 81, 81, 82,
-                           86, 85, 85, 86,
+                           84, 83, 83, 84,
                            46, 47, 47, 46,
                            48, 49, 49, 48};
             flip_array[0] = true;
@@ -350,12 +350,48 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
         // 
         case 40:{
+            block_array = {90, 90, 90, 90,
+                           90, 90, 90, 90,
+                            0,  0,  0,  0,
+                            0,  0,  0,  0};
+            break;
+        }
+        case 41:{
+            block_array = {93, 94, 90, 90,
+                            0,  0, 93, 94,
+                            0,  0,  0,  0,
+                            0,  0,  0,  0};
+            break;
+        }
+        case 42:{
+            block_array = {90, 90, 91, 82,
+                           90, 90, 92, 84,
+                            0,  0, 81, 82,
+                            0,  0, 83, 84};
+            break;
+        }
+        case 43:{
+            block_array = { 82, 81, 81, 82,
+                            84, 83, 83, 84,
+                            82, 81, 81, 82,
+                            84, 83, 83, 84};
+            flip_array[0] = true;
+            flip_array[1] = true;
+            flip_array[4] = true;
+            flip_array[5] = true;
+            flip_array[8] = true;
+            flip_array[9] = true;
+            flip_array[12] = true;
+            flip_array[13] = true;
+            break;
+        }
+        /*case 40:{
             block_array = {87, 88, 89, 90,
                            91, 92, 93, 94,
                            95, 96, 97, 98,
                            99,100,101,102};
             break;
-        }
+        }*/
         // ********************************
         default:{
             block_array = {0,  0,  0,  0,
