@@ -24,6 +24,8 @@ struct basic_stats{
     bn::fixed speed;
 };
 
+enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
+
 class Actor{
 public:
     virtual ~Actor(){};
@@ -62,16 +64,16 @@ protected:
     void animation_update(){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
         if(_prev_dir != _dir){
-            if(_dir == 1 || _dir == 4 || _dir == 7){        // UP
+            if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 6, 7, 6, 8);
-            }else if(_dir == 2 || _dir == 5 || _dir == 8){  // DOWN
+            }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2);
-            }else if(_dir == 3){                            // LEFT
+            }else if(_dir == jv::WEST){                            // LEFT
                 _sprite.set_horizontal_flip(true);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
-            }else if(_dir == 6){                            // RIGHT
+            }else if(_dir == jv::EAST){                            // RIGHT
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
             }
@@ -88,8 +90,9 @@ protected:
         }
     }
     void wait(){
-        _sprite.set_horizontal_flip(_dir == 3);
-        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(0 + 3*(_dir == 6 || _dir == 3) + 6*(_dir == 1 || _dir == 4 || _dir == 7))); 
+        _sprite.set_horizontal_flip(_dir == jv::WEST);
+        int tile_index = 0 + 3*(_dir == jv::WEST || _dir == jv::EAST) + 6*(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST);
+        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(tile_index));
     }
     void move(bn::camera_ptr cam, bool isSolid){
         if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
@@ -98,10 +101,10 @@ protected:
             if(isSolid){
                 int x = _x.integer()/8, y = (_y.integer() + 4)/8;
                 
-                obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
-                obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
-                obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
-                obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
+                obs_up    = _map_ref->cell(x, y - 1) < WT_COUNT;
+                obs_down  = _map_ref->cell(x, y + 1) < WT_COUNT;
+                obs_left  = _map_ref->cell(x - 1, y) < WT_COUNT;
+                obs_right = _map_ref->cell(x + 1, y) < WT_COUNT;
             }
 
             // Move if dir not obstructed
@@ -157,16 +160,16 @@ public:
 protected:
     void animation_update(){
         if(_prev_dir != _dir){
-            if(_dir == 1 || _dir == 4 || _dir == 7){        // UP
+            if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 6, 7, 6, 8);
-            }else if(_dir == 2 || _dir == 5 || _dir == 8){  // DOWN
+            }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2);
-            }else if(_dir == 3){                            // LEFT
+            }else if(_dir == jv::WEST){                            // LEFT
                 _sprite.set_horizontal_flip(true);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 3, 4, 3, 5);
-            }else if(_dir == 6){                            // RIGHT
+            }else if(_dir == jv::EAST){                            // RIGHT
                 _sprite.set_horizontal_flip(false);
                 _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 3, 4, 3, 5);
             }
@@ -184,8 +187,9 @@ protected:
     }
 
     void wait(){
-        _sprite.set_horizontal_flip(_dir == 3);
-        _sprite.set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(0 + 3*(_dir == 6 || _dir == 3) + 6*(_dir == 1 || _dir == 4 || _dir == 7))); 
+        _sprite.set_horizontal_flip(_dir == jv::WEST);
+        int tile_index = 0 + 3*(_dir == jv::WEST || _dir == jv::EAST) + 6*(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST);
+        _sprite.set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(tile_index));
     }
 
     void move(){
@@ -202,26 +206,26 @@ protected:
         bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
         int x = _x.integer()/8, y = (_y.integer() + 4)/8;
             
-        obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
-        obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
-        obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
-        obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
+        obs_up    = _map_ref->cell(x, y - 1) < WT_COUNT;
+        obs_down  = _map_ref->cell(x, y + 1) < WT_COUNT;
+        obs_left  = _map_ref->cell(x - 1, y) < WT_COUNT;
+        obs_right = _map_ref->cell(x + 1, y) < WT_COUNT;
 
         // If direction is valid
-        if(_dir != 0 && _dir < 9){
+        if(_dir != jv::NEUTRAL && _dir < 9){
             // Move if dir not obstructed
-            if((_dir == 1 || _dir == 4 || _dir == 7) && obs_up){          // UP
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 4 || _dir == 7);
+            if((_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST) && obs_up){          // UP
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == jv::NORTHWEST || _dir == jv::NORTHEAST);
                 set_position(_x, _y - _stats.speed*diagonal); 
-            }else if((_dir == 2 || _dir == 5 || _dir == 8) && obs_down){  // DOWN
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 5 || _dir == 8);
+            }else if((_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST) && obs_down){  // DOWN
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST);
                 set_position(_x, _y + _stats.speed*diagonal);
             }
-            if((_dir == 3 || _dir == 5 || _dir == 4) && obs_left){  // LEFT
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 4 || _dir == 5);
+            if((_dir == jv::WEST || _dir == jv::NORTHWEST || _dir == jv::SOUTHWEST) && obs_left){  // LEFT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == jv::NORTHWEST || _dir == jv::SOUTHWEST);
                 set_position(_x - _stats.speed*diagonal, _y);
-            }else if((_dir == 6 || _dir == 7 || _dir == 8) && obs_right){ // RIGHT
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == 7 || _dir == 8);
+            }else if((_dir == jv::EAST || _dir == jv::NORTHEAST || _dir == jv::SOUTHEAST) && obs_right){ // RIGHT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == jv::NORTHEAST || _dir == jv::SOUTHEAST);
                 set_position(_x + _stats.speed*diagonal, _y);
             }
             
