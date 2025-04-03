@@ -191,13 +191,7 @@ void blocks_scene(bn::random& randomizer){
     bg.set_camera(cam);
     // ************************
 
-    // Characters initialization
-    jv::Player cat(0, 0, &randomizer, &map1, cam);
-    cat.set_visible(false);
-    // ************************
-
     // ****** Debug data ******
-    bool val0 = false;
     bn::vector<bn::sprite_ptr, 128> sprts;
     int width = 12, height = 10;
     for(int y = 0; y < height; y++){
@@ -219,20 +213,38 @@ void blocks_scene(bn::random& randomizer){
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
     while(true){
-        cat.update(cam, val0);
+        // Movement
+        if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
+            // Move if dir not obstructed
+            if(bn::keypad::up_held()){
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+                bn::fixed target_y = cam.y() - 2*diagonal;
+                cam.set_position(cam.x(), target_y);
+            }else if(bn::keypad::down_held()){
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+                bn::fixed target_y = cam.y() + 2*diagonal;
+                cam.set_position(cam.x(), target_y);
+            }
+            if(bn::keypad::left_held()){
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+                bn::fixed target_x = cam.x() - 2*diagonal;
+                cam.set_position(target_x, cam.y());
+            }else if(bn::keypad::right_held()){
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+                bn::fixed target_x = cam.x() + 2*diagonal;
+                cam.set_position(target_x, cam.y());
+            }
+        }
+
         if(cam.x() > width*32){
             cam.set_position(width*32, cam.y());
-            cat.set_position(width*32, cat.y());
         }else if(cam.x() < -16){
             cam.set_position(-16, cam.y());
-            cat.set_position(-16, cat.y());
         }
         if(cam.y() > (height - 1)*32){
             cam.set_position(cam.x(), (height - 1)*32);
-            cat.set_position(cam.x(), (height - 1)*32);
         }else if(cam.y() < -16){
             cam.set_position(cam.x(), -16);
-            cat.set_position(cam.x(), -16);
         }
         
         jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
