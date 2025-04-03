@@ -25,6 +25,7 @@ struct basic_stats{
 };
 
 enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
+enum State { NORMAL, ATTACKING, DEAD};
 
 class Actor{
 public:
@@ -45,11 +46,6 @@ public:
     bn::rect _rect;
 };
 
-/* Directions
- *   4 1 7
- *   3 0 6
- *   5 2 8   */
-
 class Player: public Actor{
 public:
     ~Player(){};
@@ -59,28 +55,26 @@ public:
     void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
     void set_position(bn::point point, bool sprite_follow = false);
 
-    void update(bn::camera_ptr cam, bool* isSolid);
-protected:
+    // Getters
+    bool is_attacking() { return _state == State::ATTACKING;}
+    uchar_t get_state() { return _state;}
+    int get_attack() { return _stats.attack;}
+    int get_defense() { return _stats.defense;}
+    int get_maxhp() { return _stats.max_hp;}
+    int get_hp() { return _stats.hp;}
+    bn::rect get_hitbox() { return _hitbox;}
+
+    void update(bn::camera_ptr cam, bool noClip);
+    
+    
     void animation_update(){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
-        if(_prev_dir != _dir){
-            if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
-                _sprite.set_horizontal_flip(false);
-                _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 6, 7, 6, 8);
-            }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
-                _sprite.set_horizontal_flip(false);
-                _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2);
-            }else if(_dir == jv::WEST){                            // LEFT
-                _sprite.set_horizontal_flip(true);
-                _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
-            }else if(_dir == jv::EAST){                            // RIGHT
-                _sprite.set_horizontal_flip(false);
-                _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 3, 4, 3, 5);
-            }
+        if((_prev_attack_cooldown != _attack_cooldown && _attack_cooldown == 0) || _prev_dir != _dir){
+            face_direction(frames::w_up, frames::w_ho, frames::w_do);
             _randomizer->update();
         }
         _prev_dir = _dir;
-        _animation.update();
+        if(!_animation.done()) _animation.update();
     }
     void priority_update(bn::fixed player_y){
         if(y() < player_y){
@@ -94,55 +88,99 @@ protected:
         int tile_index = 0 + 3*(_dir == jv::WEST || _dir == jv::EAST) + 6*(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST);
         _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(tile_index));
     }
-    void move(bn::camera_ptr cam, bool isSolid){
-        if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
-            bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
+    void move(bn::camera_ptr cam, bool noClip){
+        if(!_attack_cooldown){
+            if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
+                bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
-            if(isSolid){
-                int x = _x.integer()/8, y = (_y.integer() + 4)/8;
-                
-                obs_up    = _map_ref->cell(x, y - 1) < WT_COUNT;
-                obs_down  = _map_ref->cell(x, y + 1) < WT_COUNT;
-                obs_left  = _map_ref->cell(x - 1, y) < WT_COUNT;
-                obs_right = _map_ref->cell(x + 1, y) < WT_COUNT;
-            }
+                if(!noClip){
+                    int x = _x.integer()/8, y = (_y.integer() + 4)/8;
+                    obs_up    = _map_ref->cell(x, y - 1) < WT_COUNT;
+                    obs_down  = _map_ref->cell(x, y + 1) < WT_COUNT;
+                    obs_left  = _map_ref->cell(x - 1, y) < WT_COUNT;
+                    obs_right = _map_ref->cell(x + 1, y) < WT_COUNT;
+                }
 
-            // Move if dir not obstructed
-            if(bn::keypad::up_held() && obs_up){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                bn::fixed target_y = cam.y() - (_stats.speed + bn::keypad::b_held())*diagonal;
-                cam.set_position(cam.x(), target_y);
-                set_position(cam.x(), target_y);
-            }else if(bn::keypad::down_held() && obs_down){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                bn::fixed target_y = cam.y() + (_stats.speed + bn::keypad::b_held())*diagonal;
-                cam.set_position(cam.x(), target_y);
-                set_position(cam.x(), target_y);
-            }
-            if(bn::keypad::left_held() && obs_left){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                bn::fixed target_x = cam.x() - (_stats.speed + bn::keypad::b_held())*diagonal;
-                cam.set_position(target_x, cam.y());
-                set_position(target_x, cam.y());
-            }else if(bn::keypad::right_held() && obs_right){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                bn::fixed target_x = cam.x() + (_stats.speed + bn::keypad::b_held())*diagonal;
-                cam.set_position(target_x, cam.y());
-                set_position(target_x, cam.y());
-            }
+                // Move if dir not obstructed
+                if(bn::keypad::up_held() && obs_up){
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+                    bn::fixed target_y = cam.y() - _stats.speed*diagonal;
+                    cam.set_position(cam.x(), target_y);
+                    set_position(cam.x(), target_y);
+                    _hitbox.set_position(_x.integer(), (_y - 16).integer());
+                }else if(bn::keypad::down_held() && obs_down){
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+                    bn::fixed target_y = cam.y() + _stats.speed*diagonal;
+                    cam.set_position(cam.x(), target_y);
+                    set_position(cam.x(), target_y);
+                    _hitbox.set_position(_x.integer(), (_y + 16).integer());
+                }
+                if(bn::keypad::left_held() && obs_left){
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+                    bn::fixed target_x = cam.x() - _stats.speed*diagonal;
+                    cam.set_position(target_x, cam.y());
+                    set_position(target_x, cam.y());
+                    _hitbox.set_position((_x - 16).integer(), _y.integer());
+                }else if(bn::keypad::right_held() && obs_right){
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+                    bn::fixed target_x = cam.x() + _stats.speed*diagonal;
+                    cam.set_position(target_x, cam.y());
+                    set_position(target_x, cam.y());
+                    _hitbox.set_position((_x + 16).integer(), _y.integer());
+                }
 
-            // Animated character
-            animation_update();
+                // Animated character
+                animation_update();
+            }else{
+                // Insert idle animation here
+                wait();
+            }
         }else{
-            // Insert idle animation here
-            wait();
+            _animation.update();
+        }
+    }
+    void attack(){
+        if(!_attack_cooldown){
+            _attack_cooldown = 20;
+            face_direction(frames::a_up, frames::a_ho, frames::a_do);
+        }
+    }
+    void end_attack(){
+        _state = State::NORMAL;
+        
+        _prev_attack_cooldown = _attack_cooldown;
+        if(_attack_cooldown){
+            _attack_cooldown--;
+        }
+        if(_attack_cooldown == 1){
+            _state = State::ATTACKING;
         }
     }
 
 private:
+
+    void face_direction(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
+        if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
+            _sprite.set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), up[0], up[1], up[2], up[3]);
+        }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
+            _sprite.set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), down[0], down[1], down[2], down[3]);
+        }else if(_dir == jv::WEST){                            // LEFT
+            _sprite.set_horizontal_flip(true);
+            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+        }else if(_dir == jv::EAST){                            // RIGHT
+            _sprite.set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+        }
+    }
+
     basic_stats _stats;
+    uchar_t _state;
     bn::sprite_animate_action<4> _animation;
-    unsigned char _prev_dir, _dir;
+    bn::rect _hitbox;
+    int _prev_attack_cooldown, _attack_cooldown;
+    uchar_t _prev_dir, _dir;
 
     game_map* _map_ref;
     bn::random* _randomizer;
@@ -156,8 +194,16 @@ public:
     void set_position(bn::fixed x, bn::fixed y);
     void set_position(bn::point point);
 
+    bool is_attacking(){ return _state == State::ATTACKING;}
+    uchar_t get_state() { return _state;}
+    int get_attack() { return _stats.attack;}
+    int get_defense() { return _stats.defense;}
+    int get_maxhp() { return _stats.max_hp;}
+    int get_hp() { return _stats.hp;}
+    //bn::rect get_hitbox() { return _hitbox;}
+
     void update(jv::Player* player);
-protected:
+    
     void animation_update(){
         if(_prev_dir != _dir){
             if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
@@ -237,20 +283,19 @@ protected:
         }
     }
     
-    void speak(jv::Player* player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
-        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-            jv::Dialog::init(line1, line2, line3);
-        }
+    void got_attacked(int damage){
+        _stats.hp -= damage;
+        if(_stats.hp <= 0){ _state = State::DEAD;}
+        BN_LOG("Ouch!!");
+        BN_LOG("Hp: ", _stats.hp, " State: ", _state);
     }
-
-    /*void hurt(){
-
-    }*/
+    
 private:
     basic_stats _stats;
+    uchar_t _state;
     bn::sprite_animate_action<4> _animation;
-    unsigned char _prev_dir, _dir;
-    unsigned char _idle_time;
+    uchar_t _prev_dir, _dir;
+    uchar_t _idle_time;
 
     game_map* _map_ref;
     bn::random* _randomizer;
@@ -265,17 +310,12 @@ public:
     void set_position(bn::point point);
 
     void update(jv::Player* player);
-protected:
+    
     void priority_update(bn::fixed player_y){
         if(y() < player_y){
             _sprite.set_z_order(1);
         }else{
             _sprite.set_z_order(-1);
-        }
-    }
-    void speak(jv::Player* player, const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
-        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-            jv::Dialog::init(line1, line2, line3);
         }
     }
 private:

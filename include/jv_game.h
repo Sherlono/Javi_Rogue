@@ -3,6 +3,7 @@
 
 #include "bn_log.h"
 #include "bn_vector.h"
+#include "bn_memory.h"
 
 #include "jv_debug.h"
 #include "jv_actors.h"
@@ -60,7 +61,6 @@ void start_scene(bn::random& randomizer){
 }
 
 void game_scene(bn::random& randomizer, char option){
-    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Music
@@ -92,6 +92,7 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
 
     // ******** Camera ********
+    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     cam.set_position(start_coords[0].x(), start_coords[0].y());
     background.set_camera(cam);
     bg.set_camera(cam);
@@ -110,10 +111,10 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
 
     // ****** Debug data ******
-    bool val0 = true;  // Collision
+    bool val0 = false; // noClip
     bool val1 = true;  // Update
     bn::vector<jv::menu_option, 2> options;
-    options.push_back(jv::menu_option(&val0, "Colision"));
+    options.push_back(jv::menu_option(&val0, "Noclip"));
     options.push_back(jv::menu_option(&val1, "Update bg"));
 
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
@@ -131,18 +132,20 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+    BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
     
     while(true){
-        if(bn::keypad::r_pressed() && enemyCount > 0){
-            v_sprts.erase(v_sprts.begin() + 1);
-            v_enemies.erase(v_enemies.begin());
-            enemyCount--;
-        }
-
-        cat.update(cam, &val0);
+        cat.update(cam, val0);
         for(int i = 0; i < enemyCount; i++){
             v_enemies[i].update(&cat);
+
+            if(v_enemies[i].get_state() == State::DEAD){
+                v_sprts.erase(v_sprts.begin() + 1 + i);
+                v_enemies.erase(v_enemies.begin() + i);
+                enemyCount--;
+            }
         }
+
         for(int i = 0; i < npcCount; i++){
             v_npcs[i].update(&cat);
         }
@@ -157,7 +160,6 @@ void game_scene(bn::random& randomizer, char option){
 }
 
 void blocks_scene(bn::random& randomizer){
-    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
@@ -166,14 +168,12 @@ void blocks_scene(bn::random& randomizer){
 
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-    background.set_camera(cam);
 
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
                 bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
     bn::regular_bg_ptr bg = bg_item.create_bg(0, 0);
     bn::regular_bg_map_ptr bg_map = bg.map();
-    bg.set_camera(cam);
 
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
@@ -185,9 +185,14 @@ void blocks_scene(bn::random& randomizer){
     bn::vector<bn::point, 1> start_coords;
     jv::LevelFactory(map1, 0, start_coords, randomizer);
 
+    // ******** Camera ********
+    bn::camera_ptr cam = bn::camera_ptr::create(120, 80);
+    background.set_camera(cam);
+    bg.set_camera(cam);
+    // ************************
+
     // Characters initialization
     jv::Player cat(0, 0, &randomizer, &map1, cam);
-    cam.set_position(120, 80);
     cat.set_visible(false);
     // ************************
 
@@ -214,7 +219,7 @@ void blocks_scene(bn::random& randomizer){
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
     while(true){
-        cat.update(cam, &val0);
+        cat.update(cam, val0);
         if(cam.x() > width*32){
             cam.set_position(width*32, cam.y());
             cat.set_position(width*32, cat.y());
