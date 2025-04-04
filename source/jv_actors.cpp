@@ -5,9 +5,10 @@ namespace jv{
 // Constructor
 Player::Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 10, 10)),
-    _stats(basic_stats(5, 5, 1, 1, bn::fixed(1.5))),
     _state(State::NORMAL),
-    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 0, 1, 0, 2)),
+    _stats(basic_stats(5, 5, 1, 1, bn::fixed(1.5))),
+    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 
+                                                        frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3])),
     _hitbox(bn::rect(x, y, 10, 10)),
     _prev_attack_cooldown(0),
     _attack_cooldown(0),
@@ -38,7 +39,7 @@ void Player::update(bn::camera_ptr cam, bool noClip){
     move(cam, noClip);
 
     if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
-        face_direction(frames::w_up, frames::w_ho, frames::w_do);
+        insert_animation(frames::w_up, frames::w_ho, frames::w_do);
     }
 
     if(_animation.done()){ animation_update();}
@@ -52,9 +53,11 @@ void Player::update(bn::camera_ptr cam, bool noClip){
 // Constructor
 Enemy::Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 10, 10), cam),
-    _stats(basic_stats(5, 5, 1, 1, bn::fixed(0.4))),
     _state(State::NORMAL),
-    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), 0, 1, 0, 2)),
+    _stats(basic_stats(5, 5, 1, 1, bn::fixed(0.4))),
+    _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(),
+                                                        frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3])),
+    _hitbox(bn::rect(x, y, 10, 10)),
     _prev_dir(2),
     _dir(2),
     _idle_time(0),
@@ -79,18 +82,20 @@ void Enemy::set_position(bn::point point){
 
 void Enemy::update(jv::Player* player){
     // Change sprite priority to draw behind or above player
-    move();
-    priority_update(player->y());
+    if(_state != State::DEAD){
+        priority_update(player->y());
+        move();
 
-    // Dialog
-    if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-        jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
-    }
-    // Combat
-    if(player->is_attacking() && player->get_hitbox().intersects(rect())){
-        got_attacked(player->get_attack());
-        player->end_attack();
-    }
+        // Dialog
+        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
+            jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
+        }
+        // Combat
+        if(player->is_attacking() && player->get_hitbox().intersects(rect())){
+            got_hit(player->get_attack());
+            player->_state = State::NORMAL;
+        }
+}
 }
 
 // ************** NPC **************

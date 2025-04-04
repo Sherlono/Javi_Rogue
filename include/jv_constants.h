@@ -26,9 +26,12 @@ namespace jv::frames{
     constexpr cuchar_t w_ho[4] = {3, 4, 3, 5};   // Walk horizontal frames
     constexpr cuchar_t w_do[4] = {0, 1, 0, 2};   // Walk down frames
 
-    constexpr cuchar_t a_up[4] = {6, 15, 16, 17};   // Attack up frames
-    constexpr cuchar_t a_ho[4] = {3, 12, 13, 14};   // Attack horizontal frames
+    constexpr cuchar_t a_up[4] = {6, 15, 16, 17};  // Attack up frames
+    constexpr cuchar_t a_ho[4] = {3, 12, 13, 14};  // Attack horizontal frames
     constexpr cuchar_t a_do[4] = {0, 9, 10, 11};   // Attack down frames
+    
+    constexpr cuchar_t idle[4] = {18, 19, 18, 20};  // Idle frames
+    constexpr cuchar_t hurt[4] = {21, 22, 21, 23};  // Hurt down frames
 }
 
 #endif
