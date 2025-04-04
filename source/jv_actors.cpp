@@ -84,7 +84,16 @@ void Enemy::update(jv::Player* player){
     // Change sprite priority to draw behind or above player
     if(_state != State::DEAD){
         priority_update(player->y());
-        move();
+
+        if(_state != State::HURTING){
+            move();
+        }else{
+            if(!_animation.done()){ _animation.update();
+            }else{
+                _state = State::NORMAL;
+                insert_animation(frames::idle, frames::idle, frames::idle);
+            }
+        }
 
         // Dialog
         if(bn::keypad::a_pressed() && player->rect().intersects(rect())){

@@ -139,11 +139,11 @@ void game_scene(bn::random& randomizer, char option){
         for(int i = 0; i < enemyCount; i++){
             v_enemies[i].update(&cat);
 
-            /*if(v_enemies[i].get_state() == State::DEAD){
+            if(v_enemies[i].get_state() == State::DEAD){
                 v_sprts.erase(v_sprts.begin() + 1 + i);
                 v_enemies.erase(v_enemies.begin() + i);
                 enemyCount--;
-            }*/
+            }
         }
 
         for(int i = 0; i < npcCount; i++){

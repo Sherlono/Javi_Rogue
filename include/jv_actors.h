@@ -25,7 +25,7 @@ struct basic_stats{
 };
 
 enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
-enum State { NORMAL, ATTACKING, DEAD};
+enum State { NORMAL, ATTACKING, HURTING, DEAD};
 
 class Actor{
 public:
@@ -263,10 +263,13 @@ public:
     }
     
     void got_hit(int damage){
+        _state = State::HURTING;
         _dir = 0;
         _stats.hp -= damage;
         if(_stats.hp <= 0){ _state = State::DEAD;}
-        insert_animation(frames::hurt, frames::hurt, frames::hurt);
+        _sprite.set_horizontal_flip(false);
+        _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::enemy.tiles_item(),
+                                                              frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
 
         BN_LOG("Ouch!!");
         BN_LOG("Hp: ", _stats.hp, " State: ", _state);

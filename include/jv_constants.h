@@ -31,7 +31,7 @@ namespace jv::frames{
     constexpr cuchar_t a_do[4] = {0, 9, 10, 11};   // Attack down frames
     
     constexpr cuchar_t idle[4] = {18, 19, 18, 20};  // Idle frames
-    constexpr cuchar_t hurt[4] = {21, 22, 21, 23};  // Hurt down frames
+    constexpr cuchar_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
 }
 
 #endif
