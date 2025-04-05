@@ -71,15 +71,14 @@ public:
     ~Player(){};
     // Constructor
     Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
-        Actor(x,
-              y,
+        Actor(x,y,
               bn::sprite_items::character.create_sprite(x , y - 8),
               bn::create_sprite_animate_action_forever(bn::sprite_items::character.create_sprite(0 , 0), 4, bn::sprite_items::character.tiles_item(), 
                                                        frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
               bn::rect(x, y, 10, 10),
               cam),
-        _state(State::NORMAL),
         _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
+        _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
@@ -89,6 +88,7 @@ public:
         _randomizer(random_ref){}
     
     // Setters
+    void set_state(int s){ _state = s;}
 
     // Getters
     [[nodiscard]] bool is_attacking() { return _state == State::ATTACKING;}
@@ -185,7 +185,6 @@ public:
         }
     }
 
-    uchar_t _state;
     
 private:
 
@@ -206,6 +205,7 @@ private:
     }
 
     basic_stats _stats;
+    uchar_t _state;
     bn::rect _hitbox;
     int _prev_attack_cooldown, _attack_cooldown;
     uchar_t _prev_dir, _dir;
@@ -225,8 +225,8 @@ public:
                                                        frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
               bn::rect(x, y, 10, 10),
               cam),
-        _state(State::NORMAL),
         _stats(basic_stats(3, 1, 1, bn::fixed(0.4))),
+        _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
         _prev_dir(2),
         _dir(2),
@@ -235,6 +235,7 @@ public:
         _randomizer(random_ref){}
     
     // Setters
+    void set_state(int s){ _state = s;}
 
     // Getters
     [[nodiscard]] bool is_attacking(){ return _state == State::ATTACKING;}
@@ -314,7 +315,6 @@ public:
                                                            frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
     }
     
-    uchar_t _state;
 
 private:
     void insert_animation(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
@@ -337,6 +337,7 @@ private:
     }
 
     basic_stats _stats;
+    uchar_t _state;
     bn::rect _hitbox;
     uchar_t _prev_dir, _dir;
     uchar_t _idle_time;

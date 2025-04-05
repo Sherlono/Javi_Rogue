@@ -10,7 +10,7 @@
 #include "bn_regular_bg_items_dialog_window.h"
 
 namespace jv::Dialog{
-inline void init(const bn::string_view line1, const bn::string_view line2, const bn::string_view line3){
+inline void init(const bn::string_view line1, const bn::string_view line2 = "", const bn::string_view line3 = ""){
     bn::regular_bg_ptr d_window = bn::regular_bg_items::dialog_window.create_bg(0,0);
     d_window.set_visible(true);
     d_window.set_priority(0);
