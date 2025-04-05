@@ -3,7 +3,10 @@
 
 #include "bn_log.h"
 #include "bn_vector.h"
+
 #include "bn_memory.h"
+#include "bn_sprites.h"
+#include "bn_bgs.h"
 
 #include "jv_debug.h"
 #include "jv_actors.h"
@@ -100,6 +103,7 @@ void game_scene(bn::random& randomizer, char option){
 
     // Characters initialization
     jv::Player cat(start_coords[0].x(), start_coords[0].y(), &randomizer, &map1, cam);
+    
     bn::vector<jv::Enemy, 10> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
         v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), &randomizer, &map1, cam));
@@ -132,7 +136,8 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-    BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+    //BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+    BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     
     while(true){
         cat.update(cam, val0);

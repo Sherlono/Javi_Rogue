@@ -31,30 +31,64 @@ enum State { NORMAL, ATTACKING, HURTING, DEAD};
 class Actor{
 public:
     virtual ~Actor(){};
-    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r): _sprite(s), _x(x), _y(y), _rect(r){}
-    Actor(bn::sprite_ptr s, bn::fixed x, bn::fixed y, bn::rect r, bn::camera_ptr cam): _sprite(s), _x(x), _y(y), _rect(r){ _sprite.set_camera(cam);}
+    Actor(int x, int y, bn::sprite_ptr s, bn::sprite_animate_action<4> anim, bn::rect r, bn::camera_ptr cam): _x(x), _y(y), _sprite(s), _animation(anim), _rect(r)
+    {
+        _sprite.set_camera(cam);
+        _sprite.set_bg_priority(1);
+    }
     // Getters
     [[nodiscard]] bn::fixed x() const{ return _x;}
     [[nodiscard]] bn::fixed y() const{ return _y;}
     [[nodiscard]] bn::fixed_point position() const{ return bn::fixed_point(_x, _y);}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
     // Setters
+    void set_position(bn::fixed x, bn::fixed y, bn::fixed y_offset = 8.0){
+        _sprite.set_position(x, y - y_offset);
+        _x = x;
+        _y = y;
+        _rect.set_position(x.integer(), y.integer());
+    }
+    
+    void set_position(bn::point point, bn::fixed y_offset = 8.0){
+        _sprite.set_position(point.x(), point.y() - y_offset);
+        _x = point.x();
+        _y = point.y();
+        _rect.set_position(point.x(), point.y());
+    }
+    
     void set_camera(bn::camera_ptr cam){ _sprite.set_camera(cam);}
+    void remove_camera(){ _sprite.remove_camera();}
     void set_visible(bool visible){ _sprite.set_visible(visible);}
 
-    bn::sprite_ptr _sprite;
     bn::fixed _x, _y;
+    bn::sprite_ptr _sprite;
+    bn::sprite_animate_action<4> _animation;
     bn::rect _rect;
 };
 
 class Player: public Actor{
 public:
     ~Player(){};
-    Player(int x, int y, bn::random* ref, game_map* m_r, bn::camera_ptr cam);
+    // Constructor
+    Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
+        Actor(x,
+              y,
+              bn::sprite_items::character.create_sprite(x , y - 8),
+              bn::create_sprite_animate_action_forever(bn::sprite_items::character.create_sprite(0 , 0), 4, bn::sprite_items::character.tiles_item(), 
+                                                       frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
+              bn::rect(x, y, 10, 10),
+              cam),
+        _state(State::NORMAL),
+        _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
+        _hitbox(bn::rect(x, y, 10, 10)),
+        _prev_attack_cooldown(0),
+        _attack_cooldown(0),
+        _prev_dir(2),
+        _dir(2),
+        _map_ref(m_r),
+        _randomizer(random_ref){}
     
     // Setters
-    void set_position(bn::fixed x, bn::fixed y, bool sprite_follow = false);
-    void set_position(bn::point point, bool sprite_follow = false);
 
     // Getters
     [[nodiscard]] bool is_attacking() { return _state == State::ATTACKING;}
@@ -67,16 +101,14 @@ public:
 
     void update(bn::camera_ptr cam, bool noClip);
     
-    
     void animation_update(){
-        _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
-        if((_prev_attack_cooldown != _attack_cooldown && _attack_cooldown == 0) || _prev_dir != _dir){
+        if(_prev_dir != _dir){
             insert_animation(frames::w_up, frames::w_ho, frames::w_do);
-            _randomizer->update();
         }
         _prev_dir = _dir;
-        if(!_animation.done()) _animation.update();
+        _animation.update();
     }
+    
     void priority_update(bn::fixed player_y){
         if(y() < player_y){
             _sprite.set_z_order(1);
@@ -84,14 +116,11 @@ public:
             _sprite.set_z_order(-1);
         }
     }
-    void wait(){
-        _sprite.set_horizontal_flip(_dir == jv::WEST);
-        int tile_index = 0 + 3*(_dir == jv::WEST || _dir == jv::EAST) + 6*(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST);
-        _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(tile_index));
-    }
+    
     void move(bn::camera_ptr cam, bool noClip){
         if(!_attack_cooldown){
             if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
+                _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
                 bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
                 if(!noClip){
@@ -129,23 +158,21 @@ public:
                     set_position(target_x, cam.y());
                     _hitbox.set_position((_x + 16).integer(), _y.integer());
                 }
-
-                // Animated character
-                animation_update();
-            }else{
-                // Insert idle animation here
-                wait();
             }
+        
+            if(_state == State::NORMAL){ animation_update();}
         }else{
             _animation.update();
         }
     }
+    
     void attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 20;
             insert_animation(frames::a_up, frames::a_ho, frames::a_do);
         }
     }
+    
     void end_attack(){
         _state = State::NORMAL;
         
@@ -179,7 +206,6 @@ private:
     }
 
     basic_stats _stats;
-    bn::sprite_animate_action<4> _animation;
     bn::rect _hitbox;
     int _prev_attack_cooldown, _attack_cooldown;
     uchar_t _prev_dir, _dir;
@@ -191,11 +217,26 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(int x, int y, bn::random* ref, game_map* m_r, bn::camera_ptr cam);
+    // Constructor
+    Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
+        Actor(x, y,
+              bn::sprite_items::enemy.create_sprite(x, y - 8),
+              bn::create_sprite_animate_action_forever(bn::sprite_items::enemy.create_sprite(0, 0), 4, bn::sprite_items::enemy.tiles_item(),
+                                                       frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
+              bn::rect(x, y, 10, 10),
+              cam),
+        _state(State::NORMAL),
+        _stats(basic_stats(3, 1, 1, bn::fixed(0.4))),
+        _hitbox(bn::rect(x, y, 10, 10)),
+        _prev_dir(2),
+        _dir(2),
+        _idle_time(0),
+        _map_ref(m_r),
+        _randomizer(random_ref){}
+    
     // Setters
-    void set_position(bn::fixed x, bn::fixed y);
-    void set_position(bn::point point);
 
+    // Getters
     [[nodiscard]] bool is_attacking(){ return _state == State::ATTACKING;}
     [[nodiscard]] uchar_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
@@ -296,7 +337,6 @@ private:
     }
 
     basic_stats _stats;
-    bn::sprite_animate_action<4> _animation;
     bn::rect _hitbox;
     uchar_t _prev_dir, _dir;
     uchar_t _idle_time;
@@ -308,10 +348,15 @@ private:
 class NPC: public Actor{
 public:
     ~NPC(){}
-    NPC(int x, int y, bn::camera_ptr cam);
+    // Constructor
+    NPC(int x, int y, bn::camera_ptr cam):
+        Actor(x, y,
+              bn::sprite_items::cow.create_sprite(x, y - 8), 
+              bn::create_sprite_animate_action_forever(bn::sprite_items::cow.create_sprite(0, 0), 4, bn::sprite_items::cow.tiles_item(), 0, 0, 0, 0),
+              bn::rect(x, y + 8, 20, 20),
+              cam){}
+    
     // Setters
-    void set_position(bn::fixed x, bn::fixed y);
-    void set_position(bn::point point);
 
     void update(jv::Player* player);
     
