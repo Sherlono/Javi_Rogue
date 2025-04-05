@@ -6,7 +6,7 @@ namespace jv{
 Player::Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::character.create_sprite(0 , 0 - 8), x, y, bn::rect(x, y, 10, 10)),
     _state(State::NORMAL),
-    _stats(basic_stats(5, 5, 1, 1, bn::fixed(1.5))),
+    _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), 
                                                         frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3])),
     _hitbox(bn::rect(x, y, 10, 10)),
@@ -54,7 +54,7 @@ void Player::update(bn::camera_ptr cam, bool noClip){
 Enemy::Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
     Actor(bn::sprite_items::enemy.create_sprite(x, y - 8), x, y, bn::rect(x, y, 10, 10), cam),
     _state(State::NORMAL),
-    _stats(basic_stats(5, 5, 1, 1, bn::fixed(0.4))),
+    _stats(basic_stats(3, 1, 1, bn::fixed(0.4))),
     _animation(bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(),
                                                         frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3])),
     _hitbox(bn::rect(x, y, 10, 10)),

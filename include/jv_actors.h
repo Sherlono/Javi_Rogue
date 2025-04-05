@@ -20,7 +20,8 @@
 namespace jv{
 
 struct basic_stats{
-    int max_hp , hp, attack, defense;
+    basic_stats(int maxhp, int att, int def, bn::fixed spe): max_hp(maxhp), hp(maxhp), attack(att), defense(def), speed(spe){}
+    int max_hp, hp, attack, defense;
     bn::fixed speed;
 };
 
@@ -269,10 +270,7 @@ public:
         if(_stats.hp <= 0){ _state = State::DEAD;}
         _sprite.set_horizontal_flip(false);
         _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::enemy.tiles_item(),
-                                                              frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
-
-        BN_LOG("Ouch!!");
-        BN_LOG("Hp: ", _stats.hp, " State: ", _state);
+                                                           frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
     }
     
     uchar_t _state;

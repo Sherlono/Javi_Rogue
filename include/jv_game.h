@@ -87,7 +87,7 @@ void game_scene(bn::random& randomizer, char option){
     bool flipArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
     
-    bn::vector<bn::point, 20> start_coords;
+    bn::vector<bn::point, 20> start_coords;     // Starting coordinates for all Actors
     jv::LevelFactory(map1, option, start_coords, randomizer);
     // ************************
 
