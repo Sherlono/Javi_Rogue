@@ -11,9 +11,9 @@
 
 namespace jv::Dialog{
 inline void init(const bn::string_view line1, const bn::string_view line2 = "", const bn::string_view line3 = ""){
-    bn::regular_bg_ptr d_window = bn::regular_bg_items::dialog_window.create_bg(0,0);
-    d_window.set_visible(true);
-    d_window.set_priority(0);
+    bn::regular_bg_ptr dialog_window = bn::regular_bg_items::dialog_window.create_bg(0,0);
+    dialog_window.set_visible(true);
+    dialog_window.set_priority(0);
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 32> sprites1, sprites2, sprites3;
     bn::string<64> text = "";
@@ -59,7 +59,8 @@ inline void init(const bn::string_view line1, const bn::string_view line2 = "", 
     while(!bn::keypad::a_pressed() && !bn::keypad::b_pressed()){
         bn::core::update();
     }
-    d_window.set_visible(false);
+
+    dialog_window.set_visible(false);
     sprites1.clear();
     sprites2.clear();
     sprites3.clear();

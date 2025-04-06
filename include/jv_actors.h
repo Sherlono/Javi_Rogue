@@ -31,7 +31,8 @@ enum State { NORMAL, ATTACKING, HURTING, DEAD};
 class Actor{
 public:
     virtual ~Actor(){};
-    Actor(int x, int y, bn::sprite_ptr s, bn::sprite_animate_action<4> anim, bn::rect r, bn::camera_ptr cam): _x(x), _y(y), _sprite(s), _animation(anim), _rect(r)
+    // Constructor
+    Actor(int x, int y, bn::sprite_ptr s, bn::camera_ptr cam, bn::sprite_animate_action<4> anim, bn::rect r): _x(x), _y(y), _sprite(s), _animation(anim), _rect(r)
     {
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(1);
@@ -70,13 +71,10 @@ class Player: public Actor{
 public:
     ~Player(){};
     // Constructor
-    Player(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
-        Actor(x,y,
-              bn::sprite_items::character.create_sprite(x , y - 8),
-              bn::create_sprite_animate_action_forever(bn::sprite_items::character.create_sprite(0 , 0), 4, bn::sprite_items::character.tiles_item(), 
-                                                       frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
-              bn::rect(x, y, 10, 10),
-              cam),
+    Player(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam, bn::random* random_ref, game_map* m_r):
+        Actor(x,y, s, cam,
+              bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
+              bn::rect(x, y, 10, 10)),
         _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
@@ -85,7 +83,10 @@ public:
         _prev_dir(2),
         _dir(2),
         _map_ref(m_r),
-        _randomizer(random_ref){}
+        _randomizer(random_ref)
+        {
+            _sprite.set_position(x, y - 8);
+        }
     
     // Setters
     void set_state(int s){ _state = s;}
@@ -218,13 +219,10 @@ class Enemy: public Actor{
 public:
     ~Enemy(){}
     // Constructor
-    Enemy(int x, int y, bn::random* random_ref, game_map* m_r, bn::camera_ptr cam):
-        Actor(x, y,
-              bn::sprite_items::enemy.create_sprite(x, y - 8),
-              bn::create_sprite_animate_action_forever(bn::sprite_items::enemy.create_sprite(0, 0), 4, bn::sprite_items::enemy.tiles_item(),
-                                                       frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
-              bn::rect(x, y, 10, 10),
-              cam),
+    Enemy(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam, bn::random* random_ref, game_map* m_r):
+        Actor(x, y, s, cam,
+              bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
+              bn::rect(x, y, 10, 10)),
         _stats(basic_stats(3, 1, 1, bn::fixed(0.4))),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
@@ -232,8 +230,10 @@ public:
         _dir(2),
         _idle_time(0),
         _map_ref(m_r),
-        _randomizer(random_ref){}
-    
+        _randomizer(random_ref)
+        {
+            _sprite.set_position(x, y - 8);
+        }
     // Setters
     void set_state(int s){ _state = s;}
 
@@ -350,13 +350,13 @@ class NPC: public Actor{
 public:
     ~NPC(){}
     // Constructor
-    NPC(int x, int y, bn::camera_ptr cam):
-        Actor(x, y,
-              bn::sprite_items::cow.create_sprite(x, y - 8), 
-              bn::create_sprite_animate_action_forever(bn::sprite_items::cow.create_sprite(0, 0), 4, bn::sprite_items::cow.tiles_item(), 0, 0, 0, 0),
-              bn::rect(x, y + 8, 20, 20),
-              cam){}
-    
+    NPC(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam):
+        Actor(x, y, s, cam,
+              bn::create_sprite_animate_action_forever(s, 4, s_item, 0, 0, 0, 0),
+              bn::rect(x, y + 8, 20, 20))
+    {
+        _sprite.set_position(x, y - 8);
+    }
     // Setters
 
     void update(jv::Player* player);

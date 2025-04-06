@@ -15,21 +15,29 @@
 
 #include "bn_sprite_items_ball.h"
 #include "bn_regular_bg_items_bg.h"
+#include "bn_regular_bg_items_intro_card.h"
+#include "bn_regular_bg_items_intro_card_bg.h"
 #include "bn_regular_bg_items_hud_item.h"
 
 #include "bn_sprite_items_cursor.h"
 
 namespace jv::game{
-void scene_select(bn::random& randomizer, char& option){
+void start_scene(bn::random& randomizer, char& option){
+    bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
+    card.set_priority(2);
+    bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, 0);
+    bg.set_priority(3);
+    int y_offset = 50;
     bn::vector<bn::sprite_ptr, 64> v_text;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
-    text_generator.generate(-98, -16, "Select scene", v_text);
-    text_generator.generate(-100, 0,  "Map 1", v_text);
-    text_generator.generate(-100, 8,  "Map 2", v_text);
-    text_generator.generate(-100, 16,  "Tile Showcase", v_text);
+    text_generator.generate(-98, -16 + y_offset, "Select scene", v_text);
+    text_generator.generate(-100, 0 + y_offset,  "Map 1", v_text);
+    text_generator.generate(-100, 8 + y_offset,  "Map 2", v_text);
+    text_generator.generate(-100, 16 + y_offset,  "Tile Showcase", v_text);
 
-    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, 0);
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, y_offset);
+    cursor.set_bg_priority(1);
     
     while(!bn::keypad::a_pressed()){
         if(bn::keypad::down_pressed() && option < 2){
@@ -40,22 +48,7 @@ void scene_select(bn::random& randomizer, char& option){
             cursor.set_position(-20, cursor.y() - 8);
         }
 
-        randomizer.update();
-        bn::core::update();
-    }
-    v_text.clear();
-    bn::core::update();
-}
-
-void start_scene(bn::random& randomizer){
-    bn::vector<bn::sprite_ptr, 64> v_text;
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);
-    text_generator.generate(-100, -8, "Procesors are bad at generating random", v_text);
-    text_generator.generate(-100, 0,  "numbers. To compensate for this we can", v_text);
-    text_generator.generate(-100, 8,  "take advantage of the humah factor.", v_text);
-    
-    while(!bn::keypad::any_pressed()){
+        jv::resetcombo();
         randomizer.update();
         bn::core::update();
     }
@@ -102,14 +95,14 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
 
     // Characters initialization
-    jv::Player cat(start_coords[0].x(), start_coords[0].y(), &randomizer, &map1, cam);
+    jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     
-    bn::vector<jv::Enemy, 10> v_enemies;
+    bn::vector<jv::Enemy, 3> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
-        v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), &randomizer, &map1, cam));
+        v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
     }
-    bn::vector<jv::NPC, 2> v_npcs;
-    v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), cam));
+    bn::vector<jv::NPC, 1> v_npcs;
+    v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
     int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
     //constexpr int actorCount = npcCount + enemyCount;
     // ************************
@@ -148,6 +141,7 @@ void game_scene(bn::random& randomizer, char option){
                 v_sprts.erase(v_sprts.begin() + 1 + i);
                 v_enemies.erase(v_enemies.begin() + i);
                 enemyCount--;
+                BN_LOG("Sprites count: ", bn::sprites::used_items_count());
             }
         }
 
