@@ -97,7 +97,7 @@ void game_scene(bn::random& randomizer, char option){
     // Characters initialization
     jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     
-    bn::vector<jv::Enemy, 3> v_enemies;
+    bn::vector<jv::Enemy, 9> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
         v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
     }
@@ -133,7 +133,7 @@ void game_scene(bn::random& randomizer, char option){
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     
     while(true){
-        cat.update(cam, val0);
+        cat.update(val0);
         for(int i = 0; i < enemyCount; i++){
             v_enemies[i].update(&cat);
 
@@ -141,7 +141,6 @@ void game_scene(bn::random& randomizer, char option){
                 v_sprts.erase(v_sprts.begin() + 1 + i);
                 v_enemies.erase(v_enemies.begin() + i);
                 enemyCount--;
-                BN_LOG("Sprites count: ", bn::sprites::used_items_count());
             }
         }
 

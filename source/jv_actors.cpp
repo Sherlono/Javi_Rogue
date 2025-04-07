@@ -2,15 +2,23 @@
 
 namespace jv{
 // ************ Player ************
-void Player::update(bn::camera_ptr cam, bool noClip){
-    end_attack();
-    move(cam, noClip);
-
-    if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
-        insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+void Player::update(bool noClip){
+    attack_update();
+    
+    if(_state == State::HURTING){
+        if(_animation.done()){
+            _state = State::NORMAL;
+            insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+        }
+    }else{
+        move(noClip);
+        if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
+            insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+        }
+        if(_animation.done()){ animation_update();}
     }
+    if(!_animation.done()){ _animation.update();}
 
-    if(_animation.done()){ animation_update();}
     // Combat
     if(bn::keypad::b_pressed()){
         attack();
@@ -19,18 +27,27 @@ void Player::update(bn::camera_ptr cam, bool noClip){
 
 // ************* Enemy *************
 void Enemy::update(jv::Player* player){
-    if(_state != State::DEAD){
-        priority_update(player->y());
+    y_priority(player->y());
 
-        if(_state != State::HURTING){
-            move();
-        }else{
-            if(!_animation.done()){ _animation.update();
-            }else{
+    if(_state != State::DEAD){
+        attack_update();
+
+        // Movement and Animations
+        if(_state == State::HURTING){
+            if(_animation.done()){
                 _state = State::NORMAL;
-                insert_animation(frames::idle, frames::idle, frames::idle);
+                if(!_idle_time){ insert_animation(frames::idle, frames::idle, frames::idle);}
+                else{insert_animation(frames::w_up, frames::w_ho, frames::w_do);}
             }
+        }else{
+            move();
+            if((_idle_time == 30 && _dir < 9) || bn::keypad::l_pressed()){ attack();}
+            if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
+                insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+            }
+            if(_animation.done()){ animation_update();}
         }
+        if(!_animation.done()){ _animation.update();}
 
         // Dialog
         if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
@@ -44,14 +61,18 @@ void Enemy::update(jv::Player* player){
         // Combat
         if(player->is_attacking() && player->get_hitbox().intersects(rect())){
             got_hit(player->get_attack());
-            player->set_state(State::NORMAL);
+            player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+        }
+        if(is_attacking() && get_hitbox().intersects(player->rect())){
+            player->got_hit(get_attack());
+            set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
         }
 }
 }
 
 // ************** NPC **************
 void NPC::update(jv::Player* player){
-    priority_update(player->y());
+    y_priority(player->y());
     
     // Dialog
     if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
