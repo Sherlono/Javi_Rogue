@@ -76,7 +76,7 @@ public:
         Actor(x, y, s, c,
               bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
               bn::rect(x, y, 10, 10)),
-        _stats(basic_stats(10, 1, 1, bn::fixed(1.5))),
+        _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
         cam(c),
@@ -101,6 +101,8 @@ public:
     [[nodiscard]] int get_maxhp() { return _stats.max_hp;}
     [[nodiscard]] int get_hp() { return _stats.hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
+    [[nodiscard]] int* get_hp_ptr(){ return &_stats.hp;}
+    [[nodiscard]] int* get_maxhp_ptr(){ return &_stats.max_hp;}
 
     void update(bool noClip);
     

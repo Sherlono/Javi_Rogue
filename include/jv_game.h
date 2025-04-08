@@ -8,8 +8,10 @@
 #include "bn_sprites.h"
 #include "bn_bgs.h"
 
+#include "jv_math.h"
 #include "jv_debug.h"
 #include "jv_actors.h"
+#include "jv_healthbar.h"
 #include "jv_interface.h"
 #include "jv_level_maker.h"
 
@@ -96,7 +98,8 @@ void game_scene(bn::random& randomizer, char option){
 
     // Characters initialization
     jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
-    
+    jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
+
     bn::vector<jv::Enemy, 9> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
         v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
@@ -143,6 +146,8 @@ void game_scene(bn::random& randomizer, char option){
                 enemyCount--;
             }*/
         }
+        
+        healthbar.update();
 
         for(int i = 0; i < npcCount; i++){
             v_npcs[i].update(&cat);
