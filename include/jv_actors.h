@@ -76,7 +76,7 @@ public:
         Actor(x, y, s, c,
               bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
               bn::rect(x, y, 10, 10)),
-        _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
+        _stats(basic_stats(10, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
         cam(c),
@@ -155,7 +155,7 @@ public:
     }
     
     void attack(){
-        if(!_attack_cooldown){
+        if(!_attack_cooldown && _state != State::HURTING){
             _attack_cooldown = 20;
             insert_animation(frames::a_up, frames::a_ho, frames::a_do);
         }
@@ -172,11 +172,18 @@ public:
     
     void got_hit(int damage){
         _state = State::HURTING;
+        _attack_cooldown = 0;
+        _prev_attack_cooldown = 0;
         _stats.hp -= damage;
-        if(_stats.hp <= 0){ _state = State::DEAD;}
-        _sprite.set_horizontal_flip(false);
-        _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::character.tiles_item(),
-                                                           frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        if(_stats.hp <= 0){
+            _state = State::DEAD;
+            _sprite.set_horizontal_flip(false);
+            _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
+        }else{
+            _sprite.set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::character.tiles_item(),
+                                                               frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        }
     }
     
 private:
@@ -328,10 +335,15 @@ public:
         _state = State::HURTING;
         _dir = 0;
         _stats.hp -= damage;
-        if(_stats.hp <= 0){ _state = State::DEAD;}
-        _sprite.set_horizontal_flip(false);
-        _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::enemy.tiles_item(),
-                                                           frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        if(_stats.hp <= 0){
+            _state = State::DEAD;
+            _sprite.set_horizontal_flip(false);
+            _sprite.set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+        }else{
+            _sprite.set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::enemy.tiles_item(),
+                                                               frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        }
     }
     
 

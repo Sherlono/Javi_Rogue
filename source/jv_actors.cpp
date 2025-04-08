@@ -3,31 +3,33 @@
 namespace jv{
 // ************ Player ************
 void Player::update(bool noClip){
-    attack_update();
     
-    if(_state == State::HURTING){
-        if(_animation.done()){
-            _state = State::NORMAL;
-            insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+    if(_state != State::DEAD){
+        attack_update();
+        if(_state == State::HURTING){
+            if(_animation.done()){
+                _state = State::NORMAL;
+                insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+            }
+        }else{
+            move(noClip);
+            if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
+                insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+            }
+            if(_animation.done()){ animation_update();}
         }
-    }else{
-        move(noClip);
-        if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
-            insert_animation(frames::w_up, frames::w_ho, frames::w_do);
-        }
-        if(_animation.done()){ animation_update();}
-    }
-    if(!_animation.done()){ _animation.update();}
+        if(!_animation.done()){ _animation.update();}
 
-    // Combat
-    if(bn::keypad::b_pressed()){
-        attack();
+        // Combat
+        if(bn::keypad::b_pressed()){
+            attack();
+        }
     }
 }
 
 // ************* Enemy *************
 void Enemy::update(jv::Player* player){
-    y_priority(player->y());
+    y_priority(player->y() + 4*(_state == State::DEAD));
 
     if(_state != State::DEAD){
         attack_update();
