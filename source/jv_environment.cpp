@@ -403,7 +403,7 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
     }
 
     game_map piece(4, 4, block_array.data(), flip_array);
-    map.insert_room(piece, top_left, blockFlip);
+    map.insert_map(piece, top_left, blockFlip);
 }
 
 

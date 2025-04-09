@@ -11,6 +11,7 @@
 #include "jv_math.h"
 #include "jv_debug.h"
 #include "jv_actors.h"
+#include "jv_stairs.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
 #include "jv_level_maker.h"
@@ -102,7 +103,7 @@ void game_scene(bn::random& randomizer, char option){
 
     bn::vector<jv::Enemy, 9> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
-        v_enemies.push_back(jv::Enemy(start_coords[2+i].x(), start_coords[2+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
+        v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
     }
     bn::vector<jv::NPC, 1> v_npcs;
     v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
@@ -135,7 +136,12 @@ void game_scene(bn::random& randomizer, char option){
     //BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     
-    while(true){
+    jv::stairs stairs(start_coords[2].x(), start_coords[2].y(), cam);
+    bool done = false;
+    
+    while(!done){
+        done = stairs.climb(cat);
+
         cat.update(val0);
         for(int i = 0; i < enemyCount; i++){
             v_enemies[i].update(&cat);
@@ -146,7 +152,7 @@ void game_scene(bn::random& randomizer, char option){
                 enemyCount--;
             }*/
         }
-        
+
         healthbar.update();
 
         for(int i = 0; i < npcCount; i++){
