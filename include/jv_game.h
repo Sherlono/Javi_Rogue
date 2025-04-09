@@ -86,7 +86,8 @@ void game_scene(bn::random& randomizer, char option){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
     bn::vector<bn::point, 25> start_coords;     // Starting coordinates for all Actors
-    jv::LevelFactory(map1, option, start_coords, randomizer);
+    jv::LevelFactory(map1, option);
+    jv::random_coords(start_coords, map1, randomizer);
     // ************************
 
     // ******** Camera ********
@@ -107,6 +108,7 @@ void game_scene(bn::random& randomizer, char option){
     bn::vector<jv::NPC, 1> v_npcs;
     v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
     int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
+    jv::stairs stairs(start_coords[2].x(), start_coords[2].y(), cam);
     //constexpr int actorCount = npcCount + enemyCount;
     // ************************
 
@@ -129,13 +131,15 @@ void game_scene(bn::random& randomizer, char option){
     for(int i = 0; i < npcCount; i++){
         v_sprts.push_back(v_npcs[i]._sprite);
     }
+    v_sprts.push_back(stairs._sprite);
+    v_sprts.push_back(healthbar.bar_sprite());
+    v_sprts.push_back(healthbar.corner_sprite());
     // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     
-    jv::stairs stairs(start_coords[2].x(), start_coords[2].y(), cam);
     bool done = false;
     
     while(!done){
@@ -167,7 +171,7 @@ void game_scene(bn::random& randomizer, char option){
     }
 }
 
-void blocks_scene(bn::random& randomizer){
+void blocks_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
@@ -189,8 +193,7 @@ void blocks_scene(bn::random& randomizer){
     uchar_t blockArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
-    bn::vector<bn::point, 1> start_coords;
-    jv::LevelFactory(map1, 0, start_coords, randomizer);
+    jv::LevelFactory(map1, 0);
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(120, 80);

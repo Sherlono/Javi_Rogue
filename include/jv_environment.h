@@ -16,7 +16,6 @@
 #include "bn_regular_bg_tiles_items_floor_tiles.h"
 
 #include "jv_constants.h"
-#include "jv_interface.h"
 
 struct game_map{
     game_map(uchar_t x, uchar_t y, uchar_t* blocks):width(x), height(y), _blocks(blocks){}
@@ -71,6 +70,11 @@ struct game_map{
             }
         }
     }
+    
+    void reset(){
+        bn::memory::clear(size(), _blocks[0]);
+    }
+
     // Members
     cuchar_t width, height;
     uchar_t *_blocks;
@@ -107,12 +111,11 @@ struct bg_map
 
 namespace jv{
     void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip);
-    template <typename PointsVector, typename DataArray>
-    void random_coords(PointsVector& points_out, bn::random& randomizer, DataArray& map, const int width, const int height);
     // This function is meant to be replaced with procedural generation
-    template <typename PointsVector>
-    void LevelFactory(game_map& map, const int option, PointsVector& start_points, bn::random& randomizer){
+    inline void LevelFactory(game_map& map, const int option){
         int width, height;
+        map.reset();
+        
         switch(option){
             case 1:{
                 width = 20;
@@ -138,7 +141,7 @@ namespace jv{
                     35, 1,20,20,20,20,20,20,20,20,20,20,20,20,20,20, 1,42,41, 0,
                     37,17,11,10,10,10,10,10,10,10,10,10,10,10,10,11,17,37, 0, 0,
                      0,41,40,40,40,40,40,40,40,40,40,40,40,40,40,40,41, 0, 0, 0 };
-                random_coords(start_points, randomizer, blockArr, width, height);
+
                 bool flipArr[400] = {
                      0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
                      0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
@@ -184,7 +187,7 @@ namespace jv{
                     35, 1,20,20,20,20,20,20, 1,35,
                     37,17,11,10,10,10,10,11,17,37,
                      0,41,40,40,40,40,40,40,41, 0 };
-                random_coords(start_points, randomizer, blockArr, width, height);
+                     
                 bool flipArr[110] = {
                     0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
@@ -220,7 +223,7 @@ namespace jv{
                     42,42,43,43,44,44,45,45,46,46,47,47,
                     48,48,49,49,50,51,52,53,54,55,56,57,
                     58,59,60,61,62,63,64,65,66,67,68,69};
-                random_coords(start_points, randomizer, blockArr, width, height);
+                    
                 bool flipArr[120] = {
                      0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
                      0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,

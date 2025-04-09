@@ -1,6 +1,7 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
+#include "bn_log.h"
 #include "bn_core.h"
 #include "bn_vector.h"
 #include "bn_random.h"
@@ -22,15 +23,17 @@ inline void Log_skipped_frames(){
     }
 }
 
-template <typename PointsVector, typename DataArray>
-void random_coords(PointsVector& points_out, bn::random& randomizer, DataArray& map, const int width, const int height){
+void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     bn::point* valid_points = nullptr;
+    int width = (map.x()-2) / 4, height = (map.y()-2) / 4;
     int pointCount = 0, current_size = 0;
+
     // Finding coordinates with floor in them
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-            int index = x + y*width;
-            if(map[index] > 0 && map[index] < F_COUNT){
+    for(int y = 1; y < height; y++){
+        for(int x = 1; x < width; x++){
+            int index = x*4 + 1 + (y*4 + 1)*map.x();
+            BN_LOG("x: ", x, " y: ", y, " index: ", index);
+            if(map[index] > 0 && map[index] < WT_COUNT){
                 // Simple dinamically growing array code. Double size when capped
                 pointCount++;
                 if(valid_points == nullptr){

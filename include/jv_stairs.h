@@ -10,8 +10,7 @@
 #include "bn_sprite_items_stairs.h"
 
 namespace jv{
-class stairs{
-public:
+struct stairs{
     stairs(int x, int y, bn::camera_ptr cam):_sprite(bn::sprite_items::stairs.create_sprite(x, y)), _rect(bn::rect(x, y, 16, 16))
     {
         _sprite.set_camera(cam);
@@ -25,7 +24,7 @@ public:
             return false;
         }
     }
-private:
+    
     bn::sprite_ptr _sprite;
     bn::rect _rect;
 };
