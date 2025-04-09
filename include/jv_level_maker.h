@@ -23,7 +23,7 @@ namespace jv::LevelMaker{
                 bn::point grid_coord(xmod, ymod);
     
                 int cell_index = x - 16 + (y - 16)*map.x();
-                bg_map_ptr->set_cell(grid_coord, map._blocks[cell_index], map._flips[cell_index]);
+                bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }
         }
         
@@ -50,7 +50,7 @@ namespace jv::LevelMaker{
     
                         if(not_oob){
                             int cell_index = x - 16 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map._blocks[cell_index], map._flips[cell_index]);
+                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
                         }else{
                             bg_map_ptr->set_cell(grid_coord, 0);
                         }
@@ -61,7 +61,7 @@ namespace jv::LevelMaker{
     
                         if(not_oob){
                             int cell_index = x - 48 + map.x() + (y - 17)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map._blocks[cell_index], map._flips[cell_index]);
+                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
                         }else{
                             bg_map_ptr->set_cell(grid_coord, 0);
                         }
@@ -74,7 +74,7 @@ namespace jv::LevelMaker{
     
                         if(not_oob){
                             int cell_index = x - 23 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map._blocks[cell_index], map._flips[cell_index]);
+                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
                         }else{
                             bg_map_ptr->set_cell(grid_coord, 0);
                         }
@@ -85,7 +85,7 @@ namespace jv::LevelMaker{
     
                         if(not_oob){
                             int cell_index = x - 23 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map._blocks[cell_index], map._flips[cell_index]);
+                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
                         }else{
                             bg_map_ptr->set_cell(grid_coord, 0);
                         }

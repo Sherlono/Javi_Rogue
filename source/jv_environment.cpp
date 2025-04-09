@@ -7,7 +7,6 @@ namespace jv{
 // Make all floor prefabs here
 void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
     bn::array<uchar_t, 16> block_array;
-    bool flip_array[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     switch(option){
         // Floor Tiles
@@ -37,10 +36,10 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            18, 19, 19, 18,
                            27, 15, 15, 27,
                            15, 15, 15, 15,};
-            flip_array[3] = true;
-            flip_array[7] = true;
-            flip_array[11] = true;
-            flip_array[15] = true;
+            block_array[3] += 127;
+            block_array[7] += 127;
+            block_array[11] += 127;
+            block_array[15] += 127;
             break;
         }
         case 5:{
@@ -62,14 +61,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            4,  5,  5,  4,
                            1,  2,  2,  1,
                            4,  5,  5,  4};
-            flip_array[2] = true;
-            flip_array[3] = true;
-            flip_array[6] = true;
-            flip_array[7] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[2] += 127;
+            block_array[3] += 127;
+            block_array[6] += 127;
+            block_array[7] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 8:{
@@ -105,9 +104,9 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            22, 15, 15, 22,
                            44, 20, 20, 44,
                            39, 28, 28, 39};
-            flip_array[7] = true;
-            flip_array[11] = true;
-            flip_array[15] = true;
+            block_array[7] += 127;
+            block_array[11] += 127;
+            block_array[15] += 127;
             break;
         }
         case 13:{
@@ -179,14 +178,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            48, 49, 49, 48,
                            50, 51, 51, 50,
                            52, 53, 53, 52};
-            flip_array[2] = true;
-            flip_array[3] = true;
-            flip_array[6] = true;
-            flip_array[7] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[2] += 127;
+            block_array[3] += 127;
+            block_array[6] += 127;
+            block_array[7] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 23:{
@@ -194,14 +193,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            48, 49, 49, 48,
                            50, 51, 51, 50,
                            48, 49, 49, 48};
-            flip_array[2] = true;
-            flip_array[3] = true;
-            flip_array[6] = true;
-            flip_array[7] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[2] += 127;
+            block_array[3] += 127;
+            block_array[6] += 127;
+            block_array[7] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 24:{
@@ -230,14 +229,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            48, 49, 49, 48,
                            50, 51, 51, 50,
                            48, 49, 49, 48};
-            flip_array[2] = true;
-            flip_array[3] = true;
-            flip_array[6] = true;
-            flip_array[7] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[2] += 127;
+            block_array[3] += 127;
+            block_array[6] += 127;
+            block_array[7] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 28:{
@@ -245,14 +244,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                             0,  0,  0,  0,
                            46, 47, 47, 46,
                            48, 49, 49, 48};
-            flip_array[2] = true;
-            flip_array[3] = true;
-            flip_array[6] = true;
-            flip_array[7] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[2] += 127;
+            block_array[3] += 127;
+            block_array[6] += 127;
+            block_array[7] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 29:{
@@ -323,14 +322,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            84, 83,  0,  0,
                            46, 47, 47, 46,
                            48, 49, 49, 48 };
-            flip_array[0] = true;
-            flip_array[1] = true;
-            flip_array[4] = true;
-            flip_array[5] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[0] += 127;
+            block_array[1] += 127;
+            block_array[4] += 127;
+            block_array[5] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         case 39:{
@@ -338,14 +337,14 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                            84, 83, 83, 84,
                            46, 47, 47, 46,
                            48, 49, 49, 48};
-            flip_array[0] = true;
-            flip_array[1] = true;
-            flip_array[4] = true;
-            flip_array[5] = true;
-            flip_array[10] = true;
-            flip_array[11] = true;
-            flip_array[14] = true;
-            flip_array[15] = true;
+            block_array[0] += 127;
+            block_array[1] += 127;
+            block_array[4] += 127;
+            block_array[5] += 127;
+            block_array[10] += 127;
+            block_array[11] += 127;
+            block_array[14] += 127;
+            block_array[15] += 127;
             break;
         }
         // 
@@ -375,23 +374,16 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
                             84, 83, 83, 84,
                             82, 81, 81, 82,
                             84, 83, 83, 84};
-            flip_array[0] = true;
-            flip_array[1] = true;
-            flip_array[4] = true;
-            flip_array[5] = true;
-            flip_array[8] = true;
-            flip_array[9] = true;
-            flip_array[12] = true;
-            flip_array[13] = true;
+            block_array[0] += 127;
+            block_array[1] += 127;
+            block_array[4] += 127;
+            block_array[5] += 127;
+            block_array[8] += 127;
+            block_array[9] += 127;
+            block_array[12] += 127;
+            block_array[13] += 127;
             break;
         }
-        /*case 40:{
-            block_array = {87, 88, 89, 90,
-                           91, 92, 93, 94,
-                           95, 96, 97, 98,
-                           99,100,101,102};
-            break;
-        }*/
         // ********************************
         default:{
             block_array = {0,  0,  0,  0,
@@ -402,7 +394,7 @@ void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option,
         }
     }
 
-    game_map piece(4, 4, block_array.data(), flip_array);
+    game_map piece(4, 4, block_array.data());
     map.insert_map(piece, top_left, blockFlip);
 }
 

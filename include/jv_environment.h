@@ -19,13 +19,33 @@
 #include "jv_interface.h"
 
 struct game_map{
-    game_map(uchar_t x, uchar_t y, uchar_t* blocks, bool* flips):width(x), height(y), _blocks(blocks), _flips(flips){}
+    game_map(uchar_t x, uchar_t y, uchar_t* blocks):width(x), height(y), _blocks(blocks){}
 
-    // Methods
+    // Getters
     [[nodiscard]] uchar_t x() const {return width;}
     [[nodiscard]] uchar_t y() const {return height;}
     [[nodiscard]] int size() const {return width*height;}
-    [[nodiscard]] uchar_t cell(const int x, const int y) const {return _blocks[x + (y*width)];}
+    [[nodiscard]] uchar_t cell(int x, int y) const {
+        uchar_t val = _blocks[x + y*width];
+        return val - 127*(val >= 127);
+    }
+    [[nodiscard]] bool horizontal_flip(int index) const {return _blocks[index] >= 127;}
+
+    // Setters
+    void set_horizontal_flip(int index, bool f){
+        if(f == true){
+            if(horizontal_flip(index) == false){
+                _blocks[index] += 127;
+            }
+        }else if(horizontal_flip(index) == true){
+            _blocks[index] -= 127;
+        }
+    }
+
+    uchar_t operator[](int index){
+        uchar_t val = _blocks[index];
+        return val - 127*(val >= 127);
+    }
 
     // Insert room into the main map starting by the top left corner
     void insert_map(const game_map room, const bn::point top_left, const bool fliped = false){
@@ -39,14 +59,14 @@ struct game_map{
                     int map_index = x + y * this->width;
                     int room_index = (x - x_begin) + (y - y_begin) * room.width;
                     this->_blocks[map_index] =  room._blocks[room_index];
-                    this->_flips[map_index] =  room._flips[room_index];
+                    this->set_horizontal_flip(map_index, room.horizontal_flip(room_index));
                 }
             }else{
                 for(int x = x_end - 1; x >= x_begin; x--){
                     int map_index = x + y * this->width;
                     int room_index = -(x + 1 - x_end) + (y - y_begin) * room.width;
                     this->_blocks[map_index] = room._blocks[room_index];
-                    this->_flips[map_index] = !room._flips[room_index];
+                    this->set_horizontal_flip(map_index, !room.horizontal_flip(room_index));
                 }
             }
         }
@@ -54,7 +74,6 @@ struct game_map{
     // Members
     cuchar_t width, height;
     uchar_t *_blocks;
-    bool *_flips;
 };
 
 struct bg_map

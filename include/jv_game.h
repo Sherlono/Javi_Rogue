@@ -83,10 +83,9 @@ void game_scene(bn::random& randomizer, char option){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uchar_t blockArrfinal[cellCount*16];
-    bool flipArrfinal[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
+    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
-    bn::vector<bn::point, 20> start_coords;     // Starting coordinates for all Actors
+    bn::vector<bn::point, 25> start_coords;     // Starting coordinates for all Actors
     jv::LevelFactory(map1, option, start_coords, randomizer);
     // ************************
 
@@ -101,7 +100,7 @@ void game_scene(bn::random& randomizer, char option){
     jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
 
-    bn::vector<jv::Enemy, 9> v_enemies;
+    bn::vector<jv::Enemy, 22> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
         v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
     }
@@ -133,7 +132,7 @@ void game_scene(bn::random& randomizer, char option){
     // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-    //BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+    BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     
     jv::stairs stairs(start_coords[2].x(), start_coords[2].y(), cam);
@@ -188,8 +187,7 @@ void blocks_scene(bn::random& randomizer){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uchar_t blockArrfinal[cellCount*16];
-    bool flipArrfinal[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal, flipArrfinal);
+    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
     bn::vector<bn::point, 1> start_coords;
     jv::LevelFactory(map1, 0, start_coords, randomizer);
