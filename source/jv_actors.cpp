@@ -55,7 +55,7 @@ void Enemy::update(jv::Player* player){
             // Dialog
             if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
                 if(_stats.hp == _stats.max_hp){
-                    jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
+                    jv::Dialog::init("I am the evil cat. My best friend", "is Neko Arc. Don't mess with me!");
                 }else{
                     bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(_stats.hp) + " hp";
                     jv::Dialog::init(line1, "left!");

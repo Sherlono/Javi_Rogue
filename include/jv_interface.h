@@ -25,15 +25,25 @@ inline void Log_skipped_frames(){
 
 void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     bn::point* valid_points = nullptr;
-    int width = (map.x()-2) / 4, height = (map.y()-2) / 4;
+    int width = (map.x()-2) / 4, height = (map.y()-3) / 4;
     int pointCount = 0, current_size = 0;
+    int index[4] = {0, 0, 0, 0};
 
     // Finding coordinates with floor in them
-    for(int y = 1; y < height; y++){
+    for(int y = 2; y < height; y++){
         for(int x = 1; x < width; x++){
-            int index = x*4 + 1 + (y*4 + 1)*map.x();
+            bool w_check = true; // Walkable check
+            index[0] = x*4 + y*4*map.x();
+            index[1] = x*4 + 3 + y*4*map.x();
+            index[2] = x*4 + (y*4 + 3)*map.x();
+            index[3] = x*4 + 3 + (y*4 + 3)*map.x();
+
+            for(int i = 0; i < 4; i++){
+                int ind = index[i];
+                w_check = w_check && (map[ind] > 0 && map[ind] < WT_COUNT);
+            }
             
-            if(map[index] > 0 && map[index] < WT_COUNT){
+            if(w_check){
                 // Simple dinamically growing array code. Double size when capped
                 pointCount++;
                 if(valid_points == nullptr){

@@ -110,7 +110,7 @@ void Start(auto& options, bn::vector<bn::sprite_ptr, 120> sprts, bn::vector<bn::
 
     bn::core::update();
 
-    while(!bn::keypad::start_pressed()){
+    while(!bn::keypad::select_pressed()){
         if(bn::keypad::down_pressed()){
             if(index < options.size() - 1){
                 index++;

@@ -111,7 +111,6 @@ struct bg_map
 
 namespace jv{
     void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip);
-    // This function is meant to be replaced with procedural generation
     void LevelFactory(game_map& map, const int option);
 }
 #endif

@@ -9,9 +9,11 @@
 
 namespace jv::LevelMaker{
     static int prev_x, prev_y;
-    
+    void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map);
+
     // Init must be called ONCE before the loop begins
     void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
+        bg_map_ptr->reset();
         // Defining the MAP ARRAY bounds to redraw the map
         int current_x = (cam.x().integer())/8  ,   current_y = (cam.y().integer() + 48)/8;
         // Redraw map bounds
@@ -30,6 +32,7 @@ namespace jv::LevelMaker{
         prev_x = current_x;
         prev_y = current_y;
         bg_map.reload_cells_ref();
+        LevelMaker::update(cam, map, bg_map_ptr, bg_map);
     }
     
     // Update must be run every frame

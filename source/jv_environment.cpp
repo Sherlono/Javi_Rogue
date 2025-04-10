@@ -1,7 +1,7 @@
 #include "jv_environment.h"
 
 namespace jv{
-// Make all floor prefabs here
+// Make all block prefabs here
 void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
     bn::array<uchar_t, 16> block_array;
 
@@ -395,6 +395,7 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
     map.insert_map(block, top_left, blockFlip);
 }
 
+// This function is meant to be replaced with procedural generation
 void LevelFactory(game_map& map, const int option){
     int width, height;
     map.reset();

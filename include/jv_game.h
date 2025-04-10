@@ -84,8 +84,7 @@ void game_scene(bn::random& randomizer){
 
     uchar_t blockArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
-    
-    bn::vector<bn::point, 25> start_coords;     // Starting coordinates for all entities
+    int level = 2;
     // ************************
 
     // ******** Camera ********
@@ -98,10 +97,9 @@ void game_scene(bn::random& randomizer){
     jv::Player cat(0, 0, bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
-    
+
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy, 15> v_enemies;
-    bn::vector<bn::sprite_ptr, 128> v_sprts;
     // ************************
 
     // ****** Debug data ******
@@ -109,16 +107,17 @@ void game_scene(bn::random& randomizer){
     bn::vector<jv::menu_option, 2> options;
     options.push_back(jv::menu_option(&val0, "Noclip"));
 
+    bn::vector<bn::sprite_ptr, 128> v_sprts;
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
     v_bgs.push_back(background);
     v_bgs.push_back(hud);
     v_bgs.push_back(bg);
     // ************************
 
-    int level = 2;
     
     while(true){
         bool next_level = false;
+        bn::vector<bn::point, 25> start_coords;
         
         jv::LevelFactory(map1, level);
         jv::random_coords(start_coords, map1, randomizer);
@@ -149,7 +148,6 @@ void game_scene(bn::random& randomizer){
         }
         
         jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-        jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
             
         BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
         BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
@@ -182,10 +180,9 @@ void game_scene(bn::random& randomizer){
             bn::core::update();
         }
         
-        bg_map_ptr->reset();
-        v_sprts.clear();
         v_npcs.clear();
         v_enemies.clear();
+        v_sprts.clear();
         start_coords.clear();
     }
 }
