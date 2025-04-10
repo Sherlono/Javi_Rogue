@@ -51,23 +51,27 @@ void Enemy::update(jv::Player* player){
         }
         if(!_animation.done()){ _animation.update();}
 
-        // Dialog
-        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-            if(_stats.hp == _stats.max_hp){
-                jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
-            }else{
-                bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(_stats.hp) + " hp";
-                jv::Dialog::init(line1, "left!");
+        if(player->get_state() == State::NORMAL){
+            // Dialog
+            if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
+                if(_stats.hp == _stats.max_hp){
+                    jv::Dialog::init("I am the evil cat. I will attack", "you in a future version of", "the game.");
+                }else{
+                    bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(_stats.hp) + " hp";
+                    jv::Dialog::init(line1, "left!");
+                }
             }
         }
-        // Combat
-        if(player->is_attacking() && player->get_hitbox().intersects(rect())){
-            got_hit(player->get_attack());
-            player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
-        }
-        if(is_attacking() && get_hitbox().intersects(player->rect())){
-            player->got_hit(get_attack());
-            set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+        if(player->get_state() != State::DEAD){
+            // Combat
+            if(player->is_attacking() && player->get_hitbox().intersects(rect())){
+                got_hit(player->get_attack());
+                player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+            }
+            if(is_attacking() && get_hitbox().intersects(player->rect())){
+                player->got_hit(get_attack());
+                set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+            }
         }
 }
 }
@@ -76,10 +80,13 @@ void Enemy::update(jv::Player* player){
 void NPC::update(jv::Player* player){
     y_priority(player->y());
     
-    // Dialog
-    if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-        jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
-    }
     _animation.update();
+    
+    if(player->get_state() == State::NORMAL){
+        // Dialog
+        if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
+            jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+        }
+    }
 }
 }

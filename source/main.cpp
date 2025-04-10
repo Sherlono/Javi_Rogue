@@ -11,9 +11,13 @@ int main()
     bn::random randomizer;
     char option = 0;
 
+    jv::game::start_scene(randomizer, option);
+    if(option == 2){ jv::game::blocks_scene();}
+
     while(true){
-        if(option == 0){jv::game::start_scene(randomizer, option);}
-        if(option < 2){ jv::game::game_scene(randomizer, option + 1);}
-        else if(option == 2){ jv::game::blocks_scene();}
+        if(option < 2){
+            jv::game::game_scene(randomizer, option + 1);
+            option = option == 0 ? 1 : 0;
+        }
     }
 }

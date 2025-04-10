@@ -85,7 +85,7 @@ void game_scene(bn::random& randomizer, char option){
     uchar_t blockArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
-    bn::vector<bn::point, 25> start_coords;     // Starting coordinates for all Actors
+    bn::vector<bn::point, 10> start_coords;     // Starting coordinates for all entities
     jv::LevelFactory(map1, option);
     jv::random_coords(start_coords, map1, randomizer);
     // ************************
@@ -101,7 +101,7 @@ void game_scene(bn::random& randomizer, char option){
     jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
 
-    bn::vector<jv::Enemy, 22> v_enemies;
+    bn::vector<jv::Enemy, 5> v_enemies;
     for(int i = 0; i < v_enemies.max_size(); i++){
         v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
     }
@@ -114,10 +114,8 @@ void game_scene(bn::random& randomizer, char option){
 
     // ****** Debug data ******
     bool val0 = false; // noClip
-    bool val1 = true;  // Update
     bn::vector<jv::menu_option, 2> options;
     options.push_back(jv::menu_option(&val0, "Noclip"));
-    options.push_back(jv::menu_option(&val1, "Update bg"));
 
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
     v_bgs.push_back(background);
@@ -162,7 +160,7 @@ void game_scene(bn::random& randomizer, char option){
             v_npcs[i].update(&cat);
         }
         
-        if(val1){ jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);}
+        jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
         if(bn::keypad::start_pressed()){ jv::Debug::Start(options, v_bgs, v_sprts);}
 
         jv::Log_skipped_frames();
@@ -190,10 +188,12 @@ void blocks_scene(){
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
+    // *** Level Generation ***
     uchar_t blockArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
     jv::LevelFactory(map1, 0);
+    // ************************
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(120, 80);
@@ -201,7 +201,7 @@ void blocks_scene(){
     bg.set_camera(cam);
     // ************************
 
-    // ****** Debug data ******
+    // **** Number sprites ****
     bn::vector<bn::sprite_ptr, 128> sprts;
     int width = 12, height = 10;
     for(int y = 0; y < height; y++){

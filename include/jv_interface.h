@@ -32,7 +32,7 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     for(int y = 1; y < height; y++){
         for(int x = 1; x < width; x++){
             int index = x*4 + 1 + (y*4 + 1)*map.x();
-            BN_LOG("x: ", x, " y: ", y, " index: ", index);
+            
             if(map[index] > 0 && map[index] < WT_COUNT){
                 // Simple dinamically growing array code. Double size when capped
                 pointCount++;
