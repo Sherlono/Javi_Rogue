@@ -9,12 +9,12 @@
 #include "bn_bgs.h"
 
 #include "jv_math.h"
-#include "jv_debug.h"
 #include "jv_actors.h"
 #include "jv_stairs.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
 #include "jv_level_maker.h"
+#include "jv_debug.h"
 
 #include "bn_sprite_items_ball.h"
 #include "bn_regular_bg_items_bg.h"
@@ -35,15 +35,15 @@ void start_scene(bn::random& randomizer, char& option){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
     text_generator.generate(-98, -16 + y_offset, "Select scene", v_text);
-    text_generator.generate(-100, 0 + y_offset,  "Map 1", v_text);
-    text_generator.generate(-100, 8 + y_offset,  "Map 2", v_text);
-    text_generator.generate(-100, 16 + y_offset,  "Tile Showcase", v_text);
+    text_generator.generate(-100, 0 + y_offset,  "Start game", v_text);
+    //text_generator.generate(-100, 8 + y_offset,  "Map 2", v_text);
+    text_generator.generate(-100, 8 + y_offset,  "Tile Showcase", v_text);
 
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, y_offset);
     cursor.set_bg_priority(1);
     
     while(!bn::keypad::a_pressed()){
-        if(bn::keypad::down_pressed() && option < 2){
+        if(bn::keypad::down_pressed() && option < 1){
             option++;
             cursor.set_position(-20, cursor.y() + 8);
         }else if(bn::keypad::up_pressed() && option > 0){
@@ -59,7 +59,7 @@ void start_scene(bn::random& randomizer, char& option){
     bn::core::update();
 }
 
-void game_scene(bn::random& randomizer, char option){
+void game_scene(bn::random& randomizer){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Music
@@ -78,38 +78,30 @@ void game_scene(bn::random& randomizer, char option){
     bn::regular_bg_map_ptr bg_map = bg.map();
     bg.set_priority(2);
 
-    // *** Level Generation ***
+    // ****** Level data ******
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uchar_t blockArrfinal[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
-    bn::vector<bn::point, 10> start_coords;     // Starting coordinates for all entities
-    jv::LevelFactory(map1, option);
-    jv::random_coords(start_coords, map1, randomizer);
+    bn::vector<bn::point, 25> start_coords;     // Starting coordinates for all entities
     // ************************
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
-    cam.set_position(start_coords[0].x(), start_coords[0].y());
     background.set_camera(cam);
     bg.set_camera(cam);
     // ************************
 
-    // Characters initialization
-    jv::Player cat(start_coords[0].x(), start_coords[0].y(), bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
+    // ** Universal entities **
+    jv::Player cat(0, 0, bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
-
-    bn::vector<jv::Enemy, 5> v_enemies;
-    for(int i = 0; i < v_enemies.max_size(); i++){
-        v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
-    }
+    jv::stairs stairs(0, 0, cam);
+    
     bn::vector<jv::NPC, 1> v_npcs;
-    v_npcs.push_back(jv::NPC(start_coords[1].x(), start_coords[1].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
-    int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
-    jv::stairs stairs(start_coords[2].x(), start_coords[2].y(), cam);
-    //constexpr int actorCount = npcCount + enemyCount;
+    bn::vector<jv::Enemy, 15> v_enemies;
+    bn::vector<bn::sprite_ptr, 128> v_sprts;
     // ************************
 
     // ****** Debug data ******
@@ -121,51 +113,80 @@ void game_scene(bn::random& randomizer, char option){
     v_bgs.push_back(background);
     v_bgs.push_back(hud);
     v_bgs.push_back(bg);
-    bn::vector<bn::sprite_ptr, 100> v_sprts;
-    v_sprts.push_back(cat._sprite);
-    for(int i = 0; i < enemyCount; i++){
-        v_sprts.push_back(v_enemies[i]._sprite);
-    }
-    for(int i = 0; i < npcCount; i++){
-        v_sprts.push_back(v_npcs[i]._sprite);
-    }
-    v_sprts.push_back(stairs._sprite);
-    v_sprts.push_back(healthbar.bar_sprite());
-    v_sprts.push_back(healthbar.corner_sprite());
     // ************************
-    
-    jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-    BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
-    BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
-    
-    bool done = false;
-    
-    while(!done){
-        done = stairs.climb(cat);
 
-        cat.update(val0);
-        for(int i = 0; i < enemyCount; i++){
-            v_enemies[i].update(&cat);
+    int level = 2;
+    
+    while(true){
+        bool next_level = false;
+        
+        jv::LevelFactory(map1, level);
+        jv::random_coords(start_coords, map1, randomizer);
+        level = level == 1 ? 2 : 1;
 
-            /*if(v_enemies[i].get_state() == State::DEAD){
-                v_sprts.erase(v_sprts.begin() + 1 + i);
-                v_enemies.erase(v_enemies.begin() + i);
-                enemyCount--;
-            }*/
+        cam.set_position(start_coords[0].x(), start_coords[0].y());
+        cat.set_position(start_coords[0].x(), start_coords[0].y());
+        stairs.set_position(start_coords[1].x(), start_coords[1].y());
+
+        v_sprts.push_back(cat._sprite);
+        v_sprts.push_back(stairs._sprite);
+        v_sprts.push_back(healthbar.bar_sprite());
+        v_sprts.push_back(healthbar.corner_sprite());
+
+        v_npcs.push_back(jv::NPC(start_coords[2].x(), start_coords[2].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
+
+        unsigned char max_enemies = 3 + randomizer.get_int(12);
+        for(int i = 0; i < max_enemies; i++){
+            v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
         }
-
-        healthbar.update();
-
+        int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
+        
+        for(int i = 0; i < enemyCount; i++){
+            v_sprts.push_back(v_enemies[i]._sprite);
+        }
         for(int i = 0; i < npcCount; i++){
-            v_npcs[i].update(&cat);
+            v_sprts.push_back(v_npcs[i]._sprite);
         }
         
+        jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
         jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
-        if(bn::keypad::start_pressed()){ jv::Debug::Start(options, v_bgs, v_sprts);}
+            
+        BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+        BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
 
-        jv::Log_skipped_frames();
-        jv::resetcombo();
-        bn::core::update();
+        while(!next_level){
+            next_level = stairs.climb(cat);
+
+            cat.update(val0);
+            for(int i = 0; i < enemyCount; i++){
+                v_enemies[i].update(&cat);
+
+                /*if(v_enemies[i].get_state() == State::DEAD){
+                    v_sprts.erase(v_sprts.begin() + 1 + i);
+                    v_enemies.erase(v_enemies.begin() + i);
+                    enemyCount--;
+                }*/
+            }
+
+            healthbar.update();
+
+            for(int i = 0; i < npcCount; i++){
+                v_npcs[i].update(&cat);
+            }
+            
+            jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
+            if(bn::keypad::select_pressed()){ Debug::Start(options, v_sprts, v_bgs);}
+
+            jv::Log_skipped_frames();
+            jv::resetcombo();
+            bn::core::update();
+        }
+        
+        bg_map_ptr->reset();
+        v_sprts.clear();
+        v_npcs.clear();
+        v_enemies.clear();
+        start_coords.clear();
     }
 }
 

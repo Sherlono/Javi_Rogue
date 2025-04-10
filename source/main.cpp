@@ -12,12 +12,9 @@ int main()
     char option = 0;
 
     jv::game::start_scene(randomizer, option);
-    if(option == 2){ jv::game::blocks_scene();}
+    if(option == 1){ jv::game::blocks_scene();}
 
     while(true){
-        if(option < 2){
-            jv::game::game_scene(randomizer, option + 1);
-            option = option == 0 ? 1 : 0;
-        }
+        jv::game::game_scene(randomizer);
     }
 }

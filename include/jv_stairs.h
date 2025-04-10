@@ -24,6 +24,10 @@ struct stairs{
             return false;
         }
     }
+    void set_position(int x, int y){
+        _sprite.set_position(x, y);
+        _rect.set_position(x, y);
+    }
     
     bn::sprite_ptr _sprite;
     bn::rect _rect;
