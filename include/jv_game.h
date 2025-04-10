@@ -154,7 +154,6 @@ void game_scene(bn::random& randomizer){
     v_bgs.push_back(hud);
     v_bgs.push_back(level_bg);
     // ************************
-
     
     while(true){
         bool next_level = false;

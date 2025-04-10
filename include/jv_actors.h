@@ -98,6 +98,7 @@ public:
     void reset(){
         _dir = jv::SOUTH;
         insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+        _animation.update();
     }
 
     // Getters

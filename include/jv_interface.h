@@ -99,7 +99,6 @@ inline void fade(bn::vector<bn::sprite_ptr, 128> v_sprts, bn::vector<bn::regular
             bn::blending::set_fade_alpha(bn::min(bn::fixed(i)/60, bn::fixed(1)));
             bn::core::update();
         }
-        jv::set_blending_enabled_bulk(v_sprts, v_bgs, false);
     }
 }
 
