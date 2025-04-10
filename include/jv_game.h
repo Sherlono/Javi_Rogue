@@ -7,6 +7,7 @@
 #include "bn_memory.h"
 #include "bn_sprites.h"
 #include "bn_bgs.h"
+#include "bn_blending_actions.h"
 
 #include "jv_math.h"
 #include "jv_actors.h"
@@ -18,6 +19,7 @@
 
 #include "bn_sprite_items_ball.h"
 #include "bn_regular_bg_items_bg.h"
+#include "bn_regular_bg_items_intro1.h"
 #include "bn_regular_bg_items_intro_card.h"
 #include "bn_regular_bg_items_intro_card_bg.h"
 #include "bn_regular_bg_items_hud_item.h"
@@ -25,22 +27,50 @@
 #include "bn_sprite_items_cursor.h"
 
 namespace jv::game{
+void intro_scene(){
+    bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
+    intro1_bg.set_priority(0);
+    intro1_bg.set_blending_enabled(true);
+    bn::blending::set_fade_alpha(0);
+    
+    for(int i = 0; i < 390; i++){
+        if(i < 60){
+            bn::blending::set_fade_alpha(bn::min(1-bn::fixed(i)/60, bn::fixed(1)));
+        }else if(i >= 240 && i <= 300){
+            bn::blending::set_fade_alpha(bn::max((bn::fixed(i)-240)/60, bn::fixed(0)));
+        }
+        bn::core::update();
+        jv::resetcombo();
+    }
+    bn::blending::set_fade_alpha(0);
+    intro1_bg.set_blending_enabled(false);
+}
+    
 void start_scene(bn::random& randomizer, char& option){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
     card.set_priority(2);
+    card.set_blending_enabled(true);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, 0);
     bg.set_priority(3);
+    bg.set_blending_enabled(true);
     int y_offset = 50;
     bn::vector<bn::sprite_ptr, 64> v_text;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
     text_generator.generate(-98, -16 + y_offset, "Select scene", v_text);
     text_generator.generate(-100, 0 + y_offset,  "Start game", v_text);
-    //text_generator.generate(-100, 8 + y_offset,  "Map 2", v_text);
     text_generator.generate(-100, 8 + y_offset,  "Tile Showcase", v_text);
+
+    for(bn::sprite_ptr s : v_text){ s.set_blending_enabled(true);}
 
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, y_offset);
     cursor.set_bg_priority(1);
+    cursor.set_blending_enabled(true);
+    
+    for(int i = 0; (1 - bn::fixed(i)/60) >= 0; i++){
+        bn::blending::set_fade_alpha(bn::max(1 - bn::fixed(i)/60, bn::fixed(0)));
+        bn::core::update();
+    }
     
     while(!bn::keypad::a_pressed()){
         if(bn::keypad::down_pressed() && option < 1){
@@ -55,6 +85,12 @@ void start_scene(bn::random& randomizer, char& option){
         randomizer.update();
         bn::core::update();
     }
+    
+    for(int i = 0; bn::fixed(i)/60 <= 1; i++){
+        bn::blending::set_fade_alpha(bn::min(bn::fixed(i)/60, bn::fixed(1)));
+        bn::core::update();
+    }
+
     v_text.clear();
     bn::core::update();
 }
@@ -74,9 +110,9 @@ void game_scene(bn::random& randomizer){
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
                 bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
-    bn::regular_bg_ptr bg = bg_item.create_bg(0, 0);
-    bn::regular_bg_map_ptr bg_map = bg.map();
-    bg.set_priority(2);
+    bn::regular_bg_ptr level_bg = bg_item.create_bg(0, 0);
+    bn::regular_bg_map_ptr bg_map = level_bg.map();
+    level_bg.set_priority(2);
 
     // ****** Level data ******
     constexpr bn::point mapSize(20, 20);
@@ -90,7 +126,7 @@ void game_scene(bn::random& randomizer){
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     background.set_camera(cam);
-    bg.set_camera(cam);
+    level_bg.set_camera(cam);
     // ************************
 
     // ** Universal entities **
@@ -108,47 +144,51 @@ void game_scene(bn::random& randomizer){
     options.push_back(jv::menu_option(&val0, "Noclip"));
 
     bn::vector<bn::sprite_ptr, 128> v_sprts;
+    v_sprts.push_back(cat._sprite);
+    v_sprts.push_back(stairs._sprite);
+    v_sprts.push_back(healthbar.bar_sprite());
+    v_sprts.push_back(healthbar.corner_sprite());
+
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
     v_bgs.push_back(background);
     v_bgs.push_back(hud);
-    v_bgs.push_back(bg);
+    v_bgs.push_back(level_bg);
     // ************************
 
     
     while(true){
         bool next_level = false;
-        bn::vector<bn::point, 25> start_coords;
-        
+
+        // Level generation
         jv::LevelFactory(map1, level);
-        jv::random_coords(start_coords, map1, randomizer);
         level = level == 1 ? 2 : 1;
 
+        bn::vector<bn::point, 25> start_coords;
+        jv::random_coords(start_coords, map1, randomizer);
+
+        // Reposition universal entities
         cam.set_position(start_coords[0].x(), start_coords[0].y());
         cat.set_position(start_coords[0].x(), start_coords[0].y());
         stairs.set_position(start_coords[1].x(), start_coords[1].y());
 
-        v_sprts.push_back(cat._sprite);
-        v_sprts.push_back(stairs._sprite);
-        v_sprts.push_back(healthbar.bar_sprite());
-        v_sprts.push_back(healthbar.corner_sprite());
-
+        // Populate level
         v_npcs.push_back(jv::NPC(start_coords[2].x(), start_coords[2].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
 
-        unsigned char max_enemies = 3 + randomizer.get_int(12);
+        unsigned char min_enemies = 3, max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
         for(int i = 0; i < max_enemies; i++){
             v_enemies.push_back(jv::Enemy(start_coords[3+i].x(), start_coords[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
         }
         int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
         
-        for(int i = 0; i < enemyCount; i++){
-            v_sprts.push_back(v_enemies[i]._sprite);
-        }
-        for(int i = 0; i < npcCount; i++){
-            v_sprts.push_back(v_npcs[i]._sprite);
-        }
+        for(int i = 0; i < enemyCount; i++){ v_sprts.push_back(v_enemies[i]._sprite);}
+        for(int i = 0; i < npcCount; i++){ v_sprts.push_back(v_npcs[i]._sprite);}
         
+        // Initialize level background
         jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-            
+
+        // Fade in
+        jv::fade(v_sprts, v_bgs, true);
+        
         BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
         BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
 
@@ -158,7 +198,6 @@ void game_scene(bn::random& randomizer){
             cat.update(val0);
             for(int i = 0; i < enemyCount; i++){
                 v_enemies[i].update(&cat);
-
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_sprts.erase(v_sprts.begin() + 1 + i);
                     v_enemies.erase(v_enemies.begin() + i);
@@ -179,11 +218,17 @@ void game_scene(bn::random& randomizer){
             jv::resetcombo();
             bn::core::update();
         }
-        
-        v_npcs.clear();
-        v_enemies.clear();
-        v_sprts.clear();
+
+        // Fade out
+        jv::fade(v_sprts, v_bgs, false);
+
+        // Reset Stuff
+        cat.reset();
+        v_sprts.erase(v_sprts.begin() + 4, v_sprts.end());
         start_coords.clear();
+        v_enemies.clear();
+        v_npcs.clear();
+        bn::core::update();
     }
 }
 
@@ -200,8 +245,8 @@ void blocks_scene(){
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
                 bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
-    bn::regular_bg_ptr bg = bg_item.create_bg(0, 0);
-    bn::regular_bg_map_ptr bg_map = bg.map();
+    bn::regular_bg_ptr level_bg = bg_item.create_bg(0, 0);
+    bn::regular_bg_map_ptr bg_map = level_bg.map();
 
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
@@ -216,7 +261,7 @@ void blocks_scene(){
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(120, 80);
     background.set_camera(cam);
-    bg.set_camera(cam);
+    level_bg.set_camera(cam);
     // ************************
 
     // **** Number sprites ****

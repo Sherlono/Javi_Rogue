@@ -11,6 +11,7 @@ int main()
     bn::random randomizer;
     char option = 0;
 
+    jv::game::intro_scene();
     jv::game::start_scene(randomizer, option);
     if(option == 1){ jv::game::blocks_scene();}
 

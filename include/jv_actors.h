@@ -8,6 +8,7 @@
 #include "bn_keypad.h"
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
+#include "bn_blending_actions.h"
 
 #include "jv_math.h"
 #include "jv_dialog.h"
@@ -61,6 +62,8 @@ public:
     void set_camera(bn::camera_ptr cam){ _sprite.set_camera(cam);}
     void remove_camera(){ _sprite.remove_camera();}
     void set_visible(bool visible){ _sprite.set_visible(visible);}
+    void set_blending_enabled(bool isBlend){ _sprite.set_blending_enabled(isBlend);}
+
 
     bn::fixed _x, _y;
     bn::sprite_ptr _sprite;
@@ -92,6 +95,10 @@ public:
     
     // Setters
     void set_state(int s){ _state = s;}
+    void reset(){
+        _dir = jv::SOUTH;
+        insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+    }
 
     // Getters
     [[nodiscard]] bool is_attacking() { return _state == State::ATTACKING;}

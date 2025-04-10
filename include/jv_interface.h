@@ -6,6 +6,7 @@
 #include "bn_vector.h"
 #include "bn_random.h"
 #include "bn_keypad.h"
+#include "bn_blending_actions.h"
 
 #include "jv_environment.h"
 
@@ -72,6 +73,34 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
         points_out.push_back(bn::point(valid_points[block].x(), valid_points[block].y()));
     }
     delete[] valid_points;
+}
+
+inline void set_blending_enabled_bulk(bn::vector<bn::sprite_ptr, 128> v_sprts, bn::vector<bn::regular_bg_ptr, 4> v_bgs, bool Blend){
+    for(bn::sprite_ptr s : v_sprts){
+        s.set_blending_enabled(Blend);
+    }
+    for(bn::regular_bg_ptr b : v_bgs){
+        b.set_blending_enabled(Blend);
+    }
+
+}
+
+inline void fade(bn::vector<bn::sprite_ptr, 128> v_sprts, bn::vector<bn::regular_bg_ptr, 4> v_bgs, bool fadeIn){
+    if(fadeIn){
+        jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
+        for(int i = 0; (1 - bn::fixed(i)/60) >= 0; i++){
+            bn::blending::set_fade_alpha(bn::max(1 - bn::fixed(i)/60, bn::fixed(0)));
+            bn::core::update();
+        }
+        jv::set_blending_enabled_bulk(v_sprts, v_bgs, false);
+    }else{
+        jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
+        for(int i = 0; bn::fixed(i)/60 <= 1; i++){
+            bn::blending::set_fade_alpha(bn::min(bn::fixed(i)/60, bn::fixed(1)));
+            bn::core::update();
+        }
+        jv::set_blending_enabled_bulk(v_sprts, v_bgs, false);
+    }
 }
 
 }
