@@ -17,7 +17,6 @@ struct healthbar{
             _sprites[0].set_bg_priority(0);
             _sprites[0].set_horizontal_scale(2.0);
             _sprites[1].set_bg_priority(0);
-            _sprites[1].set_z_order(_sprites[0].z_order() - 1);
         }
 
     // Getters

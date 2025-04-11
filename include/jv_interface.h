@@ -26,7 +26,7 @@ inline void Log_skipped_frames(){
 
 void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     bn::point* valid_points = nullptr;
-    int width = (map.x()-2) / 4, height = (map.y()-3) / 4;
+    int width = (map.x()-2)>>2, height = (map.y()-3)>>2;
     int pointCount = 0, current_size = 0;
     int index[4] = {0, 0, 0, 0};
 
@@ -85,20 +85,35 @@ inline void set_blending_enabled_bulk(bn::vector<bn::sprite_ptr, 128> v_sprts, b
 
 }
 
-inline void fade(bn::vector<bn::sprite_ptr, 128> v_sprts, bn::vector<bn::regular_bg_ptr, 4> v_bgs, bool fadeIn){
+inline void fade(bn::vector<bn::sprite_ptr, 128> v_sprts, bn::vector<bn::regular_bg_ptr, 4> v_bgs, const bool fadeIn, const unsigned char speed = fadespeed::MEDIUM){
     if(fadeIn){
         jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
-        for(int i = 0; (1 - bn::fixed(i)/60) >= 0; i++){
-            bn::blending::set_fade_alpha(bn::max(1 - bn::fixed(i)/60, bn::fixed(0)));
+        bn::fixed progress = 1.0;
+        for(int i = 0; progress >= 0; i++){
+            progress = 1 - bn::fixed(i)/speed;
+            bn::blending::set_fade_alpha(bn::max(progress, bn::fixed(0)));
             bn::core::update();
         }
         jv::set_blending_enabled_bulk(v_sprts, v_bgs, false);
     }else{
         jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
-        for(int i = 0; bn::fixed(i)/60 <= 1; i++){
-            bn::blending::set_fade_alpha(bn::min(bn::fixed(i)/60, bn::fixed(1)));
+        bn::fixed progress = 0.0;
+        for(int i = 0; progress <= 1; i++){
+            progress = bn::fixed(i)/speed;
+            bn::blending::set_fade_alpha(bn::min(progress, bn::fixed(1)));
             bn::core::update();
         }
+    }
+}
+
+inline void z_sort(bn::vector<bn::sprite_ptr, 128> sprites){
+    int max_y = 0;
+    for(int i = 3; i < sprites.size(); i++){
+        int y = sprites[i].y().integer()>>2;
+        if(y > max_y){ max_y = y;}
+    }
+    for(int i = 3; i < sprites.size(); i++){
+        sprites[i].set_z_order(max_y - (sprites[i].y().integer()>>2));
     }
 }
 

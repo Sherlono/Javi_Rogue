@@ -96,13 +96,15 @@ public:
     // Setters
     void set_state(int s){ _state = s;}
     void reset(){
+        _prev_dir = jv::NEUTRAL;
         _dir = jv::SOUTH;
         insert_animation(frames::w_up, frames::w_ho, frames::w_do);
         _animation.update();
     }
 
     // Getters
-    [[nodiscard]] bool is_attacking() { return _state == State::ATTACKING;}
+    [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
+    [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
     [[nodiscard]] uchar_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
@@ -128,7 +130,7 @@ public:
                 bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
 
                 if(!noClip){
-                    int x = _x.integer()/8, y = (_y.integer() + 4)/8;
+                    int x = _x.integer()>>3, y = (_y.integer() + 4)>>3;
                     obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
                     obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
                     obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
@@ -257,7 +259,8 @@ public:
     void set_state(int s){ _state = s;}
 
     // Getters
-    [[nodiscard]] bool is_attacking(){ return _state == State::ATTACKING;}
+    [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
+    [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
     [[nodiscard]] uchar_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
@@ -265,7 +268,7 @@ public:
     [[nodiscard]] int get_hp() { return _stats.hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
 
-    void update(jv::Player* player);
+    void update(jv::Player* player, bool isInvul);
     
     void animation_update(){
         if(_prev_dir != _dir){
@@ -273,15 +276,7 @@ public:
         }
         _prev_dir = _dir;
     }
-
-    void y_priority(bn::fixed player_y){
-        if(y() < player_y){
-            _sprite.set_z_order(1);
-        }else{
-            _sprite.set_z_order(-1);
-        }
-    }
-
+    
     void move(){
         // Decide direction at random
         if(!_attack_cooldown){
@@ -294,7 +289,7 @@ public:
                 _idle_time = 0;
             }
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
-            int x = _x.integer()/8, y = (_y.integer() + 4)/8;
+            int x = _x.integer()>>3, y = (_y.integer() + 4)>>3;
                 
             obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
             obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
@@ -398,7 +393,7 @@ public:
     // Constructor
     NPC(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam):
         Actor(x, y, s, cam,
-              bn::create_sprite_animate_action_forever(s, 4, s_item, 0, 0, 0, 0),
+              bn::create_sprite_animate_action_forever(s, 8, s_item, 0, 1, 2, 3),
               bn::rect(x, y + 8, 20, 20))
     {
         _sprite.set_position(x, y - 8);
@@ -407,13 +402,6 @@ public:
 
     void update(jv::Player* player);
     
-    void y_priority(bn::fixed player_y){
-        if(y() < player_y){
-            _sprite.set_z_order(1);
-        }else{
-            _sprite.set_z_order(-1);
-        }
-    }
 private:
 
 };

@@ -15,7 +15,7 @@ namespace jv::LevelMaker{
     void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
         bg_map_ptr->reset();
         // Defining the MAP ARRAY bounds to redraw the map
-        int current_x = (cam.x().integer())/8  ,   current_y = (cam.y().integer() + 48)/8;
+        int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 48)>>3;
         // Redraw map bounds
         for(int y = current_y; y < current_y + 32; y++){
             for(int x = current_x; x < current_x + 32; x++){
@@ -38,7 +38,7 @@ namespace jv::LevelMaker{
     // Update must be run every frame
     void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
         // Did the player move enough to load assets
-        int current_x = (cam.x().integer() + 56)/8  ,   current_y = (cam.y().integer() + 48)/8;
+        int current_x = (cam.x().integer() + 56)>>3  ,   current_y = (cam.y().integer() + 48)>>3;
     
         if(current_x != prev_x || current_y != prev_y){
             // Redraw map bounds

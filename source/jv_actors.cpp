@@ -4,7 +4,7 @@ namespace jv{
 // ************ Player ************
 void Player::update(bool noClip){
     
-    if(_state != State::DEAD){
+    if(is_alive()){
         attack_update();
         if(_state == State::HURTING){
             if(_animation.done()){
@@ -28,10 +28,9 @@ void Player::update(bool noClip){
 }
 
 // ************* Enemy *************
-void Enemy::update(jv::Player* player){
-    y_priority(player->y() + 4*(_state == State::DEAD));
+void Enemy::update(jv::Player* player, bool isInvul){
 
-    if(_state != State::DEAD){
+    if(is_alive()){
         attack_update();
 
         // Movement and Animations
@@ -43,7 +42,7 @@ void Enemy::update(jv::Player* player){
             }
         }else{
             move();
-            if((_idle_time == 30 && _dir < 9) || bn::keypad::l_pressed()){ attack();}
+            if(_idle_time == 30 && _dir < 9){ attack();}
             if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
                 insert_animation(frames::w_up, frames::w_ho, frames::w_do);
             }
@@ -62,13 +61,13 @@ void Enemy::update(jv::Player* player){
                 }
             }
         }
-        if(player->get_state() != State::DEAD){
+        if(player->is_alive()){
             // Combat
-            if(player->is_attacking() && player->get_hitbox().intersects(rect())){
+            if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
                 got_hit(player->get_attack());
                 player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
             }
-            if(is_attacking() && get_hitbox().intersects(player->rect())){
+            if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player->rect())){
                 player->got_hit(get_attack());
                 set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
             }
@@ -78,7 +77,6 @@ void Enemy::update(jv::Player* player){
 
 // ************** NPC **************
 void NPC::update(jv::Player* player){
-    y_priority(player->y());
     
     _animation.update();
     
