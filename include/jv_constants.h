@@ -12,7 +12,7 @@ namespace {
     typedef unsigned char uchar_t;
     typedef const unsigned char cuchar_t;
     
-    constexpr uchar_t F_COUNT = 22,                // Number of Floor Blocks [0,21]
+    constexpr uchar_t F_COUNT = 22,                 // Number of Floor Blocks [0,21]
                        W_COUNT = 43 - F_COUNT + 1,  // Number of Wall Blocks [22,43]
                        B_COUNT = F_COUNT + W_COUNT, // Total Blocks
                        WT_COUNT = 46;               // Number of Walkable Tiles

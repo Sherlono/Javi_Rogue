@@ -29,6 +29,8 @@ void Player::update(bool noClip){
 
 // ************* Enemy *************
 void Enemy::update(jv::Player* player, bool isInvul){
+    if(player->_sprite.y() > _sprite.y()){ _sprite.set_z_order(player->_sprite.z_order() + 1);}
+    else{ _sprite.set_z_order(player->_sprite.z_order() - 1);}
 
     if(is_alive()){
         attack_update();
@@ -53,10 +55,10 @@ void Enemy::update(jv::Player* player, bool isInvul){
         if(player->get_state() == State::NORMAL){
             // Dialog
             if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-                if(_stats.hp == _stats.max_hp){
+                if(get_hp() == get_maxhp()){
                     jv::Dialog::init("I am the evil cat. My best friend", "is Neko Arc. Don't mess with me!");
                 }else{
-                    bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(_stats.hp) + " hp";
+                    bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(get_hp()) + " hp";
                     jv::Dialog::init(line1, "left!");
                 }
             }
@@ -77,7 +79,9 @@ void Enemy::update(jv::Player* player, bool isInvul){
 
 // ************** NPC **************
 void NPC::update(jv::Player* player){
-    
+    if(player->_sprite.y() > _sprite.y()){ _sprite.set_z_order(player->_sprite.z_order() + 1);}
+    else{ _sprite.set_z_order(player->_sprite.z_order() - 1);}
+
     _animation.update();
     
     if(player->get_state() == State::NORMAL){

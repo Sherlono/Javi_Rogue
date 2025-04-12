@@ -29,21 +29,14 @@
 namespace jv::game{
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
-    intro1_bg.set_priority(0);
     intro1_bg.set_blending_enabled(true);
     bn::blending::set_fade_alpha(0);
     
-    for(int i = 0; i < 390; i++){
-        if(i < 60){
-            bn::blending::set_fade_alpha(bn::min(1-bn::fixed(i)/60, bn::fixed(1)));
-        }else if(i >= 240 && i <= 300){
-            bn::blending::set_fade_alpha(bn::max((bn::fixed(i)-240)/60, bn::fixed(0)));
-        }
-        bn::core::update();
-        jv::resetcombo();
-    }
+    jv::fade(true);
+    for(int i = 0; i < 180; i++){ bn::core::update();}
+    jv::fade(false);
+
     bn::blending::set_fade_alpha(0);
-    intro1_bg.set_blending_enabled(false);
 }
     
 void start_scene(bn::random& randomizer, char& option){
@@ -57,9 +50,9 @@ void start_scene(bn::random& randomizer, char& option){
     bn::vector<bn::sprite_ptr, 64> v_text;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
-    text_generator.generate(-98, -16 + y_offset, "Select scene", v_text);
-    text_generator.generate(-100, 0 + y_offset,  "Start game", v_text);
-    text_generator.generate(-100, 8 + y_offset,  "Tile Showcase", v_text);
+    text_generator.generate(-98, y_offset - 16, "Select scene", v_text);
+    text_generator.generate(-100, y_offset,  "Start game", v_text);
+    text_generator.generate(-100, y_offset + 8,  "Tile Showcase", v_text);
 
     for(bn::sprite_ptr s : v_text){ s.set_blending_enabled(true);}
 
@@ -67,10 +60,13 @@ void start_scene(bn::random& randomizer, char& option){
     cursor.set_bg_priority(1);
     cursor.set_blending_enabled(true);
     
-    for(int i = 0; (1 - bn::fixed(i)/fadespeed::MEDIUM) >= 0; i++){
-        bn::blending::set_fade_alpha(bn::max(1 - bn::fixed(i)/60, bn::fixed(0)));
-        bg.set_y(bg.y() + bn::fixed(0.25));
-        if(bg.y() == 42){ bg.set_y(-54);}
+    bn::fixed fadeProgress = 1.0, scrollSpeed = 0.25, start_y = -54, end_y = start_y + 96;
+    
+    for(int i = 0; fadeProgress >= 0; i++){
+        fadeProgress = 1 - bn::fixed(i)/fadespeed::MEDIUM;
+        bn::blending::set_fade_alpha(bn::max(fadeProgress, bn::fixed(0)));
+        bg.set_y(bg.y() + scrollSpeed);
+        if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
     
@@ -85,15 +81,16 @@ void start_scene(bn::random& randomizer, char& option){
 
         jv::resetcombo();
         randomizer.update();
-        bg.set_y(bg.y() + bn::fixed(0.25));
-        if(bg.y() == 42){ bg.set_y(-54);}
+        bg.set_y(bg.y() + scrollSpeed);
+        if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
     
-    for(int i = 0; bn::fixed(i)/fadespeed::MEDIUM <= 1; i++){
-        bn::blending::set_fade_alpha(bn::min(bn::fixed(i)/60, bn::fixed(1)));
-        bg.set_y(bg.y() + bn::fixed(0.25));
-        if(bg.y() == 42){ bg.set_y(-54);}
+    for(int i = 0; fadeProgress <= 1; i++){
+        fadeProgress = bn::fixed(i)/fadespeed::MEDIUM;
+        bn::blending::set_fade_alpha(bn::min(fadeProgress, bn::fixed(1)));
+        bg.set_y(bg.y() + scrollSpeed);
+        if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
 
@@ -194,8 +191,8 @@ void game_scene(bn::random& randomizer){
         // Fade in
         jv::fade(v_sprts, v_bgs, true);
         
-        //BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
-        //BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+        BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
 
         while(!next_level){
             if(cat.is_alive()){
@@ -217,8 +214,6 @@ void game_scene(bn::random& randomizer){
             for(int i = 0; i < npcCount; i++){
                 v_npcs[i].update(&cat);
             }
-        
-            jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
 
             if(cat.is_alive()){
                 if(bn::keypad::select_pressed()){ Debug::Start(options, v_sprts, v_bgs);}
@@ -229,9 +224,10 @@ void game_scene(bn::random& randomizer){
                 }
                 gameover_delay++;
             }
+        
+            jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
 
-            jv::z_sort(v_sprts);
-            //jv::Log_skipped_frames();
+            jv::Log_skipped_frames();
             jv::resetcombo();
             bn::core::update();
         }
