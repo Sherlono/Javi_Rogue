@@ -20,6 +20,8 @@ namespace {
                        T_COUNT = 98;                // Number of Total Tiles
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
+
+    constexpr bool NoLogs = false;       // Turns all BN_LOG call functionality off
 }
 
 namespace jv::frames{

@@ -155,10 +155,12 @@ void Start(auto& options, bn::vector<bn::sprite_ptr, 128>& sprts, bn::vector<bn:
     }
 
     // Print debug values
-    for(int i = 0; i < options.size(); i++){
-        if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
-        else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}
-        else if(options[i].is_Bool()){ BN_LOG(options[i].text(), ": ", options[i].getBool());}
+    if(!NoLogs){
+        for(int i = 0; i < options.size(); i++){
+            if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
+            else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}
+            else if(options[i].is_Bool()){ BN_LOG(options[i].text(), ": ", options[i].getBool());}
+        }
     }
 }
 

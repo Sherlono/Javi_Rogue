@@ -63,9 +63,9 @@ void start_scene(bn::random& randomizer, char& option){
     cursor.set_blending_enabled(true);
     
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
-    bn::string_view explain_text[3][5] = {{"", "A: Talk", "B: Attack", "Select: Debug", ""},
-                                          {"A: Select tile", "L: Copy tile", "R: Paste tile", "Select: Hide index", "Start: Print to log"},
-                                          {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "", ""}};
+    bn::string_view explain_text[3][5] = {{"", "A: Talk", "B: Attack", "SELECT: Debug menu"},
+                                          {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
+                                          {"", "L: Next highlighted tile", "R: Prev. highlighted tile"}};
 
     int x_offset = -16;
     y_offset = 40;
@@ -147,8 +147,8 @@ void game_scene(bn::random& randomizer){
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
-    uchar_t blockArrfinal[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
+    uchar_t tiles_arr[cellCount*16];
+    game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     int level = 2;
     bool game_over = false;
 
@@ -217,8 +217,10 @@ void game_scene(bn::random& randomizer){
         // Fade in
         jv::fade(v_sprts, v_bgs, true);
         
-        BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
-        BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        if(!NoLogs){
+            BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
+            BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        }
 
         while(!next_level){
             if(cat.is_alive()){
@@ -253,7 +255,7 @@ void game_scene(bn::random& randomizer){
         
             jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
 
-            jv::Log_skipped_frames();
+            if(!NoLogs){ jv::Log_skipped_frames();}
             jv::resetcombo();
             bn::core::update();
         }

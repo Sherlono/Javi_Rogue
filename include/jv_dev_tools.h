@@ -5,6 +5,7 @@
 
 #include "jv_actors.h"
 #include "jv_interface.h"
+#include "jv_constants.h"
 #include "jv_level_maker.h"
 
 #include "bn_sprite_items_cursor.h"
@@ -43,8 +44,8 @@ void blocks_scene(){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     // *** Level Generation ***
-    uchar_t blockArrfinal[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
+    uchar_t tiles_arr[cellCount*16];
+    game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
     jv::LevelFactory(map1, 0);
 
@@ -85,15 +86,15 @@ void blocks_scene(){
                 cam.set_y(cam.y() - 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = blockArrfinal[_x + _y*map1.x()];
+                current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
                 else{ cursor.set_palette(palette2);}    
-            }else if(bn::keypad::down_pressed() && _y < height*4){
+            }else if(bn::keypad::down_pressed() && _y < height*4 - 1){
                 _y++;
                 cam.set_y(cam.y() + 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = blockArrfinal[_x + _y*map1.x()];
+                current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
                 else{ cursor.set_palette(palette2);}
             }
@@ -102,7 +103,7 @@ void blocks_scene(){
                 cam.set_x(cam.x() - 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = blockArrfinal[_x + _y*map1.x()];
+                current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
                 else{ cursor.set_palette(palette2);}
             }else if(bn::keypad::right_pressed() && _x < width*4 - 1){
@@ -110,35 +111,36 @@ void blocks_scene(){
                 cam.set_x(cam.x() + 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = blockArrfinal[_x + _y*map1.x()];
+                current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
                 else{ cursor.set_palette(palette2);}
             }
             
-            current_tile = blockArrfinal[_x + _y*map1.x()];
+            current_tile = tiles_arr[_x + _y*map1.x()];
 
             // Show block values in logging tool
-            if(bn::keypad::start_pressed()){
-                int start_x = (_x/8)*8, start_y = (_y/4)*4;
-                BN_LOG("block: ", current_block);
-                for(int y = start_y; y < start_y + 4; y++){
-                    bn::string_view line = "";
-                    for(int x = start_x; x < start_x + 4; x++){
-                        line = line + bn::to_string<32>(blockArrfinal[x + y*map1.x()]) + ", ";
+            if(!NoLogs){
+                if(bn::keypad::start_pressed()){
+                    int start_x = (_x/8)*8, start_y = (_y/4)*4;
+                    BN_LOG("block: ", current_block);
+                    for(int y = start_y; y < start_y + 4; y++){
+                        bn::string_view line = "";
+                        for(int x = start_x; x < start_x + 4; x++){
+                            line = line + bn::to_string<32>(tiles_arr[x + y*map1.x()]) + ((1 + x - start_x) + 4*(y - start_y) != 16 ? ", " : "");
+                        }
+                        BN_LOG(line);
                     }
-                    BN_LOG(line);
                 }
-
             }
         }else{  // Change tile
-            current_tile = blockArrfinal[_x + _y*map1.x()];
+            current_tile = tiles_arr[_x + _y*map1.x()];
             if(bn::keypad::up_pressed()){
-                blockArrfinal[_x + _y*map1.x()] = current_tile + 1;
-                blockArrfinal[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile + 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
+                tiles_arr[_x + _y*map1.x()] = current_tile + 1;
+                tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile + 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
             }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
-                blockArrfinal[_x + _y*map1.x()] = current_tile - 1;
-                blockArrfinal[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile - 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
+                tiles_arr[_x + _y*map1.x()] = current_tile - 1;
+                tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile - 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
             }
         }
@@ -152,11 +154,12 @@ void blocks_scene(){
             selected = !selected;
             arrowDown.set_visible(!arrowDown.visible());
             arrowUp.set_visible(!arrowUp.visible());
-        }else if(bn::keypad::l_pressed()){
+        }else if(bn::keypad::l_pressed()){                          // Copy
             tile_copy = current_tile;
-        }else if(bn::keypad::r_pressed()){
-            blockArrfinal[_x + _y*map1.x()] = tile_copy;
-                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+        }else if(bn::keypad::r_pressed() && bamod(_x/4, 2) == 0){   // Paste
+            tiles_arr[_x + _y*map1.x()] = tile_copy;
+            tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = tile_copy + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
+            jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
         }
 
 
@@ -183,8 +186,8 @@ void tile_scene(){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     // *** Level Generation ***
-    uchar_t blockArrfinal[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
+    uchar_t tiles_arr[cellCount*16];
+    game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
     jv::LevelFactory(map1, 0);
 
@@ -246,7 +249,7 @@ void tile_scene(){
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
                     if(map1.cell(x, y) == current_tile && x < width*4 && y < height*4){
-                        blockArrfinal[x + y*map1.x()] = 99;
+                        tiles_arr[x + y*map1.x()] = 126;
                     }
                 }
             }
@@ -259,7 +262,7 @@ void tile_scene(){
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
                     if(map1.cell(x, y) == current_tile && x < width*4 && y < height*4){
-                        blockArrfinal[x + y*map1.x()] = 99;
+                        tiles_arr[x + y*map1.x()] = 126;
                     }
                 }
             }
@@ -274,7 +277,7 @@ void tile_scene(){
                 for(int y = 0; y < map1.y(); y++){
                     for(int x = 0; x < map1.x(); x++){
                         if(map1.cell(x, y) == current_tile && x < width*4 && y < height*4){
-                            blockArrfinal[x + y*map1.x()] = 99;
+                            tiles_arr[x + y*map1.x()] = 126;
                         }
                     }
                 }

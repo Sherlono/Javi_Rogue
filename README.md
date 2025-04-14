@@ -8,4 +8,4 @@ My best attempt at a real time action roguelike rpg for the GBA.<br>
 * Rpg story progression.
 * "Recursive level progression."
 
-<img src="javi-rogue-0.png" width=50%>
+<img src="Javi_Rogue-0.png" width=50%>
