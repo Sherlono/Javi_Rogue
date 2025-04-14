@@ -63,7 +63,7 @@ void start_scene(bn::random& randomizer, char& option){
     cursor.set_blending_enabled(true);
     
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
-    bn::string_view explain_text[3][5] = {{"", "A: Talk", "B: Attack", "SELECT: Debug menu"},
+    bn::string_view explain_text[3][5] = {{"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
                                           {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
                                           {"", "L: Next highlighted tile", "R: Prev. highlighted tile"}};
 
