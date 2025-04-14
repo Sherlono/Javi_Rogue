@@ -249,6 +249,21 @@ void game_scene(bn::random& randomizer){
 void blocks_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
+    
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(9, 0);
+    cursor.set_bg_priority(1);
+    bn::sprite_ptr arrowDown = bn::sprite_items::cursor.create_sprite(0, 8);
+    arrowDown.set_bg_priority(1);
+    arrowDown.set_rotation_angle(90);
+    arrowDown.set_visible(false);
+    bn::sprite_ptr arrowUp = bn::sprite_items::cursor.create_sprite(-1, -8);
+    arrowUp.set_bg_priority(1);
+    arrowUp.set_rotation_angle(270);
+    arrowUp.set_visible(false);
+
+    int current_block = 0, current_tile = 0, _x = 0, _y = 0;
+    int tile_copy = 0;
+    bool selected = false;
 
     // Music
     bn::music_items::cyberrid.play(0.5);    // Neat little song courtesy of the butano team
@@ -270,13 +285,11 @@ void blocks_scene(){
     game_map map1(mapSize.x()*4, mapSize.y()*4, blockArrfinal);
     
     jv::LevelFactory(map1, 0);
-    // ************************
 
     // ******** Camera ********
-    bn::camera_ptr cam = bn::camera_ptr::create(120, 80);
+    bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
     background.set_camera(cam);
     level_bg.set_camera(cam);
-    // ************************
 
     // **** Number sprites ****
     bn::vector<bn::sprite_ptr, 128> sprts;
@@ -295,53 +308,80 @@ void blocks_scene(){
         sprite.set_camera(cam);
         sprts.push_back(sprite);
     }
-    // ************************
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
     while(true){
         // Movement
-        if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
-            // Move if dir not obstructed
-            if(bn::keypad::up_held()){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                bn::fixed target_y = cam.y() - 2*diagonal;
-                cam.set_position(cam.x(), target_y);
-            }else if(bn::keypad::down_held()){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                bn::fixed target_y = cam.y() + 2*diagonal;
-                cam.set_position(cam.x(), target_y);
+        if(!selected){
+            if(bn::keypad::up_pressed() && _y > 0){
+                _y--;
+                cam.set_y(cam.y() - 8);
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                current_block = _x/8 + (_y*mapSize.x()/80)*6;
+                current_tile = blockArrfinal[_x + _y*map1.x()];
+            }else if(bn::keypad::down_pressed() && _y < height*4){
+                _y++;
+                cam.set_y(cam.y() + 8);
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                current_block = _x/8 + (_y*mapSize.x()/80)*6;
+                current_tile = blockArrfinal[_x + _y*map1.x()];
             }
-            if(bn::keypad::left_held()){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                bn::fixed target_x = cam.x() - 2*diagonal;
-                cam.set_position(target_x, cam.y());
-            }else if(bn::keypad::right_held()){
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                bn::fixed target_x = cam.x() + 2*diagonal;
-                cam.set_position(target_x, cam.y());
+            if(bn::keypad::left_pressed() && _x > 0){
+                _x--;
+                cam.set_x(cam.x() - 8);
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                current_block = _x/8 + (_y*mapSize.x()/80)*6;
+                current_tile = blockArrfinal[_x + _y*map1.x()];
+            }else if(bn::keypad::right_pressed() && _x < width*4 - 1){
+                _x++;
+                cam.set_x(cam.x() + 8);
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                current_block = _x/8 + (_y*mapSize.x()/80)*6;
+                current_tile = blockArrfinal[_x + _y*map1.x()];
+            }
+            
+            current_tile = blockArrfinal[_x + _y*map1.x()];
+
+            if(bn::keypad::start_pressed()){
+                int start_x = (_x/4)*4, start_y = (_y/4)*4;
+                BN_LOG("block: ", current_block);
+                for(int y = start_y; y < start_y + 4; y++){
+                    bn::string_view line = "";
+                    for(int x = start_x; x < start_x + 4; x++){
+                        line = line + bn::to_string<32>(blockArrfinal[x + y*map1.x()]) + ", ";
+                    }
+                    BN_LOG(line);
+                }
+
+            }
+        }else{
+            current_tile = blockArrfinal[_x + _y*map1.x()];
+            if(bn::keypad::up_pressed()){
+                blockArrfinal[_x + _y*map1.x()] = current_tile + 1;
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+            }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
+                blockArrfinal[_x + _y*map1.x()] = current_tile - 1;
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
             }
         }
 
-        if(cam.x() > width*32){
-            cam.set_position(width*32, cam.y());
-        }else if(cam.x() < -16){
-            cam.set_position(-16, cam.y());
-        }
-        if(cam.y() > (height - 1)*32){
-            cam.set_position(cam.x(), (height - 1)*32);
-        }else if(cam.y() < -16){
-            cam.set_position(cam.x(), -16);
-        }
-        
-        jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
-        if(bn::keypad::a_pressed()){
+        if(bn::keypad::select_pressed()){
             for(bn::sprite_ptr sprite : numbers){
                 sprite.set_visible(!sprite.visible());
             }
+        }else if(bn::keypad::a_pressed()){
+            selected = !selected;
+            arrowDown.set_visible(!arrowDown.visible());
+            arrowUp.set_visible(!arrowUp.visible());
+        }else if(bn::keypad::l_pressed()){
+            tile_copy = current_tile;
+        }else if(bn::keypad::r_pressed()){
+            blockArrfinal[_x + _y*map1.x()] = tile_copy;
+                jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
         }
-        
-        //jv::Log_skipped_frames();
+
+
         jv::resetcombo();
         bn::core::update();
     }

@@ -15,7 +15,9 @@ namespace {
     constexpr uchar_t F_COUNT = 22,                 // Number of Floor Blocks [0,21]
                        W_COUNT = 43 - F_COUNT + 1,  // Number of Wall Blocks [22,43]
                        B_COUNT = F_COUNT + W_COUNT, // Total Blocks
-                       WT_COUNT = 46;               // Number of Walkable Tiles
+                       WT_COUNT = 46,               // Number of Walkable Tiles
+                       NWT_COUNT = 52,              // Number of Not Walkable Tiles
+                       T_COUNT = 98;                // Number of Total Tiles
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 }
