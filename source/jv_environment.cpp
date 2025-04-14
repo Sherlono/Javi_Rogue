@@ -8,9 +8,9 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
     switch(option){
         // Floor Tiles
         case 1:{
-            block_array = { 1,  2,  1, 15,
+            block_array = { 1,  1,  1, 15,
                             4,  5,  4, 36,
-                            1,  2,  1, 15,
+                            1,  1,  1, 15,
                             4,  5,  4, 36};
             break;
         }
@@ -40,23 +40,23 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
             break;
         }
         case 5:{
-            block_array = {  1,  2, 16, 15,
+            block_array = {  1,  1, 16, 15,
                             26, 27, 36, 36,
                             15, 15, 15, 15,
                             36, 35, 36, 36};
             break;
         }
         case 6:{
-            block_array = {  8,  2, 18, 16,
+            block_array = {  8,  1,  2, 16,
                              4, 26, 27, 36,
                             17, 15,  7, 15,
                             36, 35, 36, 36};
             break;
         }
         case 7:{
-            block_array = { 1,  2,  2,  1,
+            block_array = { 1,  1,  1,  1,
                             4,  5,  5,  4,
-                            1,  2,  2,  1,
+                            1,  1,  1,  1,
                             4,  5,  5,  4};
             block_array[2] += 127;
             block_array[3] += 127;
@@ -76,9 +76,9 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
             break;
         }
         case 9:{
-            block_array = {  1,  2,  1, 15,
+            block_array = {  1,  1,  1, 15,
                              4,  5,  4, 36,
-                             1,  2, 16, 15,
+                             1,  1, 16, 15,
                             26, 27, 36, 36 };
             break;
         }
@@ -102,7 +102,7 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
         case 12:{
             block_array = { 15, 15,  7, 15,
                             41, 35, 36, 41, 
-                             3, 20, 19,  3, 
+                            14, 20, 19,  3, 
                             39, 40, 28, 29};
             block_array[7] += 127;
             block_array[11] += 127;
@@ -119,28 +119,28 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
             block_array = { 15, 15,  7, 15,
                             41, 35, 36, 36, 
                              1, 21, 22, 15, 
-                            42, 43, 44, 45};
+                            42, 43,  4, 45};
             break;
         }
         case 15:{
             block_array = {  1, 21, 22, 15,
-                            30, 31, 44, 45,
+                            30, 31,  4, 45,
                             37, 38,  3,  6,
                             90, 90, 33, 34};
             break;
         }
         case 16:{
             block_array = { 37, 38,  3,  6, 
-                            89, 89, 33, 38, 
+                            89, 89, 33, 34, 
                             93, 94, 89, 89, 
                              0,  0, 93, 94};
             break;
         }
         case 17:{
-            block_array = {  1,  2,  1, 15,
+            block_array = {  1,  1,  1, 15,
                             30, 31, 25, 45, 
                             37, 38,  3,  6,
-                            89, 89, 33, 38};
+                            89, 89, 33,  3};
             break;
         }
         case 18:{
@@ -165,9 +165,9 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
             break;
         }
         case 21:{
-            block_array = { 23, 24,  1, 16,
+            block_array = {  1, 24,  1, 16,
                              4,  5,  4, 36,
-                             1,  2,  1, 15,
+                             1,  1,  1, 15,
                              4,  5,  4, 36 };
             break;
         }
@@ -383,7 +383,7 @@ void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option,
             block_array[13] += 127;
             break;
         }
-        // ********************************
+        // ******************************** 14, 18, 23, 44, 
         default:{
             block_array = { 0,  0,  0,  0,
                             0,  0,  0,  0,

@@ -16,6 +16,7 @@ int main()
     while(true){
         jv::game::start_scene(randomizer, option);
         if(option == 1){ jv::game::blocks_scene();}
+        if(option == 2){ jv::game::tile_scene();}
         jv::game::game_scene(randomizer);
     }
 }
