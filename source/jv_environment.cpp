@@ -4,7 +4,7 @@ namespace jv{
 // Make all block prefabs here
 void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
     uchar_t arr[16];
-    for(int i = 0; i < 16; i++){ arr[i] = jv::blocks::block_array[option][i];}
+    for(int i = 0; i < 16; i++){ arr[i] = jv::blocks::block_array[option < B_COUNT ? option : 0][i];}
 
     game_map blk(4, 4, arr);
     map.insert_map(blk, top_left, blockFlip);
