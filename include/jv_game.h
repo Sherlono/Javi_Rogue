@@ -214,14 +214,16 @@ void game_scene(bn::random& randomizer){
         // Initialize level background
         jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
 
+        if(!NoLogs){
+            BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
+            BN_LOG("Alloc ewram: ", bn::memory::used_alloc_ewram(), " Static ewram: ", bn::memory::used_static_ewram());
+            BN_LOG("Rom: ", bn::memory::used_rom());
+            //BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        }
+
         // Fade in
         jv::fade(v_sprts, v_bgs, true);
         
-        if(!NoLogs){
-            BN_LOG("Stack memory: ", bn::memory::used_stack_iwram(), " Static memory: ", bn::memory::used_static_iwram());
-            BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
-        }
-
         while(!next_level){
             if(cat.is_alive()){
                 cat.update(val0);

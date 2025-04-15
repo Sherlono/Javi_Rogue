@@ -18,7 +18,7 @@ struct stairs{
     }
     bool climb(jv::Player& player){
         bool isOnStairs = player._rect.intersects(_rect) && bn::keypad::a_pressed();
-        if(!player.is_attacking() && isOnStairs){
+        if(player.get_state() == State::NORMAL && isOnStairs){
             return true;
         }else{
             return false;

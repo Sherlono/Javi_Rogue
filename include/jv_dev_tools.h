@@ -214,10 +214,12 @@ void tile_scene(){
         sprts.push_back(sprite);
     }
     
+    // ****** Other data ******
     int current_tile = 0, timer = 0;
     bool prev_toggle = false, toggle = false;
+    int x_offset = -110, y_offset = -70;
 
-    text_generator.generate(-110, -70, bn::to_string<3>(current_tile), tile_sprites);
+    text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
 
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
@@ -244,7 +246,7 @@ void tile_scene(){
         }else if(bn::keypad::l_pressed() && current_tile > 0){
             current_tile--;
             tile_sprites.clear();
-            text_generator.generate(-110, -70, bn::to_string<3>(current_tile), tile_sprites);
+            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
             jv::LevelFactory(map1, 0);
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
@@ -254,10 +256,10 @@ void tile_scene(){
                 }
             }
             jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
-        }else if(bn::keypad::r_pressed() && current_tile < 96){
+        }else if(bn::keypad::r_pressed() && current_tile < 126){
             current_tile++;
             tile_sprites.clear();
-            text_generator.generate(-110, -70, bn::to_string<3>(current_tile), tile_sprites);
+            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
             jv::LevelFactory(map1, 0);
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
