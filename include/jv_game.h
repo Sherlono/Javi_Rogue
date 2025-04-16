@@ -144,12 +144,12 @@ void game_scene(bn::random& randomizer){
     level_bg.set_priority(2);
 
     // ****** Level data ******
-    constexpr bn::point mapSize(20, 20);
+    constexpr bn::point mapSize(20, 22);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uchar_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
-    int level = 2;
+    int level = randomizer.get_int(1, 4);
     bool game_over = false;
 
     // ******** Camera ********
@@ -189,7 +189,7 @@ void game_scene(bn::random& randomizer){
 
         // Level generation
         jv::LevelFactory(map1, level);
-        level = level == 1 ? 2 : 1;
+        level = randomizer.get_int(1, 4);
 
         bn::vector<bn::point, 25> v_points;
         jv::random_coords(v_points, map1, randomizer);
@@ -225,9 +225,10 @@ void game_scene(bn::random& randomizer){
         jv::fade(v_sprts, v_bgs, true);
         
         while(!next_level){
+            bool objective = true;
             if(cat.is_alive()){
                 cat.update(val0);
-                next_level = stairs.climb(cat);
+                next_level = stairs.climb(cat.rect(), cat.get_state());
             }
             
             healthbar.update();
@@ -239,10 +240,11 @@ void game_scene(bn::random& randomizer){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
                 }*/
+               objective = objective && !v_enemies[i].is_alive();
             }
 
             for(int i = 0; i < npcCount; i++){
-                v_npcs[i].update(&cat);
+                v_npcs[i].update(&cat, stairs, objective);
             }
 
             if(cat.is_alive()){
@@ -266,6 +268,7 @@ void game_scene(bn::random& randomizer){
         jv::fade(v_sprts, v_bgs, false, cat.is_alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
 
         // Reset Stuff
+        stairs.set_open(false);
         cat.reset();
         v_npcs.clear();
         v_points.clear();

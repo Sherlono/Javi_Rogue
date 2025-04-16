@@ -78,7 +78,7 @@ void Enemy::update(jv::Player* player, bool isInvul){
 }
 
 // ************** NPC **************
-void NPC::update(jv::Player* player){
+void NPC::update(jv::Player* player, jv::stairs& stairs, bool objective){
     if(player->_sprite.y() > _sprite.y()){ _sprite.set_z_order(player->_sprite.z_order() + 1);}
     else{ _sprite.set_z_order(player->_sprite.z_order() - 1);}
 
@@ -87,7 +87,14 @@ void NPC::update(jv::Player* player){
     if(player->get_state() == State::NORMAL){
         // Dialog
         if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-            jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+            if(!objective){
+                jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+            }else{
+                jv::Dialog::init("Thanks for getting rid of the evil", "cats! The stairs are open now!");
+                if(!stairs.isOpen){
+                    stairs.set_open(objective);
+                }
+            }
         }
     }
 }

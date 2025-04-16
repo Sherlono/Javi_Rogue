@@ -11,6 +11,7 @@
 #include "bn_blending_actions.h"
 
 #include "jv_math.h"
+#include "jv_stairs.h"
 #include "jv_dialog.h"
 #include "jv_constants.h"
 #include "jv_environment.h"
@@ -18,7 +19,9 @@
 #include "bn_sprite_items_enemy.h"
 #include "bn_sprite_items_cow.h"
 
+
 namespace jv{
+struct stairs;
 
 struct basic_stats{
     basic_stats(int maxhp, int att, int def, bn::fixed spe): max_hp(maxhp), hp(maxhp), attack(att), defense(def), speed(spe){}
@@ -405,12 +408,23 @@ public:
     }
     // Setters
 
-    void update(jv::Player* player);
+    void update(jv::Player* player, jv::stairs& stairs, bool objective);
     
 private:
 
 };
     
+}
+
+
+    
+bool jv::stairs::climb(bn::rect playerRect, bool playerState){
+    bool isOnStairs = playerRect.intersects(_rect) && bn::keypad::a_pressed();
+    if(isOpen && playerState == State::NORMAL && isOnStairs){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 #endif

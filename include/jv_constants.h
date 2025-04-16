@@ -21,13 +21,13 @@ namespace {
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
-    constexpr bool NoLogs = false;       // Turns all BN_LOG call functionality off
+    constexpr bool NoLogs = true;       // Turns all BN_LOG call functionality off
 }
 
 namespace jv::fadespeed{
-    constexpr unsigned char FAST = 30;
-    constexpr unsigned char MEDIUM = 60;
-    constexpr unsigned char SLOW = 120;
+    constexpr unsigned char FAST = 30;      // Half a second fade
+    constexpr unsigned char MEDIUM = 60;    // One second fade
+    constexpr unsigned char SLOW = 120;     // Two seconds fade
 }
 
 namespace jv::frames{
