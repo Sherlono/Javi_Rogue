@@ -21,7 +21,7 @@ namespace {
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
-    constexpr bool NoLogs = true;       // Turns all BN_LOG call functionality off
+    constexpr bool NoLogs = false;       // Turns all BN_LOG call functionality off
 }
 
 namespace jv::fadespeed{
@@ -241,10 +241,10 @@ namespace jv::blocks{
             46, 47, 174, 173, 
             48, 49, 176, 175 },
         // block 39
-        {82+127, 81+127, 81, 82,
-            84+127, 83+127, 83, 84,
-            46+127, 47+127, 47, 46,
-            48+127, 49+127, 49, 48},
+        {209, 208, 81, 82, 
+            211, 210, 83, 84, 
+            46, 47, 174, 173, 
+            48, 49, 176, 175},
         // block 40
         { 90, 90, 90, 90,
             90, 90, 90, 90,

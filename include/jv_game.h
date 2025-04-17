@@ -65,7 +65,7 @@ void start_scene(bn::random& randomizer, char& option){
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
     bn::string_view explain_text[3][5] = {{"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
                                           {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
-                                          {"", "L: Next highlighted tile", "R: Prev. highlighted tile"}};
+                                          {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}};
 
     int x_offset = -16;
     y_offset = 40;
@@ -150,7 +150,8 @@ void game_scene(bn::random& randomizer){
     uchar_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     int level = randomizer.get_int(1, 4);
-    bool game_over = false;
+    bool next_level = false, game_over = false;
+    int gameover_delay = 0;
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
@@ -168,9 +169,10 @@ void game_scene(bn::random& randomizer){
     // ****** Debug data ******
     bool val0 = false;
     bool val1 = false;
-    bn::vector<jv::menu_option, 2> options;
+    bn::vector<jv::menu_option, 3> options;
     options.push_back(jv::menu_option(&val0, "Noclip"));
     options.push_back(jv::menu_option(&val1, "Invuln."));
+    options.push_back(jv::menu_option(&next_level, "Next level"));
 
     bn::vector<bn::sprite_ptr, 128> v_sprts;
     v_sprts.push_back(stairs._sprite);
@@ -184,8 +186,8 @@ void game_scene(bn::random& randomizer){
     v_bgs.push_back(level_bg);
     
     while(!game_over){
-        bool next_level = false;
-        int gameover_delay = 0;
+        next_level = false;
+        gameover_delay = 0;
 
         // Level generation
         jv::LevelFactory(map1, level);
