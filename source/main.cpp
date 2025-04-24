@@ -1,5 +1,4 @@
 #include "bn_core.h"
-#include "bn_log.h"
 #include "bn_music_items.h"
 #include "bn_regular_bg_ptr.h"
 
@@ -11,7 +10,7 @@ int main()
     bn::core::init();
     bn::random randomizer;
     char option = 0;
-
+    
     jv::game::intro_scene();
 
     while(true){

@@ -30,8 +30,8 @@ void Player::update(bool noClip){
 // ************* Enemy *************
 void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
     int halfWidth = 16, halfHeight = 16;
-    bool up = _y > cam.y() - 80 - halfHeight, down = _y < cam.y() + 80 + halfHeight;
-    bool left = _x > cam.x() - 120 - halfWidth, right = _x < cam.x() + 120 + halfWidth;
+    bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
+    bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
     bool onScreen = left && right && up && down;
     if(!onScreen){
         if(_sprite){
@@ -40,7 +40,7 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
         }
     }else if(!_sprite){
         bn::sprite_builder builder(bn::sprite_items::enemy);
-        builder.set_position(_x, _y - 8);
+        builder.set_position(this->int_x(), this->int_y() - 8);
         builder.set_camera(cam);
         builder.set_bg_priority(1);
         builder.set_blending_enabled(true);
@@ -68,7 +68,7 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
                 }
             }else{
                 move();
-                if(_idle_time == 30 && _dir < 9){ attack();}
+                if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
                 if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
                     insert_animation(frames::w_up, frames::w_ho, frames::w_do);
                 }
@@ -105,8 +105,8 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
 // ************** NPC **************
 void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective){
     int halfWidth = 16, halfHeight = 16;
-    bool up = _y > cam.y() - 80 - halfHeight, down = _y < cam.y() + 80 + halfHeight;
-    bool left = _x > cam.x() - 120 - halfWidth, right = _x < cam.x() + 120 + halfWidth;
+    bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
+    bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
     bool onScreen = left && right && up && down;
     if(!onScreen){
         if(_sprite){
@@ -115,7 +115,7 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
         }
     }else if(!_sprite){
         bn::sprite_builder builder(bn::sprite_items::cow);
-        builder.set_position(_x, _y - 8);
+        builder.set_position(this->int_x(), this->int_y() - 8);
         builder.set_camera(cam);
         builder.set_bg_priority(1);
         builder.set_blending_enabled(true);

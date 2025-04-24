@@ -1,7 +1,6 @@
 #ifndef JV_INTERFACE_H
 #define JV_INTERFACE_H
 
-#include "bn_log.h"
 #include "bn_core.h"
 #include "bn_vector.h"
 #include "bn_random.h"
@@ -10,18 +9,33 @@
 
 #include "jv_environment.h"
 
+#if LOGS_ENABLED
+    #include "bn_log.h"
+    static_assert(LOGS_ENABLED, "Log is not enabled");
+#endif
+
 namespace jv{
 inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
 
 inline void Log_skipped_frames(){
-    int skipped = bn::core::last_missed_frames();
-    if(skipped != 0){
-        BN_LOG("******************");
-        BN_LOG("Frames skipped: ", skipped);
-        BN_LOG("******************");
-    }
+    #if LOGS_ENABLED
+        int skipped = bn::core::last_missed_frames();
+        if(skipped != 0){
+            BN_LOG("******************");
+            BN_LOG("Frames skipped: ", skipped);
+            BN_LOG("******************");
+        }
+    #endif
+}
+inline void Log_resources(){
+    #if LOGS_ENABLED
+        BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
+        BN_LOG("Alloc ewram: ", bn::memory::used_alloc_ewram(), " Static ewram: ", bn::memory::used_static_ewram());
+        //BN_LOG("Rom: ", bn::memory::used_rom());
+        BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+    #endif
 }
 
 void random_coords(auto& points_out, game_map& map, bn::random& randomizer){

@@ -1,7 +1,6 @@
 #ifndef JV_GAME_H
 #define JV_GAME_H
 
-#include "bn_log.h"
 #include "bn_vector.h"
 
 #include "bn_memory.h"
@@ -125,7 +124,10 @@ void start_scene(bn::random& randomizer, char& option){
 }
 
 void game_scene(bn::random& randomizer){
+    // Text generator
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
+    text_generator.set_bg_priority(0);
+    text_generator.set_blending_enabled(true);
 
     // Music
     bn::music_items::cyberrid.play(0.25);    // Neat little song courtesy of the butano team
@@ -174,7 +176,7 @@ void game_scene(bn::random& randomizer){
     // ****** Debug data ******
     bool val0 = false;
     bool val1 = false;
-    bn::vector<jv::menu_option, 3> options;
+    bn::vector<jv::menu_option, 5> options;
     options.push_back(jv::menu_option(&val0, "Noclip"));
     options.push_back(jv::menu_option(&val1, "Invuln."));
     options.push_back(jv::menu_option(&next_level, "Next level"));
@@ -198,9 +200,9 @@ void game_scene(bn::random& randomizer){
         jv::random_coords(v_points, mainGameMap, randomizer);
 
         // Reposition universal entities
-        cam.set_position(v_points[0].x(), v_points[0].y());
-        cat.set_position(v_points[0].x(), v_points[0].y());
-        stairs.set_position(v_points[1].x(), v_points[1].y());
+        cam.set_position(v_points[0]);
+        cat.set_position(v_points[0]);
+        stairs.set_position(v_points[1]);
 
         // Populate level
         v_npcs.push_back(jv::NPC(v_points[2].x(), v_points[2].y(), cam));
@@ -211,21 +213,12 @@ void game_scene(bn::random& randomizer){
         }
         int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
         
-        text_generator.generate(64, -70, "Floor " + bn::to_string<8>(floor), v_sprts);
-        for(bn::sprite_ptr sprite : v_sprts){
-            sprite.set_bg_priority(0);
-            sprite.set_blending_enabled(true);
-        }
+        text_generator.generate(64, -70, "Floor " + bn::to_string<10>(floor), v_sprts);
 
         // Initialize level background
         jv::LevelMaker::init(cam, mainGameMap, bg_map_ptr, bg_map);
 
-        if(!NoLogs){
-            BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
-            BN_LOG("Alloc ewram: ", bn::memory::used_alloc_ewram(), " Static ewram: ", bn::memory::used_static_ewram());
-            BN_LOG("Rom: ", bn::memory::used_rom());
-            BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
-        }
+        jv::Log_resources();
 
         // Fade in
         jv::fade(true);
@@ -263,7 +256,7 @@ void game_scene(bn::random& randomizer){
             
             jv::LevelMaker::update(cam, mainGameMap, bg_map_ptr, bg_map);
 
-            if(!NoLogs){ jv::Log_skipped_frames();}
+            jv::Log_skipped_frames();
             jv::resetcombo();
             bn::core::update();
         }

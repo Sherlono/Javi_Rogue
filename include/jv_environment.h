@@ -1,7 +1,6 @@
 #ifndef JV_ENVIRONMENT_H
 #define JV_ENVIRONMENT_H
 
-#include "bn_log.h"
 #include "bn_math.h"
 #include "bn_vector.h"
 #include "bn_random.h"

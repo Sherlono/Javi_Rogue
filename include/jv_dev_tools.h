@@ -11,6 +11,11 @@
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
 
+#if LOGS_ENABLED
+    #include "bn_log.h"
+    static_assert(LOGS_ENABLED, "Log is not enabled");
+#endif
+
 namespace jv::dev{
     
 void blocks_scene(){
@@ -119,7 +124,7 @@ void blocks_scene(){
             current_tile = tiles_arr[_x + _y*map1.x()];
 
             // Show block values in logging tool
-            if(!NoLogs){
+            #if LOGS_ENABLED
                 if(bn::keypad::start_pressed()){
                     int start_x = (_x/8)*8, start_y = (_y/4)*4;
                     BN_LOG("block: ", current_block);
@@ -131,7 +136,7 @@ void blocks_scene(){
                         BN_LOG(line);
                     }
                 }
-            }
+            #endif
         }else{  // Change tile
             current_tile = tiles_arr[_x + _y*map1.x()];
             if(bn::keypad::up_pressed()){

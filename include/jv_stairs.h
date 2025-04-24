@@ -21,6 +21,10 @@ struct stairs{
         _sprite.set_position(x, y);
         _rect.set_position(x, y);
     }
+    void set_position(bn::point p){
+        _sprite.set_position(p);
+        _rect.set_position(p);
+    }
     void set_open(bool open){
         isOpen = open;
         if(open){

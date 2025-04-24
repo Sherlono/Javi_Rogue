@@ -21,7 +21,9 @@ namespace {
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
-    constexpr bool NoLogs = false;       // Turns all BN_LOG call functionality off
+    #ifndef LOGS_ENABLED
+        #define LOGS_ENABLED true       // Turns all BN_LOG call functionality off
+    #endif
 }
 
 namespace jv::fadespeed{
