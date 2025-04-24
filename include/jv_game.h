@@ -133,8 +133,10 @@ void game_scene(bn::random& randomizer){
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_priority(3);
+    background.set_blending_enabled(true);
     bn::regular_bg_ptr hud = bn::regular_bg_items::hud_item.create_bg(0, 0);
     hud.set_priority(0);
+    hud.set_blending_enabled(true);
 
     bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
     bn::regular_bg_item bg_item(
@@ -142,16 +144,19 @@ void game_scene(bn::random& randomizer){
     bn::regular_bg_ptr level_bg = bg_item.create_bg(0, 0);
     bn::regular_bg_map_ptr bg_map = level_bg.map();
     level_bg.set_priority(2);
+    level_bg.set_blending_enabled(true);
 
     // ****** Level data ******
     constexpr bn::point mapSize(20, 22);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uchar_t tiles_arr[cellCount*16];
-    game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
+    game_map mainGameMap(mapSize.x()*4, mapSize.y()*4, tiles_arr);
+
     int level = randomizer.get_int(1, 4);
-    bool next_level = false, game_over = false;
+    int floor = 0;
     int gameover_delay = 0;
+    bool next_level = false, game_over = false, objective = true;
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
@@ -159,7 +164,7 @@ void game_scene(bn::random& randomizer){
     level_bg.set_camera(cam);
 
     // ** Universal entities **
-    jv::Player cat(0, 0, bn::sprite_items::character.create_sprite(0, 0), bn::sprite_items::character.tiles_item(), cam, &randomizer, &map1);
+    jv::Player cat(0, 0, cam, &randomizer, &mainGameMap);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
 
@@ -174,11 +179,7 @@ void game_scene(bn::random& randomizer){
     options.push_back(jv::menu_option(&val1, "Invuln."));
     options.push_back(jv::menu_option(&next_level, "Next level"));
 
-    bn::vector<bn::sprite_ptr, 128> v_sprts;
-    v_sprts.push_back(stairs._sprite);
-    v_sprts.push_back(healthbar.bar_sprite());
-    v_sprts.push_back(healthbar.corner_sprite());
-    v_sprts.push_back(cat._sprite);
+    bn::vector<bn::sprite_ptr, 9> v_sprts;
 
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
     v_bgs.push_back(background);
@@ -190,11 +191,11 @@ void game_scene(bn::random& randomizer){
         gameover_delay = 0;
 
         // Level generation
-        jv::LevelFactory(map1, level);
+        jv::LevelFactory(mainGameMap, level);
         level = randomizer.get_int(1, 4);
 
         bn::vector<bn::point, 25> v_points;
-        jv::random_coords(v_points, map1, randomizer);
+        jv::random_coords(v_points, mainGameMap, randomizer);
 
         // Reposition universal entities
         cam.set_position(v_points[0].x(), v_points[0].y());
@@ -202,32 +203,35 @@ void game_scene(bn::random& randomizer){
         stairs.set_position(v_points[1].x(), v_points[1].y());
 
         // Populate level
-        v_npcs.push_back(jv::NPC(v_points[2].x(), v_points[2].y(), bn::sprite_items::cow.create_sprite(0, 0), bn::sprite_items::cow.tiles_item(), cam));
+        v_npcs.push_back(jv::NPC(v_points[2].x(), v_points[2].y(), cam));
 
         unsigned char min_enemies = 3, max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
         for(int i = 0; i < max_enemies; i++){
-            v_enemies.push_back(jv::Enemy(v_points[3+i].x(), v_points[3+i].y(), bn::sprite_items::enemy.create_sprite(0, 0), bn::sprite_items::enemy.tiles_item(), cam, &randomizer, &map1));
+            v_enemies.push_back(jv::Enemy(v_points[3+i].x(), v_points[3+i].y(), cam, &randomizer, &mainGameMap));
         }
         int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
         
-        for(int i = 0; i < enemyCount; i++){ v_sprts.push_back(v_enemies[i]._sprite);}
-        for(int i = 0; i < npcCount; i++){ v_sprts.push_back(v_npcs[i]._sprite);}
-        
+        text_generator.generate(64, -70, "Floor " + bn::to_string<8>(floor), v_sprts);
+        for(bn::sprite_ptr sprite : v_sprts){
+            sprite.set_bg_priority(0);
+            sprite.set_blending_enabled(true);
+        }
+
         // Initialize level background
-        jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+        jv::LevelMaker::init(cam, mainGameMap, bg_map_ptr, bg_map);
 
         if(!NoLogs){
             BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
             BN_LOG("Alloc ewram: ", bn::memory::used_alloc_ewram(), " Static ewram: ", bn::memory::used_static_ewram());
             BN_LOG("Rom: ", bn::memory::used_rom());
-            //BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+            BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
         }
 
         // Fade in
-        jv::fade(v_sprts, v_bgs, true);
+        jv::fade(true);
         
         while(!next_level){
-            bool objective = true;
+            objective = true;
             if(cat.is_alive()){
                 cat.update(val0);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
@@ -236,7 +240,7 @@ void game_scene(bn::random& randomizer){
             healthbar.update();
 
             for(int i = 0; i < enemyCount; i++){
-                v_enemies[i].update(&cat, val1);
+                v_enemies[i].update(&cat, cam, val1);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_sprts.erase(v_sprts.begin() + 1 + i);
                     v_enemies.erase(v_enemies.begin() + i);
@@ -245,12 +249,10 @@ void game_scene(bn::random& randomizer){
                objective = objective && !v_enemies[i].is_alive();
             }
 
-            for(int i = 0; i < npcCount; i++){
-                v_npcs[i].update(&cat, stairs, objective);
-            }
+            for(int i = 0; i < npcCount; i++){ v_npcs[i].update(cat, cam, stairs, objective);}
 
             if(cat.is_alive()){
-                if(bn::keypad::select_pressed()){ Debug::Start(options, v_sprts, v_bgs);}
+                if(bn::keypad::select_pressed()){ Debug::Start(options);}
             }else{
                 if(gameover_delay == 120){
                     game_over = true;
@@ -258,16 +260,18 @@ void game_scene(bn::random& randomizer){
                 }
                 gameover_delay++;
             }
-        
-            jv::LevelMaker::update(cam, map1, bg_map_ptr, bg_map);
+            
+            jv::LevelMaker::update(cam, mainGameMap, bg_map_ptr, bg_map);
 
             if(!NoLogs){ jv::Log_skipped_frames();}
             jv::resetcombo();
             bn::core::update();
         }
-
+        
         // Fade out
-        jv::fade(v_sprts, v_bgs, false, cat.is_alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
+        jv::fade(false, cat.is_alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
+
+        floor--;
 
         // Reset Stuff
         stairs.set_open(false);
@@ -275,7 +279,7 @@ void game_scene(bn::random& randomizer){
         v_npcs.clear();
         v_points.clear();
         v_enemies.clear();
-        v_sprts.erase(v_sprts.begin() + 4, v_sprts.end());
+        v_sprts.clear();
 
         bn::core::update();
     }

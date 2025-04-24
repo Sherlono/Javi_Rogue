@@ -75,37 +75,6 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     delete[] valid_points;
 }
 
-inline void set_blending_enabled_bulk(bn::vector<bn::sprite_ptr, 128>& v_sprts, bn::vector<bn::regular_bg_ptr, 4>& v_bgs, bool Blend){
-    for(bn::sprite_ptr s : v_sprts){
-        s.set_blending_enabled(Blend);
-    }
-    for(bn::regular_bg_ptr b : v_bgs){
-        b.set_blending_enabled(Blend);
-    }
-
-}
-
-inline void fade(bn::vector<bn::sprite_ptr, 128>& v_sprts, bn::vector<bn::regular_bg_ptr, 4>& v_bgs, const bool fadeIn, const unsigned char speed = fadespeed::MEDIUM){
-    if(fadeIn){
-        jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
-        bn::fixed progress = 1.0;
-        for(int i = 0; progress >= 0; i++){
-            progress = 1 - bn::fixed(i)/speed;
-            bn::blending::set_fade_alpha(bn::max(progress, bn::fixed(0)));
-            bn::core::update();
-        }
-        jv::set_blending_enabled_bulk(v_sprts, v_bgs, false);
-    }else{
-        jv::set_blending_enabled_bulk(v_sprts, v_bgs, true);
-        bn::fixed progress = 0.0;
-        for(int i = 0; progress <= 1; i++){
-            progress = bn::fixed(i)/speed;
-            bn::blending::set_fade_alpha(bn::min(progress, bn::fixed(1)));
-            bn::core::update();
-        }
-    }
-}
-
 inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIUM){
     if(fadeIn){
         bn::fixed progress = 1.0;

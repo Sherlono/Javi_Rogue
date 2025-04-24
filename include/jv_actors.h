@@ -6,18 +6,22 @@
 #include "bn_rect.h"
 #include "bn_random.h"
 #include "bn_keypad.h"
+#include "bn_optional.h"
+#include "bn_unique_ptr.h"
+#include "bn_sprite_builder.h"
 #include "bn_camera_actions.h"
-#include "bn_sprite_animate_actions.h"
 #include "bn_blending_actions.h"
+#include "bn_sprite_animate_actions.h"
 
 #include "jv_math.h"
 #include "jv_stairs.h"
 #include "jv_dialog.h"
 #include "jv_constants.h"
 #include "jv_environment.h"
-#include "bn_sprite_items_character.h"
-#include "bn_sprite_items_enemy.h"
+
 #include "bn_sprite_items_cow.h"
+#include "bn_sprite_items_enemy.h"
+#include "bn_sprite_items_character.h"
 
 
 namespace jv{
@@ -36,11 +40,7 @@ class Actor{
 public:
     virtual ~Actor(){};
     // Constructor
-    Actor(int x, int y, bn::sprite_ptr s, bn::camera_ptr cam, bn::sprite_animate_action<4> anim, bn::rect r): _x(x), _y(y), _sprite(s), _animation(anim), _rect(r)
-    {
-        _sprite.set_camera(cam);
-        _sprite.set_bg_priority(1);
-    }
+    Actor(int x, int y, bn::rect r): _x(x), _y(y), _rect(r){}
     // Getters
     [[nodiscard]] bn::fixed x() const{ return _x;}
     [[nodiscard]] bn::fixed y() const{ return _y;}
@@ -49,28 +49,28 @@ public:
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y, bn::fixed y_offset = 8.0){
-        _sprite.set_position(x, y - y_offset);
+        _sprite->set_position(x, y - y_offset);
         _x = x;
         _y = y;
         _rect.set_position(x.integer(), y.integer());
     }
     
     void set_position(bn::point point, bn::fixed y_offset = 8.0){
-        _sprite.set_position(point.x(), point.y() - y_offset);
+        _sprite->set_position(point.x(), point.y() - y_offset);
         _x = point.x();
         _y = point.y();
         _rect.set_position(point.x(), point.y());
     }
     
-    void set_camera(bn::camera_ptr cam){ _sprite.set_camera(cam);}
-    void remove_camera(){ _sprite.remove_camera();}
-    void set_visible(bool visible){ _sprite.set_visible(visible);}
-    void set_blending_enabled(bool isBlend){ _sprite.set_blending_enabled(isBlend);}
+    void set_camera(bn::camera_ptr cam){ _sprite->set_camera(cam);}
+    void remove_camera(){ _sprite->remove_camera();}
+    void set_visible(bool visible){ _sprite->set_visible(visible);}
+    void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
 
     bn::fixed _x, _y;
-    bn::sprite_ptr _sprite;
-    bn::sprite_animate_action<4> _animation;
+    bn::optional<bn::sprite_ptr> _sprite;
+    bn::optional<bn::sprite_animate_action<4>> _animation;
     bn::rect _rect;
 };
 
@@ -78,10 +78,8 @@ class Player: public Actor{
 public:
     ~Player(){};
     // Constructor
-    Player(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr c, bn::random* random_ref, game_map* m_r):
-        Actor(x, y, s, c,
-              bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
-              bn::rect(x, y, 16, 16)),
+    Player(int x, int y, bn::camera_ptr c, bn::random* random_ptr, game_map* map_ptr):
+        Actor(x, y, bn::rect(x, y, 16, 16)),
         _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
@@ -90,10 +88,16 @@ public:
         _attack_cooldown(0),
         _prev_dir(2),
         _dir(2),
-        _map_ref(m_r),
-        _randomizer(random_ref)
+        _map_ptr(map_ptr),
+        _randomizer(random_ptr)
         {
-            _sprite.set_position(x, y - 8);
+            bn::sprite_builder builder(bn::sprite_items::character);
+            builder.set_position(x, y - 8);
+            builder.set_camera(cam);
+            builder.set_bg_priority(1);
+            builder.set_blending_enabled(true);
+            _sprite = builder.release_build();
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]);
         }
     
     // Setters
@@ -102,7 +106,7 @@ public:
         _prev_dir = jv::NEUTRAL;
         _dir = jv::SOUTH;
         insert_animation(frames::w_up, frames::w_ho, frames::w_do);
-        _animation.update();
+        _animation->update();
     }
 
     // Getters
@@ -134,10 +138,10 @@ public:
 
                 if(!noClip){
                     int x = _x.integer()>>3, y = (_y.integer() + 4)>>3;
-                    obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
-                    obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
-                    obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
-                    obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
+                    obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WT_COUNT;
+                    obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WT_COUNT;
+                    obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WT_COUNT;
+                    obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WT_COUNT;
                 }
 
                 // Move if dir not obstructed
@@ -192,11 +196,11 @@ public:
         _stats.hp -= damage/_stats.defense;
         if(_stats.hp <= 0){
             _state = State::DEAD;
-            _sprite.set_horizontal_flip(false);
-            _sprite.set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
+            _sprite->set_horizontal_flip(false);
+            _sprite->set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
         }else{
-            _sprite.set_horizontal_flip(_dir == jv::WEST);
-            _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::character.tiles_item(),
+            _sprite->set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::character.tiles_item(),
                                                                frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
         }
     }
@@ -205,24 +209,24 @@ private:
 
     void insert_animation(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
         if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), up[0], up[1], up[2], up[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), up[0], up[1], up[2], up[3]);
             _hitbox.set_position(_x.integer() - 10*(_dir == jv::NORTHWEST) + 10*(_dir == jv::NORTHEAST), (_y - 10).integer());
         }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), down[0], down[1], down[2], down[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), down[0], down[1], down[2], down[3]);
             _hitbox.set_position(_x.integer() - 10*(_dir == jv::SOUTHWEST) + 10*(_dir == jv::SOUTHEAST), (_y + 10).integer());
         }else if(_dir == jv::WEST){                            // LEFT
-            _sprite.set_horizontal_flip(true);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+            _sprite->set_horizontal_flip(true);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
             _hitbox.set_position((_x - 16).integer(), _y.integer());
         }else if(_dir == jv::EAST){                            // RIGHT
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
             _hitbox.set_position((_x + 16).integer(), _y.integer());
         }else{
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::character.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
         }
     }
 
@@ -233,7 +237,7 @@ private:
     int _prev_attack_cooldown, _attack_cooldown;
     uchar_t _prev_dir, _dir;
 
-    game_map* _map_ref;
+    game_map* _map_ptr;
     bn::random* _randomizer;
 };
 
@@ -244,10 +248,8 @@ public:
 
     ~Enemy(){}
     // Constructor
-    Enemy(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam, bn::random* random_ref, game_map* m_r):
-        Actor(x, y, s, cam,
-              bn::create_sprite_animate_action_forever(s, 4, s_item, frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]),
-              bn::rect(x, y, 16, 16)),
+    Enemy(int x, int y, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
+        Actor(x, y, bn::rect(x, y, 16, 16)),
         max_hp(3), hp(3),
         _state(State::NORMAL),
         _hitbox(bn::rect(x, y, 10, 10)),
@@ -256,10 +258,23 @@ public:
         _prev_dir(2),
         _dir(2),
         _idle_time(0),
-        _map_ref(m_r),
-        _randomizer(random_ref)
+        _map_ptr(map_ptr),
+        _randomizer(random_ptr)
         {
-            _sprite.set_position(x, y - 8);
+            int halfWidth = 16, halfHeight = 16;
+            bool up = _y > cam.y() - 80 - halfHeight, down = _y < cam.y() + 80 + halfHeight;
+            bool left = _x > cam.x() - 120 - halfWidth, right = _x < cam.x() + 120 + halfWidth;
+            bool onScreen = left && right && up && down;
+            if(onScreen){
+                bn::sprite_builder builder(bn::sprite_items::enemy);
+                builder.set_position(x, y - 8);
+                builder.set_camera(cam);
+                builder.set_bg_priority(1);
+                builder.set_blending_enabled(true);
+                _sprite = builder.release_build();
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(),
+                                                            frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]);
+            }
         }
     // Setters
     void set_state(int s){ _state = s;}
@@ -274,7 +289,7 @@ public:
     [[nodiscard]] int get_hp() { return hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
 
-    void update(jv::Player* player, bool isInvul);
+    void update(jv::Player* player, bn::camera_ptr cam, bool isInvul);
     
     void animation_update(){
         if(_prev_dir != _dir){
@@ -299,10 +314,10 @@ public:
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
             int x = _x.integer()>>3, y = (_y.integer() + 4)>>3;
                 
-            obs_up    = _map_ref->cell(x, y - 1) > 0 && _map_ref->cell(x, y - 1) < WT_COUNT;
-            obs_down  = _map_ref->cell(x, y + 1) > 0 && _map_ref->cell(x, y + 1) < WT_COUNT;
-            obs_left  = _map_ref->cell(x - 1, y) > 0 && _map_ref->cell(x - 1, y) < WT_COUNT;
-            obs_right = _map_ref->cell(x + 1, y) > 0 && _map_ref->cell(x + 1, y) < WT_COUNT;
+            obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WT_COUNT;
+            obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WT_COUNT;
+            obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WT_COUNT;
+            obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WT_COUNT;
 
             // If direction is valid
             if(_dir != jv::NEUTRAL && _dir < 9){
@@ -350,11 +365,11 @@ public:
         hp -= damage/stat_defense;
         if(hp <= 0){
             _state = State::DEAD;
-            _sprite.set_horizontal_flip(false);
-            _sprite.set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+            _sprite->set_horizontal_flip(false);
+            _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
         }else{
-            _sprite.set_horizontal_flip(_dir == jv::WEST);
-            _animation = bn::create_sprite_animate_action_once(_sprite, 8, bn::sprite_items::enemy.tiles_item(),
+            _sprite->set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::enemy.tiles_item(),
                                                                frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
         }
     }
@@ -363,24 +378,24 @@ public:
 private:
     void insert_animation(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
         if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), up[0], up[1], up[2], up[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), up[0], up[1], up[2], up[3]);
             _hitbox.set_position(_x.integer() - 10*(_dir == jv::NORTHWEST) + 10*(_dir == jv::NORTHEAST), (_y - 10).integer());
         }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), down[0], down[1], down[2], down[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), down[0], down[1], down[2], down[3]);
             _hitbox.set_position(_x.integer() - 10*(_dir == jv::SOUTHWEST) + 10*(_dir == jv::SOUTHEAST), (_y + 10).integer());
         }else if(_dir == jv::WEST){                            // LEFT
-            _sprite.set_horizontal_flip(true);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+            _sprite->set_horizontal_flip(true);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
             _hitbox.set_position((_x - 10).integer(), _y.integer());
         }else if(_dir == jv::EAST){                            // RIGHT
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
             _hitbox.set_position((_x + 10).integer(), _y.integer());
         }else{
-            _sprite.set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite, 4, bn::sprite_items::enemy.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
+            _sprite->set_horizontal_flip(false);
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
         }
     }
 
@@ -391,7 +406,7 @@ private:
     uchar_t _prev_dir, _dir;
     uchar_t _idle_time;
 
-    game_map* _map_ref;
+    game_map* _map_ptr;
     bn::random* _randomizer;
 };
 
@@ -399,25 +414,34 @@ class NPC: public Actor{
 public:
     ~NPC(){}
     // Constructor
-    NPC(int x, int y, bn::sprite_ptr s, const bn::sprite_tiles_item &s_item, bn::camera_ptr cam):
-        Actor(x, y, s, cam,
-              bn::create_sprite_animate_action_forever(s, 8, s_item, 0, 1, 2, 3),
-              bn::rect(x, y + 8, 20, 20))
-    {
-        _sprite.set_position(x, y - 8);
-    }
-    // Setters
+    NPC(int x, int y, bn::camera_ptr cam):
+        Actor(x, y, bn::rect(x, y + 8, 20, 20))
+        {
+            int halfWidth = 16, halfHeight = 16;
+            bool up = _y > cam.y() - 80 - halfHeight, down = _y < cam.y() + 80 + halfHeight;
+            bool left = _x > cam.x() - 120 - halfWidth, right = _x < cam.x() + 120 + halfWidth;
+            bool onScreen = left && right && up && down;
+            if(onScreen){
+                bn::sprite_builder builder(bn::sprite_items::cow);
+                builder.set_position(x, y - 8);
+                builder.set_camera(cam);
+                builder.set_bg_priority(1);
+                builder.set_blending_enabled(true);
+                _sprite = builder.release_build();
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
+                                        bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
+            }
+        }
 
-    void update(jv::Player* player, jv::stairs& stairs, bool objective);
+    // Setters
+    void update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective);
     
 private:
 
 };
-    
+
 }
 
-
-    
 bool jv::stairs::climb(bn::rect playerRect, bool playerState){
     bool isOnStairs = playerRect.intersects(_rect) && bn::keypad::a_pressed();
     if(isOpen && playerState == State::NORMAL && isOnStairs){

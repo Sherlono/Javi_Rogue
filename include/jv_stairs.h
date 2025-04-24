@@ -14,6 +14,7 @@ struct stairs{
     {
         _sprite.set_camera(cam);
         _sprite.set_bg_priority(2);
+        _sprite.set_blending_enabled(true);
     }
     // Setters
     void set_position(int x, int y){

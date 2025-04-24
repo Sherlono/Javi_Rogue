@@ -88,19 +88,15 @@ private:
 
 namespace Debug{
 void debug_update(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
-void Start(auto& options, bn::vector<bn::sprite_ptr, 128>& sprts, bn::vector<bn::regular_bg_ptr, 4>& bgs){
+void Start(auto& options){
     // Hide all previous graphics
-    for(int i = 0; i < bgs.size(); i++){
-        bgs[i].set_visible(false);
-    }
-    for(int i = 0; i < sprts.size(); i++){
-        sprts[i].set_visible(false);
-    }
+    bn::blending::set_fade_alpha(bn::fixed(1));
 
     static int index = 0;
     uchar_t hold = 0;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, -70 + 9*index);
+    cursor.set_bg_priority(0);
     bn::vector<bn::sprite_ptr, 128> v_text;
 
     for(int i = 0; i < options.size(); i++){
@@ -108,6 +104,7 @@ void Start(auto& options, bn::vector<bn::sprite_ptr, 128>& sprts, bn::vector<bn:
         options[i].print(-50, -70 + 9*i, v_text, text_generator);
     }
 
+    for(bn::sprite_ptr sprite : v_text){ sprite.set_bg_priority(0);}
     bn::core::update();
 
     while(!bn::keypad::select_pressed()){
@@ -140,6 +137,7 @@ void Start(auto& options, bn::vector<bn::sprite_ptr, 128>& sprts, bn::vector<bn:
             }
         }
 
+
         if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
 
         jv::resetcombo();
@@ -147,12 +145,7 @@ void Start(auto& options, bn::vector<bn::sprite_ptr, 128>& sprts, bn::vector<bn:
     }
     
     // Unhide all previous graphics
-    for(int i = 0; i < bgs.size(); i++){
-        bgs[i].set_visible(true);
-    }
-    for(int i = 0; i < sprts.size(); i++){
-        sprts[i].set_visible(true);
-    }
+    bn::blending::set_fade_alpha(bn::fixed(0));
 
     // Print debug values
     if(!NoLogs){
@@ -173,6 +166,7 @@ void debug_update(auto& options, bn::vector<bn::sprite_ptr, 128>& v_text, bn::sp
         text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
         options[i].print(-50, -70 + 9*i, v_text, text_generator);
     }
+    for(bn::sprite_ptr sprite : v_text){ sprite.set_bg_priority(0);}
 }
 }
 }

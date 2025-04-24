@@ -16,7 +16,9 @@ struct healthbar{
             _sprites.push_back(bn::sprite_items::healthbar_corner.create_sprite(-117, -72));
             _sprites[0].set_bg_priority(0);
             _sprites[0].set_horizontal_scale(2.0);
+            _sprites[0].set_blending_enabled(true);
             _sprites[1].set_bg_priority(0);
+            _sprites[1].set_blending_enabled(true);
         }
 
     // Getters
