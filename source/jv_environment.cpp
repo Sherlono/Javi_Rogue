@@ -2,8 +2,8 @@
 
 namespace jv{
 // Make all block prefabs here
-void BlockFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip){
-    uchar_t arr[16];
+void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip){
+    uint8_t arr[16];
     for(int i = 0; i < 16; i++){ arr[i] = jv::blocks::block_array[option < B_COUNT ? option : 0][i];}
 
     game_map blk(4, 4, arr);
@@ -19,7 +19,7 @@ void LevelFactory(game_map& map, const int option){
         case 1:{
             width = 20;
             height = 20;
-            uchar_t blockArr[400] = {
+            uint8_t blockArr[400] = {
                  0, 0,31,28,31, 0, 0, 0, 0,31,28,28,28,28,28,31, 0, 0, 0, 0,
                 36,25,29,22,29,25,28,28,25,29,22,22,22,22,22,29,34, 0, 0, 0,
                 35,24,32, 4,32,24,22,22,24,32, 3, 2, 2, 2, 3,33,38,28,31, 0,
@@ -74,7 +74,7 @@ void LevelFactory(game_map& map, const int option){
         case 2:{
             width = 10;
             height = 11;
-            uchar_t blockArr[110] = {
+            uint8_t blockArr[110] = {
                  0,31,28,28,28,28,28,28,31, 0,
                 34,29,22,22,22,22,22,22,29,34,
                 35,33, 3, 2, 2, 2, 2, 3,33,35,
@@ -111,7 +111,7 @@ void LevelFactory(game_map& map, const int option){
         case 3:{
             width = 20;
             height = 20;
-            uchar_t blockArr[400] = {
+            uint8_t blockArr[400] = {
                  0,31,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,31, 0,
                 34,29,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,29,34,
                 35,33, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,33,35,
@@ -166,7 +166,7 @@ void LevelFactory(game_map& map, const int option){
         default:{
             width = 12;
             height = 10;
-            uchar_t blockArr[120] = {
+            uint8_t blockArr[120] = {
                  0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5,
                  6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,
                 12,12,13,13,14,14,15,15,16,16,17,17,

@@ -17,14 +17,14 @@
 #include "jv_constants.h"
 
 struct game_map{
-    game_map(uchar_t x, uchar_t y, uchar_t* blocks):width(x), height(y), _blocks(blocks){}
+    game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
 
     // Getters
-    [[nodiscard]] uchar_t x() const {return width;}
-    [[nodiscard]] uchar_t y() const {return height;}
+    [[nodiscard]] uint8_t x() const {return width;}
+    [[nodiscard]] uint8_t y() const {return height;}
     [[nodiscard]] int size() const {return width*height;}
-    [[nodiscard]] uchar_t cell(int x, int y) const {
-        uchar_t val = _blocks[x + y*width];
+    [[nodiscard]] uint8_t cell(int x, int y) const {
+        uint8_t val = _blocks[x + y*width];
         return val - 127*(val >= 127);
     }
     [[nodiscard]] bool horizontal_flip(int index) const {return _blocks[index] >= 127;}
@@ -40,8 +40,8 @@ struct game_map{
         }
     }
 
-    uchar_t operator[](int index){
-        uchar_t val = _blocks[index];
+    uint8_t operator[](int index){
+        uint8_t val = _blocks[index];
         return val - 127*(val >= 127);
     }
 
@@ -75,8 +75,8 @@ struct game_map{
     }
 
     // Members
-    cuchar_t width, height;
-    uchar_t *_blocks;
+    const uint8_t width, height;
+    uint8_t *_blocks;
 };
 
 struct bg_map
@@ -109,7 +109,7 @@ struct bg_map
 };
 
 namespace jv{
-    void FloorFactory(game_map& map, const bn::point top_left, const uchar_t option, const bool blockFlip);
+    void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     void LevelFactory(game_map& map, const int option);
 }
 #endif

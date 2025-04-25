@@ -73,11 +73,11 @@ class Player: public Actor{
 public:
     ~Player(){};
     // Constructor
-    Player(int x, int y, bn::camera_ptr c, bn::random* random_ptr, game_map* map_ptr):
-        Actor(bn::rect(x, y, 16, 16)),
+    Player(bn::point position, bn::camera_ptr c, bn::random* random_ptr, game_map* map_ptr):
+        Actor(bn::rect(position.x(), position.y(), 16, 16)),
         _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
-        _hitbox(bn::rect(x, y, 10, 10)),
+        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         cam(c),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
@@ -87,7 +87,7 @@ public:
         _randomizer(random_ptr)
         {
             bn::sprite_builder builder(bn::sprite_items::character);
-            builder.set_position(x, y - 8);
+            builder.set_position(position.x(), position.y() - 8);
             builder.set_camera(cam);
             builder.set_bg_priority(1);
             builder.set_blending_enabled(true);
@@ -107,7 +107,7 @@ public:
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
     [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
-    [[nodiscard]] uchar_t get_state() { return _state;}
+    [[nodiscard]] uint8_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
     [[nodiscard]] int get_maxhp() { return _stats.max_hp;}
@@ -202,7 +202,7 @@ public:
     
 private:
 
-    void insert_animation(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
+    void insert_animation(const uint8_t* up, const uint8_t* horizontal, const uint8_t* down){
         if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
             _sprite->set_horizontal_flip(false);
             _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), up[0], up[1], up[2], up[3]);
@@ -226,11 +226,11 @@ private:
     }
 
     basic_stats _stats;
-    uchar_t _state;
+    uint8_t _state;
     bn::rect _hitbox;
     bn::camera_ptr cam;
     int _prev_attack_cooldown, _attack_cooldown;
-    uchar_t _prev_dir, _dir;
+    uint8_t _prev_dir, _dir;
 
     game_map* _map_ptr;
     bn::random* _randomizer;
@@ -243,11 +243,11 @@ public:
 
     ~Enemy(){}
     // Constructor
-    Enemy(int x, int y, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
-        Actor(bn::rect(x, y, 16, 16)),
+    Enemy(bn::point position, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
+        Actor(bn::rect(position.x(), position.y(), 16, 16)),
         max_hp(3), hp(3),
         _state(State::NORMAL),
-        _hitbox(bn::rect(x, y, 10, 10)),
+        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
         _prev_dir(jv::SOUTH),
@@ -262,7 +262,7 @@ public:
             bool onScreen = left && right && up && down;
             if(onScreen){
                 bn::sprite_builder builder(bn::sprite_items::enemy);
-                builder.set_position(x, y - 8);
+                builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 builder.set_blending_enabled(true);
@@ -277,7 +277,7 @@ public:
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
     [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
-    [[nodiscard]] uchar_t get_state() { return _state;}
+    [[nodiscard]] uint8_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return stat_attack;}
     [[nodiscard]] int get_defense() { return stat_defense;}
     [[nodiscard]] int get_maxhp() { return max_hp;}
@@ -373,7 +373,7 @@ public:
     
 
 private:
-    void insert_animation(cuchar_t* up, cuchar_t* horizontal, cuchar_t* down){
+    void insert_animation(const uint8_t* up, const uint8_t* horizontal, const uint8_t* down){
         if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
             _sprite->set_horizontal_flip(false);
             _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), up[0], up[1], up[2], up[3]);
@@ -397,11 +397,11 @@ private:
     }
 
     int max_hp, hp;
-    uchar_t _state;
+    uint8_t _state;
     bn::rect _hitbox;
     int _prev_attack_cooldown, _attack_cooldown;
-    uchar_t _prev_dir, _dir;
-    uchar_t _idle_time;
+    uint8_t _prev_dir, _dir;
+    uint8_t _idle_time;
 
     game_map* _map_ptr;
     bn::random* _randomizer;
@@ -411,8 +411,8 @@ class NPC: public Actor{
 public:
     ~NPC(){}
     // Constructor
-    NPC(int x, int y, bn::camera_ptr cam):
-        Actor(bn::rect(x, y + 8, 20, 20))
+    NPC(bn::point position, bn::camera_ptr cam):
+        Actor(bn::rect(position.x(), position.y() + 8, 20, 20))
         {
             int halfWidth = 16, halfHeight = 16;
             bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
@@ -420,7 +420,7 @@ public:
             bool onScreen = left && right && up && down;
             if(onScreen){
                 bn::sprite_builder builder(bn::sprite_items::cow);
-                builder.set_position(x, y - 8);
+                builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 builder.set_blending_enabled(true);

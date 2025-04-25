@@ -152,7 +152,7 @@ void game_scene(bn::random& randomizer){
     constexpr bn::point mapSize(20, 22);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
-    uchar_t tiles_arr[cellCount*16];
+    uint8_t tiles_arr[cellCount*16];
     game_map mainGameMap(mapSize.x()*4, mapSize.y()*4, tiles_arr);
 
     int level = randomizer.get_int(1, 4);
@@ -166,12 +166,14 @@ void game_scene(bn::random& randomizer){
     level_bg.set_camera(cam);
 
     // ** Universal entities **
-    jv::Player cat(0, 0, cam, &randomizer, &mainGameMap);
+    jv::Player cat(bn::point(0, 0), cam, &randomizer, &mainGameMap);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy, 15> v_enemies;
+    bn::vector<bn::sprite_ptr, 8> v_sprts;
+    text_generator.generate(64, -70, "Floor", v_sprts);
 
     // ****** Debug data ******
     bool val0 = false;
@@ -180,8 +182,6 @@ void game_scene(bn::random& randomizer){
     options.push_back(jv::menu_option(&val0, "Noclip"));
     options.push_back(jv::menu_option(&val1, "Invuln."));
     options.push_back(jv::menu_option(&next_level, "Next level"));
-
-    bn::vector<bn::sprite_ptr, 9> v_sprts;
 
     bn::vector<bn::regular_bg_ptr, 4> v_bgs;
     v_bgs.push_back(background);
@@ -198,6 +198,7 @@ void game_scene(bn::random& randomizer){
 
         bn::vector<bn::point, 25> v_points;
         jv::random_coords(v_points, mainGameMap, randomizer);
+        text_generator.generate(94, -70, bn::to_string<3>(floor), v_sprts);
 
         // Reposition universal entities
         cam.set_position(v_points[0]);
@@ -205,15 +206,14 @@ void game_scene(bn::random& randomizer){
         stairs.set_position(v_points[1]);
 
         // Populate level
-        v_npcs.push_back(jv::NPC(v_points[2].x(), v_points[2].y(), cam));
+        v_npcs.push_back(jv::NPC(v_points[2], cam));
 
         unsigned char min_enemies = 3, max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
         for(int i = 0; i < max_enemies; i++){
-            v_enemies.push_back(jv::Enemy(v_points[3+i].x(), v_points[3+i].y(), cam, &randomizer, &mainGameMap));
+            v_enemies.push_back(jv::Enemy(v_points[3+i], cam, &randomizer, &mainGameMap));
         }
         int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
         
-        text_generator.generate(64, -70, "Floor " + bn::to_string<10>(floor), v_sprts);
 
         // Initialize level background
         jv::LevelMaker::init(cam, mainGameMap, bg_map_ptr, bg_map);
@@ -235,7 +235,6 @@ void game_scene(bn::random& randomizer){
             for(int i = 0; i < enemyCount; i++){
                 v_enemies[i].update(&cat, cam, val1);
                 /*if(v_enemies[i].get_state() == State::DEAD){
-                    v_sprts.erase(v_sprts.begin() + 1 + i);
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
                 }*/
@@ -272,7 +271,7 @@ void game_scene(bn::random& randomizer){
         v_npcs.clear();
         v_points.clear();
         v_enemies.clear();
-        v_sprts.clear();
+        v_sprts.erase(v_sprts.begin() + 1);
 
         bn::core::update();
     }

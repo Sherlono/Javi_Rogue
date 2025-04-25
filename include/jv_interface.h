@@ -54,8 +54,7 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
             index[3] = x*4 + 3 + (y*4 + 3)*map.x();
 
             for(int i = 0; i < 4; i++){
-                int ind = index[i];
-                w_check = w_check && (map[ind] > 0 && map[ind] < WT_COUNT);
+                w_check = w_check && (map[index[i]] > 0 && map[index[i]] < WT_COUNT);
             }
             
             if(w_check){

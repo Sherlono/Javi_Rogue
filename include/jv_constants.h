@@ -9,15 +9,12 @@
  */
 
 namespace {
-    typedef unsigned char uchar_t;
-    typedef const unsigned char cuchar_t;
-    
-    constexpr uchar_t F_COUNT = 22;                 // Number of Floor Blocks [0,21]
-    constexpr uchar_t W_COUNT = 43 - F_COUNT + 1;   // Number of Wall Blocks [22,43]
-    constexpr uchar_t B_COUNT = F_COUNT + W_COUNT;  // Total Blocks
-    constexpr uchar_t WT_COUNT = 46;                // Number of Walkable Tiles
-    constexpr uchar_t NWT_COUNT = 52;               // Number of Not Walkable Tiles
-    constexpr uchar_t T_COUNT = 98;                 // Number of Total Tiles
+    constexpr uint8_t F_COUNT = 22;                 // Number of Floor Blocks [0,21]
+    constexpr uint8_t W_COUNT = 43 - F_COUNT + 1;   // Number of Wall Blocks [22,43]
+    constexpr uint8_t B_COUNT = F_COUNT + W_COUNT;  // Total Blocks
+    constexpr uint8_t WT_COUNT = 46;                // Number of Walkable Tiles
+    constexpr uint8_t NWT_COUNT = 52;               // Number of Not Walkable Tiles
+    constexpr uint8_t T_COUNT = 98;                 // Number of Total Tiles
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
@@ -33,20 +30,20 @@ namespace jv::fadespeed{
 }
 
 namespace jv::frames{
-    constexpr uchar_t w_up[4] = {6, 7, 6, 8};      // Walk up frames
-    constexpr uchar_t w_ho[4] = {3, 4, 3, 5};      // Walk horizontal frames
-    constexpr uchar_t w_do[4] = {0, 1, 0, 2};      // Walk down frames
+    constexpr uint8_t w_up[4] = {6, 7, 6, 8};      // Walk up frames
+    constexpr uint8_t w_ho[4] = {3, 4, 3, 5};      // Walk horizontal frames
+    constexpr uint8_t w_do[4] = {0, 1, 0, 2};      // Walk down frames
 
-    constexpr uchar_t a_up[4] = {6, 15, 16, 17};   // Attack up frames
-    constexpr uchar_t a_ho[4] = {3, 12, 13, 14};   // Attack horizontal frames
-    constexpr uchar_t a_do[4] = {0, 9, 10, 11};    // Attack down frames
+    constexpr uint8_t a_up[4] = {6, 15, 16, 17};   // Attack up frames
+    constexpr uint8_t a_ho[4] = {3, 12, 13, 14};   // Attack horizontal frames
+    constexpr uint8_t a_do[4] = {0, 9, 10, 11};    // Attack down frames
     
-    constexpr uchar_t idle[4] = {18, 19, 18, 20};  // Idle frames
-    constexpr uchar_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
+    constexpr uint8_t idle[4] = {18, 19, 18, 20};  // Idle frames
+    constexpr uint8_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
 }
 
 namespace jv::blocks{
-    constexpr uchar_t block_array[B_COUNT][16] = {
+    constexpr uint8_t block_array[B_COUNT][16] = {
         // block 0
             {0, 0, 0, 0,
             0, 0, 0, 0,

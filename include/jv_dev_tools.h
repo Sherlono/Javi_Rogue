@@ -49,7 +49,7 @@ void blocks_scene(){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     // *** Level Generation ***
-    uchar_t tiles_arr[cellCount*16];
+    uint8_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
     jv::LevelFactory(map1, 0);
@@ -191,7 +191,7 @@ void tile_scene(){
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     // *** Level Generation ***
-    uchar_t tiles_arr[cellCount*16];
+    uint8_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
     jv::LevelFactory(map1, 0);

@@ -97,7 +97,7 @@ void Start(auto& options){
     bn::blending::set_fade_alpha(bn::fixed(1));
 
     static int index = 0;
-    uchar_t hold = 0;
+    uint8_t hold = 0;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, -70 + 9*index);
