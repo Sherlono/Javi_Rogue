@@ -8,6 +8,10 @@
  * Block: 4x4 tile array
  */
 
+#ifndef LOGS_ENABLED
+    #define LOGS_ENABLED false       // Turns all BN_LOG call functionality off
+#endif
+
 namespace {
     constexpr uint8_t F_COUNT = 22;                 // Number of Floor Blocks [0,21]
     constexpr uint8_t W_COUNT = 43 - F_COUNT + 1;   // Number of Wall Blocks [22,43]
@@ -18,9 +22,6 @@ namespace {
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
-    #ifndef LOGS_ENABLED
-        #define LOGS_ENABLED true       // Turns all BN_LOG call functionality off
-    #endif
 }
 
 namespace jv::fadespeed{

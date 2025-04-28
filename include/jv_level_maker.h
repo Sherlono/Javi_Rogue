@@ -39,63 +39,64 @@ namespace jv::LevelMaker{
     void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
         // Did the player move enough to load assets
         int current_x = (cam.x().integer() + 56)>>3  ,   current_y = (cam.y().integer() + 48)>>3;
+        //int xmod = bamod(x, 32), ymod = bamod(y, 32);
     
-        if(current_x != prev_x || current_y != prev_y){
+        if(current_x > prev_x){  // If moved Right
             // Redraw map bounds
             for(int y = current_y; y < 32 + current_y; y++){
-                for(int x = current_x; x < 32 + current_x; x++){
-                    int xmod = bamod(x, 32), ymod = bamod(y, 32);
-    
-                    // Horizontal
-                    if(current_x > prev_x && xmod == bamod(current_x + 24, 32)){  // If moved Right
-                        bool not_oob = (x - 16 < map.x() && y - 15 > 0 && y - 16 < map.y());
-                        bn::point grid_coord(xmod, ymod);
-    
-                        if(not_oob){
-                            int cell_index = x - 16 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
-                        }else{
-                            bg_map_ptr->set_cell(grid_coord, 0);
-                        }
-                    }
-                    else if(current_x < prev_x && xmod == bamod(current_x + 25, 32)){    // If moved Left
-                        bool not_oob = (x - 47 > 0 && y - 15 > 0 && y - 16 < map.y());
-                        bn::point grid_coord(xmod, ymod);
-    
-                        if(not_oob){
-                            int cell_index = x - 48 + map.x() + (y - 17)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
-                        }else{
-                            bg_map_ptr->set_cell(grid_coord, 0);
-                        }
-                    }
-                    
-                    // Vertical
-                    if(current_y > prev_y && ymod == bamod(current_y + 24, 32)){    // If moved Down
-                        bool not_oob = (x - 22 > 0 && x - 23 < map.x() && y - 16 < map.y());
-                        bn::point grid_coord(bamod(x - 7, 32), ymod);
-    
-                        if(not_oob){
-                            int cell_index = x - 23 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
-                        }else{
-                            bg_map_ptr->set_cell(grid_coord, 0);
-                        }
-                    }
-                    else if(current_y < prev_y && ymod == bamod(current_y, 32)){   // If moved Up
-                        bool not_oob = (x - 22 > 0 && x - 23 < map.x() && y - 15 > 0);
-                        bn::point grid_coord(bamod(x - 7, 32), ymod);
-    
-                        if(not_oob){
-                            int cell_index = x - 23 + (y - 16)*map.x();
-                            bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
-                        }else{
-                            bg_map_ptr->set_cell(grid_coord, 0);
-                        }
-                    }
+                int aux_x = current_x + 24, ymod = bamod(y, 32);
+                bool not_oob = (aux_x - 16 < map.x() && y - 15 > 0 && y - 16 < map.y());
+                bn::point grid_coord(bamod(aux_x, 32), ymod);
+
+                if(not_oob){
+                    int cell_index = aux_x - 16 + (y - 16)*map.x();
+                    bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                }else{
+                    bg_map_ptr->set_cell(grid_coord, 0);
+                }
+            }
+        }else if(current_x < prev_x){    // If moved Left
+            for(int y = current_y; y < 32 + current_y; y++){
+                int aux_x = current_x + 25, ymod = bamod(y, 32);
+                bool not_oob = (aux_x - 47 > 0 && y - 15 > 0 && y - 16 < map.y());
+                bn::point grid_coord(bamod(aux_x, 32), ymod);
+
+                if(not_oob){
+                    int cell_index = aux_x - 48 + map.x() + (y - 17)*map.x();
+                    bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                }else{
+                    bg_map_ptr->set_cell(grid_coord, 0);
                 }
             }
         }
+        
+        if(current_y > prev_y){    // If moved Down
+            for(int x = current_x; x < 32 + current_x; x++){
+                int aux_y = current_y + 24;
+                bool not_oob = (x - 22 > 0 && x - 23 < map.x() && aux_y - 16 < map.y());
+                bn::point grid_coord(bamod(x - 7, 32), bamod(current_y + 24, 32));
+
+                if(not_oob){
+                    int cell_index = x - 23 + (aux_y - 16)*map.x();
+                    bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                }else{
+                    bg_map_ptr->set_cell(grid_coord, 0);
+                }
+            }
+        }else if(current_y < prev_y){   // If moved Up
+            for(int x = current_x; x < 32 + current_x; x++){
+                bool not_oob = (x - 22 > 0 && x - 23 < map.x() && current_y - 15 > 0);
+                bn::point grid_coord(bamod(x - 7, 32), bamod(current_y, 32));
+
+                if(not_oob){
+                    int cell_index = x - 23 + (current_y - 16)*map.x();
+                    bg_map_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                }else{
+                    bg_map_ptr->set_cell(grid_coord, 0);
+                }
+            }
+        }
+
         prev_x = current_x;
         prev_y = current_y;
         

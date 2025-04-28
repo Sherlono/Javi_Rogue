@@ -172,8 +172,8 @@ void game_scene(bn::random& randomizer){
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy, 15> v_enemies;
-    bn::vector<bn::sprite_ptr, 8> v_sprts;
-    text_generator.generate(64, -70, "Floor", v_sprts);
+    bn::vector<bn::sprite_ptr, 2> txt_sprts;
+    text_generator.generate(64, -70, "Floor", txt_sprts);
 
     // ****** Debug data ******
     bool val0 = false;
@@ -198,7 +198,7 @@ void game_scene(bn::random& randomizer){
 
         bn::vector<bn::point, 25> v_points;
         jv::random_coords(v_points, mainGameMap, randomizer);
-        text_generator.generate(94, -70, bn::to_string<3>(floor), v_sprts);
+        text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
 
         // Reposition universal entities
         cam.set_position(v_points[0]);
@@ -271,7 +271,7 @@ void game_scene(bn::random& randomizer){
         v_npcs.clear();
         v_points.clear();
         v_enemies.clear();
-        v_sprts.erase(v_sprts.begin() + 1);
+        txt_sprts.erase(txt_sprts.begin() + 1);
 
         bn::core::update();
     }
