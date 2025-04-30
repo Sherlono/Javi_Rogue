@@ -16,18 +16,24 @@
 
 #include "jv_constants.h"
 
-struct game_map{
+class game_map{
+public:
     game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
 
     // Getters
     [[nodiscard]] uint8_t x() const {return width;}
     [[nodiscard]] uint8_t y() const {return height;}
     [[nodiscard]] int size() const {return width*height;}
+    [[nodiscard]] bool horizontal_flip(int index) const {return _blocks[index] >= 127;}
     [[nodiscard]] uint8_t cell(int x, int y) const {
         uint8_t val = _blocks[x + y*width];
         return val - 127*(val >= 127);
     }
-    [[nodiscard]] bool horizontal_flip(int index) const {return _blocks[index] >= 127;}
+
+    uint8_t operator[](int index){
+        uint8_t val = _blocks[index];
+        return val - 127*(val >= 127);
+    }
 
     // Setters
     void set_horizontal_flip(int index, bool f){
@@ -40,12 +46,6 @@ struct game_map{
         }
     }
 
-    uint8_t operator[](int index){
-        uint8_t val = _blocks[index];
-        return val - 127*(val >= 127);
-    }
-
-    // Insert room into the main map starting by the top left corner
     void insert_map(const game_map room, const bn::point top_left, const bool fliped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
@@ -56,6 +56,7 @@ struct game_map{
                 for(int x = x_begin; x < x_end; x++){
                     int map_index = x + y * this->width;
                     int room_index = (x - x_begin) + (y - y_begin) * room.width;
+                    if(!room._blocks[room_index]){ continue;}
                     this->_blocks[map_index] =  room._blocks[room_index];
                     this->set_horizontal_flip(map_index, room.horizontal_flip(room_index));
                 }
@@ -63,6 +64,7 @@ struct game_map{
                 for(int x = x_end - 1; x >= x_begin; x--){
                     int map_index = x + y * this->width;
                     int room_index = -(x + 1 - x_end) + (y - y_begin) * room.width;
+                    if(!room._blocks[room_index]){ continue;}
                     this->_blocks[map_index] = room._blocks[room_index];
                     this->set_horizontal_flip(map_index, !room.horizontal_flip(room_index));
                 }
@@ -73,7 +75,7 @@ struct game_map{
     void reset(){
         bn::memory::clear(size(), _blocks[0]);
     }
-
+private:
     // Members
     const uint8_t width, height;
     uint8_t *_blocks;
@@ -97,7 +99,6 @@ struct bg_map
             current_cell_info.set_tile_index(value);
             if(current_cell_info.horizontal_flip() != flip){ current_cell_info.set_horizontal_flip(flip);}
         }
-        //current_cell_info.set_palette_id(1);
         
         current_cell = current_cell_info.cell();
     }
@@ -109,7 +110,10 @@ struct bg_map
 };
 
 namespace jv{
+    void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    void LevelFactory(game_map& map, const int option);
+    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
+    //void ConnectRooms(game_map& map);
+    void GenerateLevel(game_map& map, bn::random& randomizer);
 }
 #endif

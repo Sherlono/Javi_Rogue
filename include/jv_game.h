@@ -2,10 +2,7 @@
 #define JV_GAME_H
 
 #include "bn_vector.h"
-
 #include "bn_memory.h"
-#include "bn_sprites.h"
-#include "bn_bgs.h"
 #include "bn_blending_actions.h"
 
 #include "jv_math.h"
@@ -24,6 +21,7 @@
 #include "bn_regular_bg_items_hud_item.h"
 
 #include "bn_sprite_items_cursor.h"
+#include "bn_sprite_items_ball.h"
 
 namespace jv::game{
 void intro_scene(){
@@ -149,15 +147,13 @@ void game_scene(bn::random& randomizer){
     level_bg.set_blending_enabled(true);
 
     // ****** Level data ******
-    constexpr bn::point mapSize(20, 22);
+    constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
-    uint8_t tiles_arr[cellCount*16];
-    game_map mainGameMap(mapSize.x()*4, mapSize.y()*4, tiles_arr);
+    uint8_t tiles_arr[cellCount*16 + (mapSize.y()*4*2)];
+    game_map mainGameMap(mapSize.x()*4 + 2, mapSize.y()*4, tiles_arr);
 
-    int level = randomizer.get_int(1, 4);
-    int floor = 0;
-    int gameover_delay = 0;
+    int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, objective = true;
 
     // ******** Camera ********
@@ -187,14 +183,25 @@ void game_scene(bn::random& randomizer){
     v_bgs.push_back(background);
     v_bgs.push_back(hud);
     v_bgs.push_back(level_bg);
+
+    /*bn::vector<bn::sprite_ptr, 8> v_balls;
+    for(int y = 0; y < 3; y++){
+        for(int x = 0; x < 3; x++){
+            if(!(x == 1 && y == 1)){
+                v_balls.push_back(bn::sprite_items::ball.create_sprite(mainGameMap.x()*4*x, mainGameMap.y()*4*y));
+                v_balls[v_balls.size() - 1].set_blending_enabled(true);
+                v_balls[v_balls.size() - 1].set_bg_priority(0);
+                v_balls[v_balls.size() - 1].set_camera(cam);
+            }
+        }
+    }*/
     
     while(!game_over){
         next_level = false;
         gameover_delay = 0;
 
         // Level generation
-        jv::LevelFactory(mainGameMap, level);
-        level = randomizer.get_int(1, 4);
+        jv::GenerateLevel(mainGameMap, randomizer);
 
         bn::vector<bn::point, 25> v_points;
         jv::random_coords(v_points, mainGameMap, randomizer);

@@ -13,18 +13,20 @@
 #endif
 
 namespace {
-    constexpr uint8_t F_COUNT = 22;                 // Number of Floor Blocks [0,21]
-    constexpr uint8_t W_COUNT = 43 - F_COUNT + 1;   // Number of Wall Blocks [22,43]
-    constexpr uint8_t B_COUNT = F_COUNT + W_COUNT;  // Total Blocks
-    constexpr uint8_t WT_COUNT = 46;                // Number of Walkable Tiles
-    constexpr uint8_t NWT_COUNT = 52;               // Number of Not Walkable Tiles
-    constexpr uint8_t T_COUNT = 98;                 // Number of Total Tiles
+    constexpr uint8_t FLOOROOM_COUNT = 22;                          // Number of Floor Blocks [0,21]
+    constexpr uint8_t WALL_COUNT = 43 - FLOOROOM_COUNT + 1;         // Number of Wall Blocks [22,43]
+    constexpr uint8_t BLOCK_COUNT = FLOOROOM_COUNT + WALL_COUNT;    // Total Blocks
+    constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
+    constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
+    constexpr uint8_t TILES_COUNT = 98;                             // Number of Total Tiles
+    constexpr uint8_t ROOM_COUNT = 5;                               // Number of Room Prefabs
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
 }
 
 namespace jv::fadespeed{
+    constexpr unsigned char VERYFAST = 15;  // Quarter of a second fade
     constexpr unsigned char FAST = 30;      // Half a second fade
     constexpr unsigned char MEDIUM = 60;    // One second fade
     constexpr unsigned char SLOW = 120;     // Two seconds fade
@@ -44,7 +46,7 @@ namespace jv::frames{
 }
 
 namespace jv::blocks{
-    constexpr uint8_t block_array[B_COUNT][16] = {
+    constexpr uint8_t block_array[BLOCK_COUNT][16] = {
         // block 0
             {0, 0, 0, 0,
             0, 0, 0, 0,
@@ -68,7 +70,7 @@ namespace jv::blocks{
         // block 4
             { 5, 6, 7, 8, 
             40, 25, 24, 40, 
-            19, 21, 20, 19+127, 
+            19, 21, 20, 146, 
             34, 33, 34, 34},
         // block 5
             { 1, 2, 18, 21, 
@@ -181,10 +183,10 @@ namespace jv::blocks{
             61, 62, 63, 64,
             65, 66, 67, 68},
         // block 27
-        { 50, 51, 51+127, 50+127,
-            48, 49, 49+127, 48+127,
-            50, 51, 51+127, 50+127,
-            48, 49, 49+127, 48+127},
+        { 50, 51, 51+127, 177,
+            48, 49, 49+127, 175,
+            50, 51, 51+127, 177,
+            48, 49, 49+127, 175},
         // block 28
         { 0,  0,  0,  0,
             0,  0,  0,  0,

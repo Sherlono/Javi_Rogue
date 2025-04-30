@@ -133,10 +133,10 @@ public:
 
                 if(!noClip){
                     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-                    obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WT_COUNT;
-                    obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WT_COUNT;
-                    obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WT_COUNT;
-                    obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WT_COUNT;
+                    obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WTILES_COUNT;
+                    obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WTILES_COUNT;
+                    obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WTILES_COUNT;
+                    obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WTILES_COUNT;
                 }
 
                 // Move if dir not obstructed
@@ -309,10 +309,10 @@ public:
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
             int x = this->x().integer()>>3, y = (this->y().integer() + 4)>>3;
                 
-            obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WT_COUNT;
-            obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WT_COUNT;
-            obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WT_COUNT;
-            obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WT_COUNT;
+            obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WTILES_COUNT;
+            obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WTILES_COUNT;
+            obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WTILES_COUNT;
+            obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WTILES_COUNT;
 
             // If direction is valid
             if(_dir != jv::NEUTRAL && _dir < 9){

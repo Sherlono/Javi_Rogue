@@ -11,6 +11,8 @@
 
 #if LOGS_ENABLED
     #include "bn_log.h"
+    #include "bn_bgs.h"
+    #include "bn_sprites.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 
@@ -48,13 +50,13 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
     for(int y = 2; y < height; y++){
         for(int x = 1; x < width; x++){
             bool w_check = true; // Walkable check
-            index[0] = x*4 + y*4*map.x();
-            index[1] = x*4 + 3 + y*4*map.x();
-            index[2] = x*4 + (y*4 + 3)*map.x();
-            index[3] = x*4 + 3 + (y*4 + 3)*map.x();
+            index[0] = x*4 - 1 + (y*4 - 1 )*map.x();
+            index[1] = x*4 + 2 + (y*4 - 1 )*map.x();
+            index[2] = x*4 - 1  + (y*4 + 2)*map.x();
+            index[3] = x*4 + 2 + (y*4 + 2)*map.x();
 
             for(int i = 0; i < 4; i++){
-                w_check = w_check && (map[index[i]] > 0 && map[index[i]] < WT_COUNT);
+                w_check = w_check && (map[index[i]] > 0 && map[index[i]] < WTILES_COUNT);
             }
             
             if(w_check){
@@ -62,7 +64,7 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
                 pointCount++;
                 if(valid_points == nullptr){
                     valid_points = new bn::point[1];
-                    valid_points[0] = bn::point(16 + 32*x, 16 + 32*y);
+                    valid_points[0] = bn::point(32*x, 32*y);
                     current_size = 1;
                 }else if(pointCount >= current_size){
                     current_size = current_size*2;
@@ -70,12 +72,12 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
                     for(int i = 0; i < pointCount - 1; i++){
                         temp[i] = valid_points[i];
                     }
-                    temp[pointCount - 1] = bn::point(16 + 32*x, 16 + 32*y);
+                    temp[pointCount - 1] = bn::point(32*x, 32*y);
 
                     delete[] valid_points;
                     valid_points = temp;
                 }else{
-                    valid_points[pointCount - 1] = bn::point(16 + 32*x, 16 + 32*y);
+                    valid_points[pointCount - 1] = bn::point(32*x, 32*y);
                 }
             }
         }

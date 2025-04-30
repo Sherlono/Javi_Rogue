@@ -7,16 +7,53 @@
 #include "jv_interface.h"
 #include "jv_constants.h"
 #include "jv_level_maker.h"
+#include "jv_environment.h"
 
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
 
 #if LOGS_ENABLED
     #include "bn_log.h"
+    #include "bn_string.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 
 namespace jv::dev{
+
+void GenerateDevLevel(game_map& map){
+    map.reset();
+    int width = 12, height = 10;
+    uint8_t blockArr[120] = {
+         0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5,
+         6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,
+        12,12,13,13,14,14,15,15,16,16,17,17,
+        18,18,19,19,20,20,21,21,22,22,23,23,
+        24,24,25,25,26,26,27,27,28,28,29,29,
+        30,30,31,31,32,32,33,33,34,34,35,35,
+        36,36,37,37,38,38,39,39,40,40,41,41,
+        42,42,43,43,44,44,45,45,46,46,47,47,
+        48,48,49,49,50,51,52,53,54,55,56,57,
+        58,59,60,61,62,63,64,65,66,67,68,69 };
+        
+    bool flipArr[120] = {
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
+
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++){
+            int index = x + y*width;
+            jv::BlockFactory(map, bn::point(x*4, y*4), blockArr[index], flipArr[index]);
+        }
+    }
+}
     
 void blocks_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
@@ -52,7 +89,7 @@ void blocks_scene(){
     uint8_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
-    jv::LevelFactory(map1, 0);
+    jv::dev::GenerateDevLevel(map1);
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
@@ -66,7 +103,7 @@ void blocks_scene(){
         for(int x = 0; x < width; x++){
             if(bamod(x, 2) == 0){
                 int num = (x + y*width)/2;
-                if(num >= B_COUNT){break;}
+                if(num >= BLOCK_COUNT){ break;}
                 bn::string_view text = bn::to_string<8>(num);
                 text_generator.generate(x*32, 4 + y*32, text, numbers);
             }
@@ -79,8 +116,8 @@ void blocks_scene(){
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
     
-    int current_block = 0, current_tile = 0, _x = 0, _y = 0;
-    int tile_copy = 0;
+    bn::optional<int> current_block;
+    int current_tile = 0, tile_copy = 0, _x = 0, _y = 0;
     bool selected = false;
 
     while(true){
@@ -127,7 +164,7 @@ void blocks_scene(){
             #if LOGS_ENABLED
                 if(bn::keypad::start_pressed()){
                     int start_x = (_x/8)*8, start_y = (_y/4)*4;
-                    BN_LOG("block: ", current_block);
+                    BN_LOG("block: ", current_block.value());
                     for(int y = start_y; y < start_y + 4; y++){
                         bn::string_view line = "";
                         for(int x = start_x; x < start_x + 4; x++){
@@ -194,7 +231,7 @@ void tile_scene(){
     uint8_t tiles_arr[cellCount*16];
     game_map map1(mapSize.x()*4, mapSize.y()*4, tiles_arr);
     
-    jv::LevelFactory(map1, 0);
+    jv::dev::GenerateDevLevel(map1);
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
@@ -208,7 +245,7 @@ void tile_scene(){
         for(int x = 0; x < width; x++){
             if(bamod(x, 2) == 0){
                 int num = (x + y*width)/2;
-                if(num >= B_COUNT){break;}
+                if(num >= BLOCK_COUNT){break;}
                 bn::string_view text = bn::to_string<8>(num);
                 text_generator.generate(x*32, 4 + y*32, text, numbers);
             }
@@ -252,7 +289,7 @@ void tile_scene(){
             current_tile--;
             tile_sprites.clear();
             text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
-            jv::LevelFactory(map1, 0);
+            jv::dev::GenerateDevLevel(map1);
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
                     if(map1.cell(x, y) == current_tile && x < width*4 && y < height*4){
@@ -265,7 +302,7 @@ void tile_scene(){
             current_tile++;
             tile_sprites.clear();
             text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
-            jv::LevelFactory(map1, 0);
+            jv::dev::GenerateDevLevel(map1);
             for(int y = 0; y < map1.y(); y++){
                 for(int x = 0; x < map1.x(); x++){
                     if(map1.cell(x, y) == current_tile && x < width*4 && y < height*4){
@@ -290,7 +327,7 @@ void tile_scene(){
                 }
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
             }else{
-                jv::LevelFactory(map1, 0);
+                jv::dev::GenerateDevLevel(map1);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
             }
         }
