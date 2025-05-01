@@ -33,10 +33,10 @@ inline void Log_skipped_frames(){
 }
 inline void Log_resources(){
     #if LOGS_ENABLED
-        BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
-        BN_LOG("Alloc ewram: ", bn::memory::used_alloc_ewram(), " Static ewram: ", bn::memory::used_static_ewram());
-        //BN_LOG("Rom: ", bn::memory::used_rom());
         BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
+        bn::memory::log_alloc_ewram_status();
+        //BN_LOG("Rom: ", bn::memory::used_rom());
     #endif
 }
 

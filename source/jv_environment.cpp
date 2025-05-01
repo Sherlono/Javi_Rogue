@@ -291,30 +291,31 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
 
 void GenerateLevel(game_map& map, bn::random& randomizer){
     map.reset();
-    bool sectors[3][3] = {{0, 0, 0},
-                          {0, 0, 0},
-                          {0, 0, 0}};
-
+    const int width = 4, height = 3;
+    bool sectors[height][width] = { {0, 0, 0, 0},
+                                    {0, 0, 0, 0},
+                                    {0, 0, 0, 0} };
+    
     // Creating rooms
-    for(int y = 0; y < 3; y++){
-        for(int x = 0; x < 3; x++){
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width; x++){
             if(sectors[y][x] == true){ continue;}
             
             bn::vector<uint8_t, ROOM_COUNT> validRooms;
             bn::point top_left(x, y);
 
             validRooms.push_back(1);
-            if(y + 1 != 3){
+            if(y + 1 < height){
                 if(!sectors[y+1][x]){
                     validRooms.push_back(2);
                 }
             }
-            if(x + 1 != 3){
+            if(x + 1 < width){
                 if(!sectors[y][x+1]){
                     validRooms.push_back(3);
                 }
             }
-            if(x + 1 != 3 && y + 1 != 3){
+            if(x + 1 < width && y + 1 < height){
                 if(!sectors[y][x+1] && !sectors[y+1][x] && !sectors[y+1][x+1]){
                     validRooms.push_back(4);
                     validRooms.push_back(5);
@@ -332,16 +333,16 @@ void GenerateLevel(game_map& map, bn::random& randomizer){
         }
     }
     // Vertical corridors
-    for(int y = 0; y < 2; y++){
-        for(int x = 0; x < 3; x++){
+    for(int y = 0; y < height - 1; y++){
+        for(int x = 0; x < width; x++){
             if(map.cell((2 + x*7)*4, (6 + y*7)*4 + 1) == 0){ 
                 InsertRoom(map, bn::point(2 + x*7, 5 + y*7), 6);
             }
         }
     }
     // Horizontal corridors
-    for(int y = 0; y < 3; y++){
-        for(int x = 0; x < 2; x++){
+    for(int y = 0; y < height; y++){
+        for(int x = 0; x < width - 1; x++){
             if(map.cell((6 + x*7)*4 + 1, (2 + y*7)*4) == 0){
                 InsertRoom(map, bn::point(5 + x*7, 2 + y*7), 7);
             }

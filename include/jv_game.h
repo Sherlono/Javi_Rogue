@@ -128,7 +128,7 @@ void game_scene(bn::random& randomizer){
     text_generator.set_blending_enabled(true);
 
     // Music
-    bn::music_items::cyberrid.play(0.25);    // Neat little song courtesy of the butano team
+    bn::music_items::cyberrid.play(0.25);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
@@ -147,7 +147,7 @@ void game_scene(bn::random& randomizer){
     level_bg.set_blending_enabled(true);
 
     // ****** Level data ******
-    constexpr bn::point mapSize(20, 20);
+    constexpr bn::point mapSize(27, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uint8_t tiles_arr[cellCount*16 + (mapSize.y()*4*2)];
@@ -167,7 +167,7 @@ void game_scene(bn::random& randomizer){
     jv::stairs stairs(0, 0, cam);
 
     bn::vector<jv::NPC, 1> v_npcs;
-    bn::vector<jv::Enemy, 15> v_enemies;
+    bn::vector<jv::Enemy, 10> v_enemies;
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
 
@@ -178,11 +178,6 @@ void game_scene(bn::random& randomizer){
     options.push_back(jv::menu_option(&val0, "Noclip"));
     options.push_back(jv::menu_option(&val1, "Invuln."));
     options.push_back(jv::menu_option(&next_level, "Next level"));
-
-    bn::vector<bn::regular_bg_ptr, 4> v_bgs;
-    v_bgs.push_back(background);
-    v_bgs.push_back(hud);
-    v_bgs.push_back(level_bg);
 
     /*bn::vector<bn::sprite_ptr, 8> v_balls;
     for(int y = 0; y < 3; y++){
@@ -197,30 +192,31 @@ void game_scene(bn::random& randomizer){
     }*/
     
     while(!game_over){
+        text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
         next_level = false;
         gameover_delay = 0;
 
         // Level generation
         jv::GenerateLevel(mainGameMap, randomizer);
 
-        bn::vector<bn::point, 25> v_points;
-        jv::random_coords(v_points, mainGameMap, randomizer);
-        text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
+        {
+            const uint8_t pointsSize = 32;
+            bn::vector<bn::point, pointsSize> v_points;
+            jv::random_coords(v_points, mainGameMap, randomizer);
+            
+            cam.set_position(v_points[0]);
+            cat.set_position(v_points[0]);
+            stairs.set_position(v_points[1]);
 
-        // Reposition universal entities
-        cam.set_position(v_points[0]);
-        cat.set_position(v_points[0]);
-        stairs.set_position(v_points[1]);
+            // Populate level
+            v_npcs.push_back(jv::NPC(v_points[2], cam));
 
-        // Populate level
-        v_npcs.push_back(jv::NPC(v_points[2], cam));
-
-        unsigned char min_enemies = 3, max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
-        for(int i = 0; i < max_enemies; i++){
-            v_enemies.push_back(jv::Enemy(v_points[3+i], cam, &randomizer, &mainGameMap));
+            uint8_t min_enemies = v_enemies.max_size()/3;
+            uint8_t max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
+            for(int i = 0; i < max_enemies; i++){
+                v_enemies.push_back(jv::Enemy(v_points[bamod(i, pointsSize)], cam, &randomizer, &mainGameMap));
+            }
         }
-        int npcCount = v_npcs.size(), enemyCount = v_enemies.size();
-        
 
         // Initialize level background
         jv::LevelMaker::init(cam, mainGameMap, bg_map_ptr, bg_map);
@@ -232,25 +228,24 @@ void game_scene(bn::random& randomizer){
         
         while(!next_level){
             objective = true;
-            if(cat.is_alive()){
+            if(cat.alive()){
                 cat.update(val0);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
+                healthbar.update();
             }
-            
-            healthbar.update();
 
-            for(int i = 0; i < enemyCount; i++){
+            for(int i = 0; i < v_enemies.size(); i++){
                 v_enemies[i].update(&cat, cam, val1);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
                 }*/
-               objective = objective && !v_enemies[i].is_alive();
+                objective = objective && !v_enemies[i].alive();
             }
 
-            for(int i = 0; i < npcCount; i++){ v_npcs[i].update(cat, cam, stairs, objective);}
+            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(cat, cam, stairs, objective);}
 
-            if(cat.is_alive()){
+            if(cat.alive()){
                 if(bn::keypad::select_pressed()){ Debug::Start(options);}
             }else{
                 if(gameover_delay == 120){
@@ -266,17 +261,15 @@ void game_scene(bn::random& randomizer){
             jv::resetcombo();
             bn::core::update();
         }
+        floor--;
         
         // Fade out
-        jv::fade(false, cat.is_alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
-
-        floor--;
+        jv::fade(false, cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
 
         // Reset Stuff
         stairs.set_open(false);
         cat.reset();
         v_npcs.clear();
-        v_points.clear();
         v_enemies.clear();
         txt_sprts.erase(txt_sprts.begin() + 1);
 

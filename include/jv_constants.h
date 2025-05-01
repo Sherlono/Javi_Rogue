@@ -3,7 +3,6 @@
 
 /**
  *  Glossary
- * uchar: Unsigned char
  * Tile: 8x8 pixel background tile
  * Block: 4x4 tile array
  */
@@ -18,7 +17,7 @@ namespace {
     constexpr uint8_t BLOCK_COUNT = FLOOROOM_COUNT + WALL_COUNT;    // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
-    constexpr uint8_t TILES_COUNT = 98;                             // Number of Total Tiles
+    constexpr uint8_t TILES_COUNT = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
     constexpr uint8_t ROOM_COUNT = 5;                               // Number of Room Prefabs
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2

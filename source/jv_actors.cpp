@@ -4,7 +4,7 @@ namespace jv{
 // ************ Player ************
 void Player::update(bool noClip){
     
-    if(is_alive()){
+    if(alive()){
         attack_update();
         if(_state == State::HURTING){
             if(_animation->done()){
@@ -45,7 +45,7 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
         builder.set_bg_priority(1);
         builder.set_blending_enabled(true);
         _sprite = builder.release_build(); 
-        if(is_alive()){
+        if(alive()){
             insert_animation(frames::w_up, frames::w_ho, frames::w_do);
         }else{
             _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
@@ -56,7 +56,7 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
         if(player->_sprite->y() > _sprite->y()){ _sprite->set_z_order(player->_sprite->z_order() + 1);}
         else{ _sprite->set_z_order(player->_sprite->z_order() - 1);}
 
-        if(is_alive()){
+        if(alive()){
             attack_update();
 
             // Movement and Animations
@@ -88,7 +88,7 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
                 }
             }
             // Combat
-            if(player->is_alive()){
+            if(player->alive()){
                 if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
                     got_hit(player->get_attack());
                     player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);

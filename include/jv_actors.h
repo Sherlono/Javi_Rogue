@@ -47,6 +47,7 @@ public:
     [[nodiscard]] bn::fixed y() const{ return _sprite->y() + bn::fixed(8);}
     [[nodiscard]] bn::point position() const{ return _rect.position();}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
+    [[nodiscard]] virtual bool alive() { return false;}
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y){
@@ -106,7 +107,7 @@ public:
 
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
-    [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
+    [[nodiscard]] bool alive() override { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
@@ -276,7 +277,7 @@ public:
 
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
-    [[nodiscard]] bool is_alive() { return _state != State::DEAD;}
+    [[nodiscard]] bool alive() override { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return stat_attack;}
     [[nodiscard]] int get_defense() { return stat_defense;}

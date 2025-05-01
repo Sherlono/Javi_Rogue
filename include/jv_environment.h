@@ -113,7 +113,6 @@ namespace jv{
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
-    //void ConnectRooms(game_map& map);
     void GenerateLevel(game_map& map, bn::random& randomizer);
 }
 #endif
