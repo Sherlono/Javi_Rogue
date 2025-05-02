@@ -167,7 +167,7 @@ void game_scene(bn::random& randomizer){
     jv::stairs stairs(0, 0, cam);
 
     bn::vector<jv::NPC, 1> v_npcs;
-    bn::vector<jv::Enemy, 10> v_enemies;
+    bn::vector<jv::Enemy*, 10> v_enemies;
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
 
@@ -214,7 +214,7 @@ void game_scene(bn::random& randomizer){
             uint8_t min_enemies = v_enemies.max_size()/3;
             uint8_t max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
             for(int i = 0; i < max_enemies; i++){
-                v_enemies.push_back(jv::Enemy(v_points[bamod(i, pointsSize)], cam, &randomizer, &mainGameMap));
+                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam, &randomizer, &mainGameMap));
             }
         }
 
@@ -235,12 +235,12 @@ void game_scene(bn::random& randomizer){
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i].update(&cat, cam, val1);
+                v_enemies[i]->update(&cat, cam, val1);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
                 }*/
-                objective = objective && !v_enemies[i].alive();
+                objective = objective && !v_enemies[i]->alive();
             }
 
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(cat, cam, stairs, objective);}
@@ -270,6 +270,7 @@ void game_scene(bn::random& randomizer){
         stairs.set_open(false);
         cat.reset();
         v_npcs.clear();
+        for(int i = 0; i < v_enemies.size(); i++){ delete v_enemies[i];}
         v_enemies.clear();
         txt_sprts.erase(txt_sprts.begin() + 1);
 

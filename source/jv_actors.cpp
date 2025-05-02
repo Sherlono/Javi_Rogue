@@ -3,7 +3,6 @@
 namespace jv{
 // ************ Player ************
 void Player::update(bool noClip){
-    
     if(alive()){
         attack_update();
         if(_state == State::HURTING){
@@ -28,7 +27,7 @@ void Player::update(bool noClip){
 }
 
 // ************* Enemy *************
-void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
+void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
     int halfWidth = 16, halfHeight = 16;
     bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
     bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
@@ -53,8 +52,8 @@ void Enemy::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
     }
 
     if(onScreen){
-        if(player->_sprite->y() > _sprite->y()){ _sprite->set_z_order(player->_sprite->z_order() + 1);}
-        else{ _sprite->set_z_order(player->_sprite->z_order() - 1);}
+        if(player->sprite().y() > _sprite->y()){ _sprite->set_z_order(player->sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -126,10 +125,10 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
 
 
     if(onScreen){
-        if(player._sprite->y() > _sprite->y()){
-            _sprite->set_z_order(player._sprite->z_order() + 1);
+        if(player.sprite().y() > _sprite->y()){
+            _sprite->set_z_order(player.sprite().z_order() + 1);
         }else{
-            _sprite->set_z_order(player._sprite->z_order() - 1);
+            _sprite->set_z_order(player.sprite().z_order() - 1);
         }
         _animation->update();
     }

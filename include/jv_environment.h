@@ -18,6 +18,7 @@
 
 class game_map{
 public:
+    ~game_map(){}
     game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
 
     // Getters

@@ -47,24 +47,24 @@ public:
     [[nodiscard]] bn::fixed y() const{ return _sprite->y() + bn::fixed(8);}
     [[nodiscard]] bn::point position() const{ return _rect.position();}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
-    [[nodiscard]] virtual bool alive() { return false;}
+    [[nodiscard]] bn::sprite_ptr sprite() { return _sprite.value();}
+    [[nodiscard]] bn::sprite_animate_action<4> animatiom() { return _animation.value();}
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y){
         _sprite->set_position(x, y - 8);
         _rect.set_position(x.integer(), y.integer());
     }
-    
     void set_position(bn::point point){
         _sprite->set_position(point.x(), point.y() - 8);
         _rect.set_position(point.x(), point.y());
     }
-    
     void set_camera(bn::camera_ptr cam){ _sprite->set_camera(cam);}
     void remove_camera(){ _sprite->remove_camera();}
     void set_visible(bool visible){ _sprite->set_visible(visible);}
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
+protected:
     bn::rect _rect;
     bn::optional<bn::sprite_ptr> _sprite;
     bn::optional<bn::sprite_animate_action<4>> _animation;
@@ -107,7 +107,7 @@ public:
 
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
-    [[nodiscard]] bool alive() override { return _state != State::DEAD;}
+    [[nodiscard]] bool alive() { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() { return _state;}
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
@@ -118,7 +118,24 @@ public:
     [[nodiscard]] int* get_maxhp_ptr(){ return &_stats.max_hp;}
 
     void update(bool noClip);
+
+    void got_hit(int damage){
+        _state = State::HURTING;
+        _attack_cooldown = 0;
+        _prev_attack_cooldown = 0;
+        _stats.hp -= damage/_stats.defense;
+        if(_stats.hp <= 0){
+            _state = State::DEAD;
+            _sprite->set_horizontal_flip(false);
+            _sprite->set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
+        }else{
+            _sprite->set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::character.tiles_item(),
+                                                               frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        }
+    }
     
+private:
     void animation_update(){
         if(_prev_dir != _dir){
             insert_animation(frames::w_up, frames::w_ho, frames::w_do);
@@ -185,24 +202,6 @@ public:
         }
     }
     
-    void got_hit(int damage){
-        _state = State::HURTING;
-        _attack_cooldown = 0;
-        _prev_attack_cooldown = 0;
-        _stats.hp -= damage/_stats.defense;
-        if(_stats.hp <= 0){
-            _state = State::DEAD;
-            _sprite->set_horizontal_flip(false);
-            _sprite->set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
-        }else{
-            _sprite->set_horizontal_flip(_dir == jv::WEST);
-            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::character.tiles_item(),
-                                                               frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
-        }
-    }
-    
-private:
-
     void insert_animation(const uint8_t* up, const uint8_t* horizontal, const uint8_t* down){
         if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
             _sprite->set_horizontal_flip(false);
@@ -239,12 +238,8 @@ private:
 
 class Enemy: public Actor{
 public:
-    static constexpr int stat_attack = 1, stat_defense = 1;
-    static constexpr bn::fixed stat_speed = bn::fixed(0.4);
-
     ~Enemy(){}
-    // Constructor
-    Enemy(bn::point position, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
+    Enemy(bn::point position, bn::random* random_ptr, game_map* map_ptr):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         max_hp(3), hp(3),
         _state(State::NORMAL),
@@ -255,7 +250,41 @@ public:
         _dir(jv::SOUTH),
         _idle_time(0),
         _map_ptr(map_ptr),
-        _randomizer(random_ptr)
+        _randomizer(random_ptr) {}
+
+    // Getters
+    [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
+    [[nodiscard]] bool alive() { return _state != State::DEAD;}
+    [[nodiscard]] uint8_t get_state() { return _state;}
+    [[nodiscard]] int get_maxhp() { return max_hp;}
+    [[nodiscard]] int get_hp() { return hp;}
+    [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
+    [[nodiscard]] virtual int get_attack() { return 0;}
+    [[nodiscard]] virtual int get_defense() { return 0;}
+
+    virtual void update(jv::Player* player, bn::camera_ptr cam, bool isInvul);
+
+protected:
+    int max_hp, hp;
+    uint8_t _state;
+    bn::rect _hitbox;
+    int8_t _prev_attack_cooldown, _attack_cooldown;
+    uint8_t _prev_dir, _dir;
+    uint8_t _idle_time;
+
+    game_map* _map_ptr;
+    bn::random* _randomizer;
+};
+
+class BadCat: public Enemy{
+public:
+    static constexpr int stat_attack = 1, stat_defense = 1;
+    static constexpr bn::fixed stat_speed = bn::fixed(0.4);
+
+    ~BadCat(){}
+    // Constructor
+    BadCat(bn::point position, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
+        Enemy(position, random_ptr, map_ptr)
         {
             int halfWidth = 16, halfHeight = 16;
             bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
@@ -272,21 +301,34 @@ public:
                                                             frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]);
             }
         }
+    
+    // Getters
+    [[nodiscard]] int get_attack() override { return stat_attack;}
+    [[nodiscard]] int get_defense() override { return stat_defense;}
+
     // Setters
     void set_state(int s){ _state = s;}
 
-    // Getters
-    [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
-    [[nodiscard]] bool alive() override { return _state != State::DEAD;}
-    [[nodiscard]] uint8_t get_state() { return _state;}
-    [[nodiscard]] int get_attack() { return stat_attack;}
-    [[nodiscard]] int get_defense() { return stat_defense;}
-    [[nodiscard]] int get_maxhp() { return max_hp;}
-    [[nodiscard]] int get_hp() { return hp;}
-    [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
-
-    void update(jv::Player* player, bn::camera_ptr cam, bool isInvul);
+    void update(jv::Player* player, bn::camera_ptr cam, bool isInvul) override;
     
+    void got_hit(int damage){
+        _state = State::HURTING;
+        _dir = 0;
+        _attack_cooldown = 0;
+        _prev_attack_cooldown = 0;
+        hp -= damage/stat_defense;
+        if(hp <= 0){
+            _state = State::DEAD;
+            _sprite->set_horizontal_flip(false);
+            _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+        }else{
+            _sprite->set_horizontal_flip(_dir == jv::WEST);
+            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::enemy.tiles_item(),
+                                                                frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
+        }
+    }
+    
+private:
     void animation_update(){
         if(_prev_dir != _dir){
             insert_animation(frames::w_up, frames::w_ho, frames::w_do);
@@ -355,57 +397,29 @@ public:
         }
     }
     
-    void got_hit(int damage){
-        _state = State::HURTING;
-        _dir = 0;
-        _attack_cooldown = 0;
-        _prev_attack_cooldown = 0;
-        hp -= damage/stat_defense;
-        if(hp <= 0){
-            _state = State::DEAD;
-            _sprite->set_horizontal_flip(false);
-            _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
-        }else{
-            _sprite->set_horizontal_flip(_dir == jv::WEST);
-            _animation = bn::create_sprite_animate_action_once(_sprite.value(), 8, bn::sprite_items::enemy.tiles_item(),
-                                                               frames::hurt[0], frames::hurt[1], frames::hurt[2], frames::hurt[3]);
-        }
-    }
-    
-
-private:
     void insert_animation(const uint8_t* up, const uint8_t* horizontal, const uint8_t* down){
-        if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
-            _sprite->set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), up[0], up[1], up[2], up[3]);
-            _hitbox.set_position(this->x().integer() - 10*(_dir == jv::NORTHWEST) + 10*(_dir == jv::NORTHEAST), (this->y() - 10).integer());
-        }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
-            _sprite->set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), down[0], down[1], down[2], down[3]);
-            _hitbox.set_position(this->x().integer() - 10*(_dir == jv::SOUTHWEST) + 10*(_dir == jv::SOUTHEAST), (this->y() + 10).integer());
-        }else if(_dir == jv::WEST){                            // LEFT
-            _sprite->set_horizontal_flip(true);
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
-            _hitbox.set_position((this->x() - 10).integer(), this->y().integer());
-        }else if(_dir == jv::EAST){                            // RIGHT
-            _sprite->set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
-            _hitbox.set_position((this->x() + 10).integer(), this->y().integer());
-        }else{
-            _sprite->set_horizontal_flip(false);
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
+            if(_dir == jv::NORTH || _dir == jv::NORTHWEST || _dir == jv::NORTHEAST){        // UP
+                _sprite->set_horizontal_flip(false);
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), up[0], up[1], up[2], up[3]);
+                _hitbox.set_position(this->x().integer() - 10*(_dir == jv::NORTHWEST) + 10*(_dir == jv::NORTHEAST), (this->y() - 10).integer());
+            }else if(_dir == jv::SOUTH || _dir == jv::SOUTHWEST || _dir == jv::SOUTHEAST){  // DOWN
+                _sprite->set_horizontal_flip(false);
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), down[0], down[1], down[2], down[3]);
+                _hitbox.set_position(this->x().integer() - 10*(_dir == jv::SOUTHWEST) + 10*(_dir == jv::SOUTHEAST), (this->y() + 10).integer());
+            }else if(_dir == jv::WEST){                            // LEFT
+                _sprite->set_horizontal_flip(true);
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+                _hitbox.set_position((this->x() - 10).integer(), this->y().integer());
+            }else if(_dir == jv::EAST){                            // RIGHT
+                _sprite->set_horizontal_flip(false);
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), horizontal[0], horizontal[1], horizontal[2], horizontal[3]);
+                _hitbox.set_position((this->x() + 10).integer(), this->y().integer());
+            }else{
+                _sprite->set_horizontal_flip(false);
+                _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::idle[0], frames::idle[1], frames::idle[2], frames::idle[3]);
+            }
         }
-    }
-
-    int max_hp, hp;
-    uint8_t _state;
-    bn::rect _hitbox;
-    int _prev_attack_cooldown, _attack_cooldown;
-    uint8_t _prev_dir, _dir;
-    uint8_t _idle_time;
-
-    game_map* _map_ptr;
-    bn::random* _randomizer;
+    
 };
 
 class NPC: public Actor{
