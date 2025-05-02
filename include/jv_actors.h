@@ -313,6 +313,7 @@ public:
     
     void got_hit(int damage){
         _state = State::HURTING;
+        _prev_dir = 0;
         _dir = 0;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;

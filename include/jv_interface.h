@@ -41,7 +41,7 @@ inline void Log_resources(){
     #endif
 }
 
-inline bn::point pop_point(bn::point* points, int& size, const int index){
+[[nodiscard]] inline bn::point pop_point(bn::point* points, int& size, const int index){
     BN_ASSERT(size > 0, "Invalid size: ", size);
     BN_ASSERT(index < size, "Invalid index: ", index);
     bn::point out = bn::point(points[index].x(), points[index].y());
@@ -57,7 +57,7 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
 
     {
         int current_size = 0;
-        int width = (map.x()-2)>>2, height = (map.y()-3)>>2;
+        int width = (map.x() - 2)>>2, height = (map.y() - 3)>>2;
         int tileIndex[4] = {0, 0, 0, 0};
 
         // Finding coordinates with floor in them

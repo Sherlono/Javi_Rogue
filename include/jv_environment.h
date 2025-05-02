@@ -5,6 +5,7 @@
 #include "bn_vector.h"
 #include "bn_random.h"
 #include "bn_memory.h"
+#include "bn_assert.h"
 #include "bn_bg_tiles.h"
 #include "bn_regular_bg_ptr.h"
 #include "bn_regular_bg_item.h"
@@ -32,6 +33,7 @@ public:
     }
 
     uint8_t operator[](int index){
+        BN_ASSERT(index >= 0, "Invalid index", index);
         uint8_t val = _blocks[index];
         return val - 127*(val >= 127);
     }
@@ -94,6 +96,9 @@ struct bg_map
     bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
 
     void set_cell(bn::point position, uint16_t value, bool flip = false){
+        BN_ASSERT(position.x() >= 0, "Invalid x", position.x());
+        BN_ASSERT(position.y() >= 0, "Invalid y", position.y());
+
         bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(position.x(), position.y())];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);
         if(current_cell_info.cell() != value){
@@ -104,8 +109,7 @@ struct bg_map
         current_cell = current_cell_info.cell();
     }
 
-    void reset()
-    {
+    void reset(){
         bn::memory::clear(cells_count, cells[0]);
     }
 };

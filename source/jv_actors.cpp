@@ -28,7 +28,7 @@ void Player::update(bool noClip){
 
 // ************* Enemy *************
 void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
-    int halfWidth = 16, halfHeight = 16;
+    uint8_t halfWidth = 16, halfHeight = 16;
     bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
     bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
     bool onScreen = left && right && up && down;
@@ -103,7 +103,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
 
 // ************** NPC **************
 void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective){
-    int halfWidth = 16, halfHeight = 16;
+    uint8_t halfWidth = 16, halfHeight = 16;
     bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
     bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
     bool onScreen = left && right && up && down;
