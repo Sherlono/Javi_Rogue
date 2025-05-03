@@ -335,7 +335,8 @@ void GenerateLevel(game_map& map, bn::random& randomizer){
     // Vertical corridors
     for(int y = 0; y < height - 1; y++){
         for(int x = 0; x < width; x++){
-            if(map.cell((2 + x*7)*4, (6 + y*7)*4 + 1) == 0){ 
+            int Connected = map.cell((2 + x*7)*4, (6 + y*7)*4 + 1);
+            if(!Connected){ 
                 InsertRoom(map, bn::point(2 + x*7, 5 + y*7), 6);
             }
         }
@@ -343,8 +344,19 @@ void GenerateLevel(game_map& map, bn::random& randomizer){
     // Horizontal corridors
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width - 1; x++){
-            if(map.cell((6 + x*7)*4 + 1, (2 + y*7)*4) == 0){
+            int Connected = map.cell((6 + x*7)*4 + 1, (2 + y*7)*4);
+            if(!Connected){
                 InsertRoom(map, bn::point(5 + x*7, 2 + y*7), 7);
+                if(map.cell(22 + x*28, 20 + y*28) == 82){
+                    uint8_t arr[4] = {91, 82,
+                                      92, 84};
+                    map.insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
+                }
+                if(map.cell(29 + x*28, 20 + y*28) == 82){
+                    uint8_t arr[4] = {91, 82,
+                                      92, 84};
+                    map.insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
+                }
             }
         }
     }
