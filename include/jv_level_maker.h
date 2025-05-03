@@ -8,18 +8,19 @@
 #include "jv_environment.h"
 
 namespace jv::LevelMaker{
+void update(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map);
 static int prev_x, prev_y;
 // Init must be called ONCE before the loop begins
 void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     bg_map_ptr->reset();
     // Defining the MAP ARRAY bounds to redraw the map
-    int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 47)>>3;
+    int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 48)>>3;
     int cx_pthtw = current_x + 32, cy_pthtw = current_y + 32;
     // Redraw map bounds
     for(int y = current_y; y < cy_pthtw + 32; y++){
         for(int x = current_x; x < cx_pthtw; x++){
-            int xmod = bamod(x, 32), ymod = bamod(y, 32);
             if(x > cx_pthtw || y > cy_pthtw || x - 15 <= 0 || x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y()){ continue;}
+            int xmod = bamod(x, 32), ymod = bamod(y, 32);
 
             bn::point grid_coord(xmod, ymod);
 
@@ -31,6 +32,7 @@ void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr
     prev_x = current_x;
     prev_y = current_y;
     bg_map.reload_cells_ref();
+    LevelMaker::update(cam, map, bg_map_ptr, bg_map);
 }
 
 // Update must be run every frame
