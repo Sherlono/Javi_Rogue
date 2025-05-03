@@ -8,7 +8,7 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED false       // Turns all BN_LOG call functionality off
+    #define LOGS_ENABLED true       // Turns all BN_LOG call functionality off
 #endif
 
 namespace {
