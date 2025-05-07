@@ -5,14 +5,14 @@ namespace jv{
 void Player::update(bool noClip){
     if(alive()){
         attack_update();
-        if(_state == State::HURTING){
+        if(get_state() == State::HURTING){
             if(_animation->done()){
-                _state = State::NORMAL;
+                set_state(State::NORMAL);
                 insert_animation(frames::w_up, frames::w_ho, frames::w_do);
             }
         }else{
             move(noClip);
-            if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
+            if(attack_ended()){
                 insert_animation(frames::w_up, frames::w_ho, frames::w_do);
             }
             if(_animation->done()){ animation_update();}
@@ -27,12 +27,9 @@ void Player::update(bool noClip){
 }
 
 // ************* Enemy *************
-void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
-    uint8_t halfWidth = 16, halfHeight = 16;
-    bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
-    bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
-    bool onScreen = left && right && up && down;
-    if(!onScreen){
+void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false){
+    bool isOnScreen = on_screen(cam);
+    if(!isOnScreen){
         if(_sprite){
             _sprite.reset();
             _animation.reset();
@@ -51,7 +48,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
         }
     }
 
-    if(onScreen){
+    if(isOnScreen){
         if(player->sprite().y() > _sprite->y()){ _sprite->set_z_order(player->sprite().z_order() + 1);}
         else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
 
@@ -59,33 +56,22 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
             attack_update();
 
             // Movement and Animations
-            if(_state == State::HURTING){
+            if(get_state() == State::HURTING){
                 if(_animation->done()){
-                    _state = State::NORMAL;
+                    set_state(State::NORMAL);
                     if(!_idle_time){ insert_animation(frames::idle, frames::idle, frames::idle);}
                     else{insert_animation(frames::w_up, frames::w_ho, frames::w_do);}
                 }
             }else{
                 move();
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
-                if(!_attack_cooldown && _prev_attack_cooldown != _attack_cooldown){
+                if(attack_ended()){
                     insert_animation(frames::w_up, frames::w_ho, frames::w_do);
                 }
                 if(_animation->done()){ animation_update();}
             }
             if(!_animation->done()){ _animation->update();}
-
-            if(player->get_state() == State::NORMAL){
-                // Dialog
-                if(bn::keypad::a_pressed() && player->rect().intersects(rect())){
-                    if(get_hp() == get_maxhp()){
-                        jv::Dialog::init("I am the evil cat. My best friend", "is Neko Arc. Don't mess with me!");
-                    }else{
-                        bn::string_view line1 = "Hey watch it! I only have " + bn::to_string<30>(get_hp()) + " hp";
-                        jv::Dialog::init(line1, "left!");
-                    }
-                }
-            }
+            
             // Combat
             if(player->alive()){
                 if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
@@ -103,11 +89,8 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul){
 
 // ************** NPC **************
 void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective){
-    uint8_t halfWidth = 16, halfHeight = 16;
-    bool up = this->int_y() > cam.y() - 80 - halfHeight, down = this->int_y() < cam.y() + 80 + halfHeight;
-    bool left = this->int_x() > cam.x() - 120 - halfWidth, right = this->int_x() < cam.x() + 120 + halfWidth;
-    bool onScreen = left && right && up && down;
-    if(!onScreen){
+    bool isOnScreen = on_screen(cam);
+    if(!isOnScreen){
         if(_sprite){
             _sprite.reset();
             _animation.reset();
@@ -124,7 +107,7 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
     }
 
 
-    if(onScreen){
+    if(isOnScreen){
         if(player.sprite().y() > _sprite->y()){
             _sprite->set_z_order(player.sprite().z_order() + 1);
         }else{
@@ -134,7 +117,7 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
     }
 
     
-    if(player.get_state() == State::NORMAL){
+    if(player.get_state() == State::NORMAL && !player.is_attacking()){
         // Dialog
         if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
             if(!objective){

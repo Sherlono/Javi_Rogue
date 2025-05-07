@@ -115,6 +115,7 @@ void blocks_scene(){
     }
     
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+    bg_map.reload_cells_ref();
     
     bn::optional<int> current_block;
     int current_tile = 0, tile_copy = 0, _x = 0, _y = 0;
@@ -127,6 +128,7 @@ void blocks_scene(){
                 _y--;
                 cam.set_y(cam.y() - 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -135,6 +137,7 @@ void blocks_scene(){
                 _y++;
                 cam.set_y(cam.y() + 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -144,6 +147,7 @@ void blocks_scene(){
                 _x--;
                 cam.set_x(cam.x() - 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -152,6 +156,7 @@ void blocks_scene(){
                 _x++;
                 cam.set_x(cam.x() + 8);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*map1.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -180,10 +185,12 @@ void blocks_scene(){
                 tiles_arr[_x + _y*map1.x()] = current_tile + 1;
                 tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile + 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
             }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
                 tiles_arr[_x + _y*map1.x()] = current_tile - 1;
                 tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = current_tile - 1 + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
             }
         }
         // Hide block index
@@ -202,6 +209,7 @@ void blocks_scene(){
             tiles_arr[_x + _y*map1.x()] = tile_copy;
             tiles_arr[_x + 7 - 2*(_x%4) + _y*map1.x()] = tile_copy + 127*(1 - 2*map1.horizontal_flip(_x + _y*map1.x()));
             jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+            bg_map.reload_cells_ref();
         }
 
 
@@ -264,6 +272,7 @@ void tile_scene(){
     text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
 
     jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+    bg_map.reload_cells_ref();
     
     while(true){
         if(bn::keypad::up_held()){
@@ -298,6 +307,7 @@ void tile_scene(){
                 }
             }
             jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+            bg_map.reload_cells_ref();
         }else if(bn::keypad::r_pressed() && current_tile < 126){
             current_tile++;
             tile_sprites.clear();
@@ -311,6 +321,7 @@ void tile_scene(){
                 }
             }
             jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+            bg_map.reload_cells_ref();
         }
 
         if(bamod(timer>>6, 2)){ toggle = true;}
@@ -326,9 +337,11 @@ void tile_scene(){
                     }
                 }
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
             }else{
                 jv::dev::GenerateDevLevel(map1);
                 jv::LevelMaker::init(cam, map1, bg_map_ptr, bg_map);
+                bg_map.reload_cells_ref();
             }
         }
 

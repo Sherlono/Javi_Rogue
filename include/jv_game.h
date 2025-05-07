@@ -46,7 +46,7 @@ void start_scene(bn::random& randomizer, char& option){
     
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 45> menu_sprts;
-    int y_offset = 50;
+    char y_offset = 50;
     text_generator.set_bg_priority(0);
     text_generator.generate(-98, y_offset - 16, "Select scene", menu_sprts);
     text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
@@ -231,7 +231,6 @@ void game_scene(bn::random& randomizer){
             if(cat.alive()){
                 cat.update(val0);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
-                healthbar.update();
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
@@ -242,6 +241,7 @@ void game_scene(bn::random& randomizer){
                 }*/
                 objective = objective && !v_enemies[i]->alive();
             }
+            healthbar.update();
 
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(cat, cam, stairs, objective);}
 

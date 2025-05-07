@@ -9,7 +9,7 @@
 
 namespace jv{
 struct healthbar{
-    healthbar(int* m_v, int* v):
+    healthbar(short* m_v, short* v):
         max_value(m_v), value(v)
         {
             _sprites.push_back(bn::sprite_items::healthbar.create_sprite(-84, -72));
@@ -32,7 +32,7 @@ struct healthbar{
         _sprites[0].set_x(target_x);
     }
 private:
-    int *max_value, *value;
+    short *max_value, *value;
     bn::vector<bn::sprite_ptr, 2> _sprites;
 };
 }

@@ -14,7 +14,7 @@ static int prev_x, prev_y;
 void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr, bn::regular_bg_map_ptr& bg_map){
     bg_map_ptr->reset();
     // Defining the MAP ARRAY bounds to redraw the map
-    int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 48)>>3;
+    int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 47)>>3;
     int cx_pthtw = current_x + 32, cy_pthtw = current_y + 32;
     // Redraw map bounds
     for(int y = current_y; y < cy_pthtw + 32; y++){
@@ -31,7 +31,6 @@ void init(bn::camera_ptr& cam, game_map& map, bn::unique_ptr<bg_map>& bg_map_ptr
     
     prev_x = current_x;
     prev_y = current_y;
-    bg_map.reload_cells_ref();
     LevelMaker::update(cam, map, bg_map_ptr, bg_map);
 }
 

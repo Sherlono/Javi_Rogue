@@ -8,17 +8,17 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED true       // Turns all BN_LOG call functionality off
+    #define LOGS_ENABLED false       // Turns all BN_LOG call functionality off
 #endif
 
 namespace {
     constexpr uint8_t FLOOROOM_COUNT = 22;                          // Number of Floor Blocks [0,21]
-    constexpr uint8_t WALL_COUNT = 43 - FLOOROOM_COUNT + 1;         // Number of Wall Blocks [22,43]
+    constexpr uint8_t WALL_COUNT = 45 - FLOOROOM_COUNT + 1;         // Number of Wall Blocks [22,43]
     constexpr uint8_t BLOCK_COUNT = FLOOROOM_COUNT + WALL_COUNT;    // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_COUNT = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
-    constexpr uint8_t ROOM_COUNT = 5;                               // Number of Room Prefabs
+    constexpr uint8_t ROOM_COUNT = 7;                               // Number of Room Prefabs
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
@@ -265,7 +265,17 @@ namespace jv::blocks{
         { 82+127, 81+127, 81, 82,
             84+127, 83+127, 83, 84,
             82+127, 81+127, 81, 82,
-            84+127, 83+127, 83, 84}
+            84+127, 83+127, 83, 84},
+        // block 44
+        {21, 21, 20, 21, 
+           34, 33, 34, 34,
+           46, 47, 47+127, 46+127,
+           48, 49, 49+127, 48+127},
+        // block 45
+        {82+127, 81+127, 81, 82,
+            84+127, 83+127, 83, 84,
+            0, 0, 0, 0,
+            0, 0, 0, 0 },
     };
 }
 
