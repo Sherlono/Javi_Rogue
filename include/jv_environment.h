@@ -15,6 +15,7 @@
 #include "bn_bg_palette_items_floor_palette.h"
 #include "bn_regular_bg_tiles_items_floor_tiles.h"
 
+#include "jv_fog.h"
 #include "jv_constants.h"
 
 class game_map{
@@ -115,9 +116,16 @@ struct bg_map
 };
 
 namespace jv{
+    struct roomData{
+        roomData(bn::point s_shape, bn::point f_shape): data({s_shape, f_shape}){}
+        bn::point& sector_shape() { return data[0];}
+        bn::point& fog_shape() { return data[1];}
+        bn::array<bn::point, 2> data;
+    };
+
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
-    void GenerateLevel(game_map& map, bn::random& randomizer);
+    roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
+    void GenerateLevel(game_map& map, Fog& fog, bn::random& randomizer);
 }
 #endif

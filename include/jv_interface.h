@@ -6,6 +6,8 @@
 #include "bn_random.h"
 #include "bn_keypad.h"
 #include "bn_assert.h"
+#include "bn_bg_palettes.h"
+#include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
 #include "jv_environment.h"
@@ -106,18 +108,27 @@ void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
 }
 
 inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIUM){
+    bn::fixed progress;
+    bn::color black = bn::colors::black;
+
     if(fadeIn){
-        bn::fixed progress = 1.0;
+        progress = 1.0;
+        bn::fixed max;
         for(int i = 0; progress >= 0; i++){
             progress = 1 - bn::fixed(i)/speed;
-            bn::blending::set_fade_alpha(bn::max(progress, bn::fixed(0)));
+            max = bn::max(progress, bn::fixed(0));
+            bn::sprite_palettes::set_fade(black, max);
+            bn::bg_palettes::set_fade(black, max);
             bn::core::update();
         }
     }else{
-        bn::fixed progress = 0.0;
+        progress = 0.0;
+        bn::fixed min;
         for(int i = 0; progress <= 1; i++){
             progress = bn::fixed(i)/speed;
-            bn::blending::set_fade_alpha(bn::min(progress, bn::fixed(1)));
+            min = bn::min(progress, bn::fixed(1));
+            bn::sprite_palettes::set_fade(black, min);
+            bn::bg_palettes::set_fade(black, min);
             bn::core::update();
         }
     }

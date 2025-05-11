@@ -6,10 +6,8 @@
 #include "bn_random.h"
 #include "bn_keypad.h"
 #include "bn_optional.h"
-#include "bn_unique_ptr.h"
 #include "bn_sprite_builder.h"
 #include "bn_camera_actions.h"
-#include "bn_blending_actions.h"
 #include "bn_sprite_animate_actions.h"
 
 #include "jv_math.h"
@@ -86,7 +84,7 @@ public:
             builder.set_position(position.x(), position.y() - 8);
             builder.set_camera(cam);
             builder.set_bg_priority(1);
-            builder.set_blending_enabled(true);
+            
             _sprite = builder.release_build();
             _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]);
         }
@@ -310,7 +308,7 @@ public:
                 builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
-                builder.set_blending_enabled(true);
+                
                 _sprite = builder.release_build();
                 _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(),
                                                             frames::w_do[0], frames::w_do[1], frames::w_do[2], frames::w_do[3]);
@@ -452,7 +450,7 @@ public:
                 builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
-                builder.set_blending_enabled(true);
+                
                 _sprite = builder.release_build();
                 _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
                                         bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);

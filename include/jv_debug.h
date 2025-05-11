@@ -94,7 +94,8 @@ namespace Debug{
 void debug_update(auto& options, bn::vector<bn::sprite_ptr, 100>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
 void Start(auto& options){
     // Hide all previous graphics
-    bn::blending::set_fade_alpha(bn::fixed(1));
+    bn::regular_bg_ptr black = bn::regular_bg_items::darkness.create_bg(0, 0);
+    black.set_priority(0);
 
     static int index = 0;
     uint8_t hold = 0;
@@ -147,9 +148,6 @@ void Start(auto& options){
         jv::resetcombo();
         bn::core::update();
     }
-    
-    // Unhide all previous graphics
-    bn::blending::set_fade_alpha(bn::fixed(0));
 
     // Print debug values
     #if LOGS_ENABLED

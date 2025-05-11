@@ -39,7 +39,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false
         builder.set_position(this->int_x(), this->int_y() - 8);
         builder.set_camera(cam);
         builder.set_bg_priority(1);
-        builder.set_blending_enabled(true);
+        
         _sprite = builder.release_build(); 
         if(alive()){
             insert_animation(frames::w_up, frames::w_ho, frames::w_do);
@@ -100,7 +100,7 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
         builder.set_position(this->int_x(), this->int_y() - 8);
         builder.set_camera(cam);
         builder.set_bg_priority(1);
-        builder.set_blending_enabled(true);
+        
         _sprite = builder.release_build();
         _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
                                 bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);

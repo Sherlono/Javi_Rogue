@@ -12,7 +12,7 @@ void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option,
     map.insert_map(blk, top_left, blockFlip);
 }
 
-bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option){
+roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t option){
     switch(option){
         // Rooms
         case 1:{
@@ -44,7 +44,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(1, 1);
+            return roomData(bn::point(1, 1), bn::point(width, height));
         }
         case 2:{
             const uint8_t width = 7, height = 14;
@@ -89,7 +89,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(1, 2);
+            return roomData(bn::point(1, 2), bn::point(width, height));
         }
         case 3:{
             const uint8_t width = 7, height = 14;
@@ -134,7 +134,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(1, 2);
+            return roomData(bn::point(1, 2), bn::point(width, height));
         }
         case 4:{
             const uint8_t width = 14, height = 7;
@@ -165,7 +165,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(2, 1);
+            return roomData(bn::point(2, 1), bn::point(width, height));
         }
         case 5:{
             const uint8_t width = 14, height = 7;
@@ -196,7 +196,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(2, 1);
+            return roomData(bn::point(2, 1), bn::point(width, height));
         }
         case 6:{
             const uint8_t width = 14, height = 14;
@@ -241,7 +241,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(2, 2);
+            return roomData(bn::point(2, 2), bn::point(width, height));
         }
         case 7:{
             const uint8_t width = 14, height = 14;
@@ -286,7 +286,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(2, 2);
+            return roomData(bn::point(2, 2), bn::point(width, height));
         }
         // Corridors
         case 8:{
@@ -314,7 +314,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(0, 0);
+            return roomData(bn::point(0, 0), bn::point(1, 1));
         }
         case 9:{
             const uint8_t width = 4, height = 4;
@@ -339,15 +339,16 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                     }
                 }
             }
-            return bn::point(0, 0);
+            return roomData(bn::point(0, 0), bn::point(1, 1));
         }
         default:{
             BN_ASSERT(false, "Invalid room option.", option);
-        return bn::point(0, 0);}
+            return roomData(bn::point(0, 0), bn::point(1, 1));
+        }
     }
 }
 
-void GenerateLevel(game_map& map, bn::random& randomizer){
+void GenerateLevel(game_map& map, jv::Fog& fog, bn::random& randomizer){
     map.reset();
     const int width = 4, height = 3;
     bool sectors[height][width] = { {0, 0, 0, 0},
@@ -385,13 +386,18 @@ void GenerateLevel(game_map& map, bn::random& randomizer){
             }
 
             uint8_t option = validRooms[randomizer.get_int(0, validRooms.size())];
-            bn::point occupied = InsertRoom(map, top_left*7, option);
+
+            roomData rData = InsertRoom(map, top_left*7, option);
+            bn::point occupied = rData.sector_shape();
 
             for(int row = y; row < y + occupied.y(); row++){
                 for(int column = x; column < x + occupied.x(); column++){
                     sectors[row][column] = true;
                 }
             }
+
+            fog.create_room(bn::rect(-16 + (x*224 + occupied.x()*112), -16 + (y*224 + occupied.y()*112),
+                                (rData.fog_shape().x() - 1)*32, (rData.fog_shape().y() - 1)*32 + 16));
         }
     }
     // Vertical corridors
