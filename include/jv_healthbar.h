@@ -1,7 +1,6 @@
 #ifndef JV_HEALTHBAR
 #define JV_HEALTHBAR
 
-#include "bn_log.h"
 #include "bn_vector.h"
 #include "bn_sprite_ptr.h"
 

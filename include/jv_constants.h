@@ -23,7 +23,9 @@ namespace {
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 
     constexpr bn::fixed quarter_circle[24] = {0.00087, 0.00348, 0.00784, 0.014, 0.022, 0.03175, 0.0435, 0.0572, 0.073, 0.091, 0.11122, 0.134,
-                                                0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
+                                              0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
+
+    constexpr int MAX_FRAMES = 8;
 }
 
 namespace jv::fadespeed{
@@ -34,16 +36,18 @@ namespace jv::fadespeed{
 }
 
 namespace jv::frames{
-    constexpr uint8_t w_up[4] = {6, 7, 6, 8};      // Walk up frames
-    constexpr uint8_t w_ho[4] = {3, 4, 3, 5};      // Walk horizontal frames
-    constexpr uint8_t w_do[4] = {0, 1, 0, 2};      // Walk down frames
+    constexpr uint8_t Walk = 0;
+    constexpr uint8_t Attack = 1;
+    constexpr uint16_t WalkAttack_up[2][4] = {{6, 7, 6, 8}, {6, 15, 16, 17}};      // Walk up frames
+    constexpr uint16_t WalkAttack_ho[2][4] = {{3, 4, 3, 5}, {3, 12, 13, 14}};      // Walk horizontal frames
+    constexpr uint16_t WalkAttack_do[2][4] = {{0, 1, 0, 2}, {0, 9, 10, 11} };      // Walk down frames
 
-    constexpr uint8_t a_up[4] = {6, 15, 16, 17};   // Attack up frames
-    constexpr uint8_t a_ho[4] = {3, 12, 13, 14};   // Attack horizontal frames
-    constexpr uint8_t a_do[4] = {0, 9, 10, 11};    // Attack down frames
+    /*constexpr uint16_t a_up[4] = {6, 15, 16, 17};   // Attack up frames
+    constexpr uint16_t a_ho[4] = {3, 12, 13, 14};   // Attack horizontal frames
+    constexpr uint16_t a_do[4] = {0, 9, 10, 11}  ;    // Attack down frames*/
     
-    constexpr uint8_t idle[4] = {18, 19, 18, 20};  // Idle frames
-    constexpr uint8_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
+    constexpr uint16_t idle[4] = {18, 19, 18, 20};  // Idle frames
+    constexpr uint16_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
 }
 
 namespace jv::blocks{
