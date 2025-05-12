@@ -2,7 +2,7 @@
 
 namespace jv{
 // ************ Player ************
-void Player::update(bool noClip){
+void Player::update(bn::camera_ptr cam, bool noClip){
     if(alive()){
         attack_update();
         if(get_state() == State::HURTING){
@@ -11,7 +11,7 @@ void Player::update(bool noClip){
                 insert_animation(frames::w_up, frames::w_ho, frames::w_do);
             }
         }else{
-            move(noClip);
+            move(cam, noClip);
             if(attack_ended()){
                 insert_animation(frames::w_up, frames::w_ho, frames::w_do);
             }
@@ -27,7 +27,7 @@ void Player::update(bool noClip){
 }
 
 // ************* Enemy *************
-void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false){
+void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bool isInvul = false){
     bool isOnScreen = on_screen(cam);
     if(!isOnScreen){
         if(_sprite){
@@ -63,7 +63,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false
                     else{insert_animation(frames::w_up, frames::w_ho, frames::w_do);}
                 }
             }else{
-                move();
+                move(map);
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
                 if(attack_ended()){
                     insert_animation(frames::w_up, frames::w_ho, frames::w_do);

@@ -39,6 +39,7 @@ public:
     [[nodiscard]] bn::rect rect() const{ return _rect;}
     [[nodiscard]] bn::sprite_ptr sprite() { return _sprite.value();}
     [[nodiscard]] bn::sprite_animate_action<4> animatiom() { return _animation.value();}
+    //[[nodiscard]] bn::optional<bn::camera_ptr>& camera() const { return _sprite->camera().value();}
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y){
@@ -49,7 +50,7 @@ public:
         _sprite->set_position(point.x(), point.y() - 8);
         _rect.set_position(point.x(), point.y());
     }
-    void set_camera(bn::camera_ptr cam){ _sprite->set_camera(cam);}
+    void set_camera(bn::camera_ptr& cam){ _sprite->set_camera(cam);}
     void remove_camera(){ _sprite->remove_camera();}
     void set_visible(bool visible){ _sprite->set_visible(visible);}
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
@@ -67,12 +68,11 @@ class Player: public Actor{
 public:
     ~Player(){};
     // Constructor
-    Player(bn::point position, bn::camera_ptr c, bn::random* random_ptr, game_map* map_ptr):
+    Player(bn::point position, bn::camera_ptr& camera, bn::random* random_ptr, game_map* map_ptr):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
-        cam(c),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
         _prev_dir(Direction::SOUTH),
@@ -82,7 +82,7 @@ public:
         {
             bn::sprite_builder builder(bn::sprite_items::character);
             builder.set_position(position.x(), position.y() - 8);
-            builder.set_camera(cam);
+            builder.set_camera(camera);
             builder.set_bg_priority(1);
             
             _sprite = builder.release_build();
@@ -115,7 +115,7 @@ public:
         _animation->update();
     }
 
-    void update(bool noClip);
+    void update(bn::camera_ptr cam, bool noClip);
 
     void got_hit(int damage){
         _state = State::HURTING;
@@ -141,7 +141,7 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(bool noClip = false){
+    void move(bn::camera_ptr& cam, bool noClip = false){
         if(!_attack_cooldown){
             if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
                 _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
@@ -233,7 +233,6 @@ private:
     basic_stats _stats;
     uint8_t _state;
     bn::rect _hitbox;
-    bn::camera_ptr cam;
     int _prev_attack_cooldown, _attack_cooldown;
     uint8_t _prev_dir, _dir;
 
@@ -244,7 +243,7 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(bn::point position, bn::random* random_ptr, game_map* map_ptr):
+    Enemy(bn::point position, bn::random* random_ptr):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         max_hp(3), hp(3),
         _state(State::NORMAL),
@@ -254,7 +253,6 @@ public:
         _prev_dir(Direction::SOUTH),
         _dir(Direction::SOUTH),
         _idle_time(0),
-        _map_ptr(map_ptr),
         _randomizer(random_ptr) {}
 
     // Getters
@@ -266,7 +264,7 @@ public:
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
     [[nodiscard]] virtual uint8_t get_attack() { return 0;}
     [[nodiscard]] virtual uint8_t get_defense() { return 0;}
-    [[nodiscard]] inline bool on_screen(bn::camera_ptr cam) const {
+    [[nodiscard]] inline bool on_screen(bn::camera_ptr& cam) const {
         const uint8_t halfWidth = 16, halfHeight = 16;
         constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
         bool up = this->int_y() > cam.y() - y_offset, down = this->int_y() < cam.y() + y_offset;
@@ -278,7 +276,7 @@ public:
     }
 
     // Functionality
-    virtual void update(jv::Player* player, bn::camera_ptr cam, bool isInvul);
+    virtual void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bool isInvul);
 
 protected:
     int max_hp, hp;
@@ -288,7 +286,6 @@ protected:
     uint8_t _prev_dir, _dir;
     uint8_t _idle_time;
 
-    game_map* _map_ptr;
     bn::random* _randomizer;
 };
 
@@ -299,8 +296,8 @@ public:
 
     ~BadCat(){}
     // Constructor
-    BadCat(bn::point position, bn::camera_ptr cam, bn::random* random_ptr, game_map* map_ptr):
-        Enemy(position, random_ptr, map_ptr)
+    BadCat(bn::point position, bn::camera_ptr cam, bn::random* random_ptr):
+        Enemy(position, random_ptr)
         {
             bool isOnScreen = on_screen(cam);
             if(isOnScreen){
@@ -323,7 +320,7 @@ public:
     void set_state(int s){ _state = s;}
 
     // Functionality
-    void update(jv::Player* player, bn::camera_ptr cam, bool isInvul) override;
+    void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bool isInvul) override;
     
     void got_hit(int damage){
         _state = State::HURTING;
@@ -351,7 +348,7 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(){
+    void move(game_map& map){
         // Decide direction at random
         if(!_attack_cooldown){
             // Random direction
@@ -367,10 +364,10 @@ private:
             bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
             int x = this->x().integer()>>3, y = (this->y().integer() + 4)>>3;
                 
-            obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WTILES_COUNT;
-            obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WTILES_COUNT;
-            obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WTILES_COUNT;
-            obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WTILES_COUNT;
+            obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
+            obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
+            obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
+            obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
 
             // If direction is valid
             if(_dir != Direction::NEUTRAL && _dir < 9){

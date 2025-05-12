@@ -1,12 +1,12 @@
 #ifndef JV_DEV_TOOLS
 #define JV_DEV_TOOLS
 
-#include "bn_sprite_palette_ptr.h"
+/*#include "bn_sprite_palette_ptr.h"
 
 #include "jv_actors.h"
 #include "jv_interface.h"
 #include "jv_constants.h"
-#include "jv_level_maker.h"
+#include "jv_tiled_bg.h"
 #include "jv_environment.h"
 
 #include "bn_sprite_items_cursor.h"
@@ -354,6 +354,6 @@ void tile_scene(){
 }
 
 }
-
+*/
 
 #endif

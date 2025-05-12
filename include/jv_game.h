@@ -14,7 +14,7 @@
 #include "jv_stairs.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
-#include "jv_level_maker.h"
+#include "jv_tiled_bg.h"
 #include "jv_debug.h"
 
 #include "bn_sprite_items_ball.h"
@@ -125,25 +125,18 @@ void game_scene(bn::random& randomizer){
     text_generator.set_bg_priority(0);
 
     // Music
-    bn::music_items::cyberrid.play(0.25);
+    bn::music_items::cyberrid.play(0.1);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_priority(3);
-
-    bn::unique_ptr<bg_map> bg_map_ptr(new bg_map());
-    bn::regular_bg_item bg_item(
-                bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_map_ptr->map_item);
-    bn::regular_bg_ptr level_bg = bg_item.create_bg(0, 0);
-    bn::regular_bg_map_ptr bg_map = level_bg.map();
-    level_bg.set_priority(2);
 
     // ****** Level data ******
     constexpr bn::point mapSize(27, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
     uint8_t tiles_arr[cellCount*16 + (mapSize.y()*4*2)];
-    game_map mainGameMap(mapSize.x()*4 + 2, mapSize.y()*4, tiles_arr);
+    jv::tiled_bg Fortress(game_map(mapSize.x()*4 + 2, mapSize.y()*4, tiles_arr), 2);
 
     int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, objective = true;
@@ -151,10 +144,10 @@ void game_scene(bn::random& randomizer){
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     background.set_camera(cam);
-    level_bg.set_camera(cam);
+    Fortress.set_camera(cam);
 
     // ** Universal entities **
-    jv::Player cat(bn::point(0, 0), cam, &randomizer, &mainGameMap);
+    jv::Player cat(bn::point(0, 0), cam, &randomizer, &Fortress.map);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
 
@@ -191,12 +184,12 @@ void game_scene(bn::random& randomizer){
         gameover_delay = 0;
 
         // Level generation
-        jv::GenerateLevel(mainGameMap, fog, randomizer);
+        jv::GenerateLevel(Fortress.map, fog, randomizer);
 
         {
             const uint8_t pointsSize = 32;
             bn::vector<bn::point, pointsSize> v_points;
-            jv::random_coords(v_points, mainGameMap, randomizer);
+            jv::random_coords(v_points, Fortress.map, randomizer);
             
             cam.set_position(v_points[0]);
             cat.set_position(v_points[0]);
@@ -209,12 +202,12 @@ void game_scene(bn::random& randomizer){
             uint8_t min_enemies = v_enemies.max_size()/3;
             uint8_t max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
             for(int i = 0; i < max_enemies; i++){
-                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam, &randomizer, &mainGameMap));
+                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam, &randomizer));
             }
         }
 
         // Initialize level background
-        jv::LevelMaker::init(cam, mainGameMap, bg_map_ptr, bg_map);
+        Fortress.init(cam);
         
         // Fade in
         jv::fade(true);
@@ -225,13 +218,13 @@ void game_scene(bn::random& randomizer){
             objective = true;
 
             if(cat.alive()){
-                cat.update(val0);
+                cat.update(cam, val0);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
                 fog.update(cat.position());
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i]->update(&cat, cam, val1);
+                v_enemies[i]->update(&cat, cam, Fortress.map, val1);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
@@ -256,7 +249,7 @@ void game_scene(bn::random& randomizer){
                 gameover_delay++;
             }
             
-            jv::LevelMaker::update(cam, mainGameMap, bg_map_ptr, bg_map);
+            Fortress.update(cam);
 
             jv::Log_skipped_frames();
             jv::resetcombo();

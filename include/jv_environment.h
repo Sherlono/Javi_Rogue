@@ -12,9 +12,6 @@
 #include "bn_regular_bg_map_ptr.h"
 #include "bn_regular_bg_map_cell_info.h"
 
-#include "bn_bg_palette_items_floor_palette.h"
-#include "bn_regular_bg_tiles_items_floor_tiles.h"
-
 #include "jv_fog.h"
 #include "jv_constants.h"
 
@@ -118,8 +115,8 @@ struct bg_map
 namespace jv{
     struct roomData{
         roomData(bn::point s_shape, bn::point f_shape): data({s_shape, f_shape}){}
-        bn::point& sector_shape() { return data[0];}
-        bn::point& fog_shape() { return data[1];}
+        bn::point& sector_shape() { return data[0];}    // Represents how much space a room occupies
+        bn::point& fog_shape() { return data[1];}       // Represents the sectors the fog will cover
         bn::array<bn::point, 2> data;
     };
 
