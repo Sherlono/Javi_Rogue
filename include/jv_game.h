@@ -131,40 +131,45 @@ void game_scene(bn::random& randomizer){
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     background.set_priority(3);
 
-    // ****** Level data ******
     constexpr bn::point mapSize(27, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
 
-    uint8_t tiles_arr[cellCount*16 + (mapSize.y()*4*2)];
+    uint8_t tiles_arr[cellCount*16 + mapSize.y()*4*2];
     jv::tiled_bg Fortress(game_map(mapSize.x()*4 + 2, mapSize.y()*4, tiles_arr), 2);
-
-    int floor = 0, gameover_delay = 0;
-    bool next_level = false, game_over = false, objective = true;
 
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     background.set_camera(cam);
     Fortress.set_camera(cam);
 
+    // ****** Level data ******
+    int floor = 0, gameover_delay = 0;
+    bool next_level = false, game_over = false, objective = true;
+
     // ** Universal entities **
     jv::Player cat(bn::point(0, 0), cam, &randomizer, &Fortress.map);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
+    jv::Fog* fog_ptr = NULL;
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy*, 10> v_enemies;
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
 
+    // Fog stuff
     jv::Fog fog(cam);
+    fog_ptr = &fog;
     bn::blending::set_transparency_alpha(0.8);
 
     // ****** Debug data ******
-    bool val0 = false;
-    bool val1 = false;
+    bool Noclip = false;
+    bool Invuln = false;
+    bool Die = false;
     bn::vector<jv::menu_option, 5> options;
-    options.push_back(jv::menu_option(&val0, "Noclip"));
-    options.push_back(jv::menu_option(&val1, "Invuln."));
+    options.push_back(jv::menu_option(&Noclip, "Noclip"));
+    options.push_back(jv::menu_option(&Invuln, "Invuln."));
+    options.push_back(jv::menu_option(&Die, "Die"));
     options.push_back(jv::menu_option(&next_level, "Next level"));
 
     /*bn::vector<bn::sprite_ptr, 8> v_balls;
@@ -184,7 +189,7 @@ void game_scene(bn::random& randomizer){
         gameover_delay = 0;
 
         // Level generation
-        jv::GenerateLevel(Fortress.map, fog, randomizer);
+        jv::GenerateLevel(Fortress.map, randomizer, fog_ptr);
 
         {
             const uint8_t pointsSize = 32;
@@ -193,7 +198,6 @@ void game_scene(bn::random& randomizer){
             
             cam.set_position(v_points[0]);
             cat.set_position(v_points[0]);
-            fog.update(cat.position());
             stairs.set_position(v_points[1]);
 
             // Populate level
@@ -207,7 +211,7 @@ void game_scene(bn::random& randomizer){
         }
 
         // Initialize level background
-        Fortress.init(cam);
+        Fortress.init(cam, fog_ptr);
         
         // Fade in
         jv::fade(true);
@@ -218,13 +222,12 @@ void game_scene(bn::random& randomizer){
             objective = true;
 
             if(cat.alive()){
-                cat.update(cam, val0);
+                cat.update(cam, Noclip);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
-                fog.update(cat.position());
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i]->update(&cat, cam, Fortress.map, val1);
+                v_enemies[i]->update(&cat, cam, Fortress.map, Invuln);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;
@@ -240,6 +243,7 @@ void game_scene(bn::random& randomizer){
                     healthbar.set_visible(false);
                     Debug::Start(options);
                     healthbar.set_visible(true);
+                    if(Die){ cat.got_hit(cat.get_hp(), true);}
                 }
             }else{
                 if(gameover_delay == 120){
@@ -249,7 +253,7 @@ void game_scene(bn::random& randomizer){
                 gameover_delay++;
             }
             
-            Fortress.update(cam);
+            Fortress.update(cam, fog_ptr);
 
             jv::Log_skipped_frames();
             jv::resetcombo();
@@ -263,7 +267,6 @@ void game_scene(bn::random& randomizer){
         // Reset Stuff
         stairs.set_open(false);
         cat.reset();
-        fog.reset();
         v_npcs.clear();
         for(int i = 0; i < v_enemies.size(); i++){ delete v_enemies[i];}
         v_enemies.clear();

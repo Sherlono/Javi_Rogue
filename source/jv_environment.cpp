@@ -348,8 +348,10 @@ roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t optio
     }
 }
 
-void GenerateLevel(game_map& map, jv::Fog& fog, bn::random& randomizer){
+void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
     map.reset();
+    if(fog){ fog->reset();}
+    
     const int width = 4, height = 3;
     bool sectors[height][width] = { {0, 0, 0, 0},
                                     {0, 0, 0, 0},
@@ -396,8 +398,10 @@ void GenerateLevel(game_map& map, jv::Fog& fog, bn::random& randomizer){
                 }
             }
 
-            fog.create_room(bn::rect(-16 + (x*224 + occupied.x()*112), -16 + (y*224 + occupied.y()*112),
-                                (rData.fog_shape().x() - 1)*32, (rData.fog_shape().y() - 1)*32 + 16));
+            if(fog){
+                fog->create_room(bn::rect(-16 + (x*224 + occupied.x()*112), -16 + (y*224 + occupied.y()*112),
+                                        (rData.fog_shape().x() - 1)*32, (rData.fog_shape().y() - 1)*32 + 16));
+            }
         }
     }
     // Vertical corridors

@@ -116,11 +116,15 @@ public:
 
     void update(bn::camera_ptr cam, bool noClip);
 
-    void got_hit(int damage){
+    void got_hit(int damage, bool ignoreDef = false){
         _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
-        _stats.hp -= damage/_stats.defense;
+        if(ignoreDef){
+            _stats.hp -= damage;
+        }else{
+            _stats.hp -= damage/_stats.defense;
+        }
         if(_stats.hp <= 0){
             _state = State::DEAD;
             _sprite->set_horizontal_flip(false);

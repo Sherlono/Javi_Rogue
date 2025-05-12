@@ -123,6 +123,6 @@ namespace jv{
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
-    void GenerateLevel(game_map& map, Fog& fog, bn::random& randomizer);
+    void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog = NULL);
 }
 #endif

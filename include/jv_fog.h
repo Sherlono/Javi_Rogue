@@ -33,10 +33,10 @@ public:
             _window.set_show_bg(_fog_bg, false);
         }
 
-    void update(bn::point player_position){
+    void update(bn::point cam_position){
         //bool flag = false;
         for(int i = 0; i < _rooms.size(); i++){
-            if(i != current_room && _rooms[i].contains(player_position)){
+            if(i != current_room && _rooms[i].contains(cam_position)){
                 reshape(_rooms[i]);
                 current_room = i;
                 //flag = true;
@@ -44,7 +44,7 @@ public:
             }
         }
         /*if(!flag){
-            reshape(player_position, 24, 24);
+            reshape(cam_position, 24, 24);
             current_room = -1;
         }*/
         
@@ -94,8 +94,8 @@ private:
         _internal_window.set_bottom(_y + _height - cam_y);
     }
 
-    void reshape(bn::point player_position, int w, int a){
-        set_position(player_position.x(), player_position.y());
+    void reshape(bn::point cam_position, int w, int a){
+        set_position(cam_position.x(), cam_position.y());
         set_boundaries(w, a);
     }
     

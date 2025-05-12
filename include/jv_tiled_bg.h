@@ -15,7 +15,7 @@
 namespace jv{
 class tiled_bg{
 public:
-    tiled_bg(game_map m, const uint8_t priority = 0): 
+    tiled_bg(game_map m, const uint8_t priority = 0):
         map(m), prev_x(0), prev_y(0), bg_m_ptr(new bg_map()),
         bg(bn::regular_bg_item(bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_m_ptr->map_item).create_bg(0, 0)),
         bg_m(bg.map())
@@ -29,11 +29,15 @@ public:
     void set_camera(bn::camera_ptr& camera){
         bg.set_camera(camera);
     }
+    void remove_camera(){
+        bg.remove_camera();
+    }
 
     // Update must be run every frame
-    void update(bn::camera_ptr& cam){
-        int current_x = (cam.x().integer() + 56)>>3  ,   current_y = (cam.y().integer() + 48)>>3;
-        int cx_pthtw = current_x + 32, cy_pthtw = current_y + 32;
+    void update(bn::camera_ptr& cam, jv::Fog* fog = NULL){
+        int intcam_x = cam.x().integer()    , intcam_y = cam.y().integer();
+        int current_x = (intcam_x + 56)>>3  , current_y = (intcam_y + 48)>>3;
+        int cx_pthtw = current_x + 32       , cy_pthtw = current_y + 32;
 
         if(current_x > prev_x){  // If moved Right
             for(int y = current_y; y < cy_pthtw; y++){
@@ -92,6 +96,8 @@ public:
             }
         }
 
+        if(fog){ fog->update(bn::point(intcam_x, intcam_y));}
+
         prev_x = current_x;
         prev_y = current_y;
         
@@ -99,11 +105,13 @@ public:
     }
 
     // Init must be called ONCE before the loop begins
-    void init(bn::camera_ptr& cam){
+    void init(bn::camera_ptr& cam, jv::Fog* fog = NULL){
         bg_m_ptr->reset();
+
         // Defining the MAP ARRAY bounds to redraw the map
-        int current_x = (cam.x().integer())>>3  ,   current_y = (cam.y().integer() + 47)>>3;
-        int cx_pthtw = current_x + 32, cy_pthtw = current_y + 32;
+        int intcam_x = cam.x().integer() , intcam_y = cam.y().integer();
+        int current_x = (intcam_x)>>3    , current_y = (intcam_y + 47)>>3;
+        int cx_pthtw = current_x + 32    , cy_pthtw = current_y + 32;
         // Redraw map bounds
         for(int y = current_y; y < cy_pthtw + 32; y++){
             for(int x = current_x; x < cx_pthtw; x++){
@@ -116,6 +124,8 @@ public:
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }
         }
+        
+        if(fog){ fog->update(bn::point(intcam_x, intcam_y));}
         
         prev_x = current_x;
         prev_y = current_y;
