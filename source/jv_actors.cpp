@@ -8,12 +8,12 @@ void Player::update(bool noClip){
         if(get_state() == State::HURTING){
             if(_animation->done()){
                 set_state(State::NORMAL);
-                insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+                insert_animation(frames::Walk);
             }
         }else{
             move(noClip);
             if(attack_ended()){
-                insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+                insert_animation(frames::Walk);
             }
             if(_animation->done()){ animation_update();}
         }
@@ -42,7 +42,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false
         
         _sprite = builder.release_build(); 
         if(alive()){
-            insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+            insert_animation(frames::Walk);
         }else{
             _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
         }
@@ -59,14 +59,17 @@ void BadCat::update(jv::Player* player, bn::camera_ptr cam, bool isInvul = false
             if(get_state() == State::HURTING){
                 if(_animation->done()){
                     set_state(State::NORMAL);
-                    if(!_idle_time){ insert_animation(frames::idle, frames::idle, frames::idle);}
-                    else{insert_animation(frames::w_up, frames::w_ho, frames::w_do);}
+                    if(!_idle_time){
+                        _dir = 0;
+                        insert_animation(0);
+                    }
+                    else{insert_animation(frames::Walk);}
                 }
             }else{
                 move();
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
                 if(attack_ended()){
-                    insert_animation(frames::w_up, frames::w_ho, frames::w_do);
+                    insert_animation(frames::Walk);
                 }
                 if(_animation->done()){ animation_update();}
             }

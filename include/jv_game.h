@@ -125,7 +125,7 @@ void game_scene(bn::random& randomizer){
     text_generator.set_bg_priority(0);
 
     // Music
-    bn::music_items::cyberrid.play(0.25);
+    bn::music_items::cyberrid.play(0.1);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);

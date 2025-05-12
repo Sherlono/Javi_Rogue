@@ -17,7 +17,7 @@ namespace jv{
 
 class Fog{
 public:
-    //~Fog(){ _rooms.clear();}
+    ~Fog(){ _rooms.clear();}
     Fog(bn::camera_ptr cam):
         _x(0), _y(0), _width(0), _height(0), current_room(-1),
         _fog_bg(bn::regular_bg_items::darkness.create_bg(0, 0)),
