@@ -13,7 +13,8 @@
 #include "bn_bg_palette_items_floor_palette.h"
 
 namespace jv{
-struct tiled_bg{
+class tiled_bg{
+public:
     tiled_bg(game_map m, const uint8_t priority = 0): 
         map(m), prev_x(0), prev_y(0), bg_m_ptr(new bg_map()),
         bg(bn::regular_bg_item(bn::regular_bg_tiles_items::floor_tiles, bn::bg_palette_items::floor_palette, bg_m_ptr->map_item).create_bg(0, 0)),
