@@ -49,9 +49,9 @@ void start_scene(bn::random& randomizer, char& option){
     
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 45> menu_sprts;
-    char y_offset = 50;
+    int y_offset = 50;
     text_generator.set_bg_priority(0);
-    text_generator.generate(-98, y_offset - 16, "Select scene", menu_sprts);
+    text_generator.generate(-96, y_offset - 16, "Select scene", menu_sprts);
     text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
     text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
     text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
@@ -152,7 +152,7 @@ void game_scene(bn::random& randomizer){
     bool next_level = false, game_over = false, objective = true;
 
     // ** Universal entities **
-    jv::Player cat(bn::point(0, 0), cam, &randomizer, &Fortress.map);
+    jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
     jv::Fog* fog_ptr = NULL;
@@ -211,7 +211,7 @@ void game_scene(bn::random& randomizer){
             uint8_t min_enemies = v_enemies.max_size()/3;
             uint8_t max_enemies = min_enemies + randomizer.get_int(v_enemies.max_size() - min_enemies);
             for(int i = 0; i < max_enemies; i++){
-                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam, &randomizer));
+                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam));
             }
         }
 
@@ -228,7 +228,7 @@ void game_scene(bn::random& randomizer){
             objective = true;
 
             if(cat.alive()){
-                cat.update(cam, Noclip);
+                cat.update(cam, Fortress.map, Noclip);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
                 if(fog_ptr){ fog_ptr->update(cat.position());}
                 
@@ -250,7 +250,7 @@ void game_scene(bn::random& randomizer){
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i]->update(&cat, cam, Fortress.map, Invuln);
+                v_enemies[i]->update(&cat, cam, Fortress.map, randomizer, Invuln);
                 /*if(v_enemies[i].get_state() == State::DEAD){
                     v_enemies.erase(v_enemies.begin() + i);
                     enemyCount--;

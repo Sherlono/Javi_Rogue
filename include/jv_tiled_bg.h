@@ -1,7 +1,7 @@
 #ifndef JV_TILED_BG_H
 #define JV_TILED_BG_H
 
-#include "bn_assert.h"
+//#include "bn_assert.h"
 #include "bn_unique_ptr.h"
 #include "bn_camera_ptr.h"
 
@@ -24,6 +24,11 @@ public:
         }
 
     // Getters
+    [[nodiscard]] int width() const { return map.x();}
+    [[nodiscard]] int height() const { return map.y();}
+    [[nodiscard]] bn::fixed x() const { return bg.x();}
+    [[nodiscard]] bn::fixed y() const { return bg.y();}
+    [[nodiscard]] bn::fixed_point position() const { return bg.position();}
 
     // Setters
     void set_camera(bn::camera_ptr& camera){
@@ -32,6 +37,11 @@ public:
     void remove_camera(){
         bg.remove_camera();
     }
+    void set_priority(int priority){
+        bg.set_priority(priority);
+    }
+    void set_visible(bool visible){ bg.set_visible(visible);}
+    void set_blending_enabled(bool isBlend){ bg.set_blending_enabled(isBlend);}
 
     // Update must be run every frame
     void update(bn::camera_ptr& cam){

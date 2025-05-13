@@ -30,6 +30,13 @@ public:
     // Constructor
     Actor(bn::rect r): _rect(r){}
 
+    struct basic_stats{
+        constexpr basic_stats(const uint8_t att, const uint8_t def, const short maxhp, const bn::fixed spe): attack(att), defense(def), max_hp(maxhp), speed(spe){}
+        uint8_t attack, defense;
+        short max_hp;
+        bn::fixed speed;
+    };
+    
     // Getters
     [[nodiscard]] int int_x() const{ return _rect.x();}
     [[nodiscard]] int int_y() const{ return _rect.y();}
@@ -67,18 +74,17 @@ class Player: public Actor{
 public:
     ~Player(){};
     // Constructor
-    Player(bn::point position, bn::camera_ptr& camera, bn::random* random_ptr, game_map* map_ptr):
+    Player(bn::point position, bn::camera_ptr& camera):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        _stats(basic_stats(5, 1, 1, bn::fixed(1.5))),
+        _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
         _prev_dir(Direction::SOUTH),
-        _dir(Direction::SOUTH),
-        _map_ptr(map_ptr),
-        _randomizer(random_ptr)
+        _dir(Direction::SOUTH)
         {
+            _hp = _stats.max_hp;
             bn::sprite_builder builder(bn::sprite_items::character);
             builder.set_position(position.x(), position.y() - 8);
             builder.set_camera(camera);
@@ -97,10 +103,10 @@ public:
     [[nodiscard]] int get_attack() { return _stats.attack;}
     [[nodiscard]] int get_defense() { return _stats.defense;}
     [[nodiscard]] int get_maxhp() { return _stats.max_hp;}
-    [[nodiscard]] int get_hp() { return _stats.hp;}
+    [[nodiscard]] int get_hp() { return _hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
 
-    [[nodiscard]] short* get_hp_ptr(){ return &_stats.hp;}
+    [[nodiscard]] short* get_hp_ptr(){ return &_hp;}
     [[nodiscard]] short* get_maxhp_ptr(){ return &_stats.max_hp;}
 
     // Setters
@@ -114,18 +120,18 @@ public:
         _animation->update();
     }
 
-    void update(bn::camera_ptr cam, bool noClip);
+    void update(bn::camera_ptr cam, game_map& map, bool noClip);
 
     void got_hit(int damage, bool ignoreDef = false){
         _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         if(ignoreDef){
-            _stats.hp -= damage;
+            _hp -= damage;
         }else{
-            _stats.hp -= damage/_stats.defense;
+            _hp -= damage/_stats.defense;
         }
-        if(_stats.hp <= 0){
+        if(_hp <= 0){
             _state = State::DEAD;
             _sprite->set_horizontal_flip(false);
             _sprite->set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
@@ -143,7 +149,7 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(bn::camera_ptr& cam, bool noClip = false){
+    void move(bn::camera_ptr& cam, game_map& map, bool noClip = false){
         if(!_attack_cooldown){
             if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
                 _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
@@ -151,10 +157,10 @@ private:
 
                 if(!noClip){
                     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-                    obs_up    = _map_ptr->cell(x, y - 1) > 0 && _map_ptr->cell(x, y - 1) < WTILES_COUNT;
-                    obs_down  = _map_ptr->cell(x, y + 1) > 0 && _map_ptr->cell(x, y + 1) < WTILES_COUNT;
-                    obs_left  = _map_ptr->cell(x - 1, y) > 0 && _map_ptr->cell(x - 1, y) < WTILES_COUNT;
-                    obs_right = _map_ptr->cell(x + 1, y) > 0 && _map_ptr->cell(x + 1, y) < WTILES_COUNT;
+                    obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
+                    obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
+                    obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
+                    obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
                 }
 
                 // Move if dir not obstructed
@@ -225,44 +231,33 @@ private:
         }
     }
 
-    struct basic_stats{
-        basic_stats(const short maxhp, const uint8_t att, const uint8_t def, const bn::fixed spe): max_hp(maxhp), hp(maxhp), attack(att), defense(def), speed(spe){}
-        short max_hp, hp;
-        uint8_t attack, defense;
-        bn::fixed speed;
-    };
-    
+    short _hp;
     basic_stats _stats;
     uint8_t _state;
     bn::rect _hitbox;
     int _prev_attack_cooldown, _attack_cooldown;
     uint8_t _prev_dir, _dir;
-
-    game_map* _map_ptr;
-    bn::random* _randomizer;
 };
 
 class Enemy: public Actor{
 public:
     ~Enemy(){}
-    Enemy(bn::point position, bn::random* random_ptr):
+    Enemy(bn::point position):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        max_hp(3), hp(3),
         _state(State::NORMAL),
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
         _prev_dir(Direction::SOUTH),
         _dir(Direction::SOUTH),
-        _idle_time(0),
-        _randomizer(random_ptr) {}
+        _idle_time(0) {}
 
     // Getters
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
     [[nodiscard]] bool alive() { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() { return _state;}
-    [[nodiscard]] int get_maxhp() { return max_hp;}
-    [[nodiscard]] int get_hp() { return hp;}
+    [[nodiscard]] virtual short get_maxhp() { return 0;}
+    [[nodiscard]] short get_hp() { return hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
     [[nodiscard]] virtual uint8_t get_attack() { return 0;}
     [[nodiscard]] virtual uint8_t get_defense() { return 0;}
@@ -278,29 +273,25 @@ public:
     }
 
     // Functionality
-    virtual void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bool isInvul);
+    virtual void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul);
 
 protected:
-    int max_hp, hp;
+    short hp;
     uint8_t _state;
     bn::rect _hitbox;
     int8_t _prev_attack_cooldown, _attack_cooldown;
     uint8_t _prev_dir, _dir;
     uint8_t _idle_time;
-
-    bn::random* _randomizer;
 };
 
 class BadCat: public Enemy{
 public:
-    static constexpr uint8_t stat_attack = 1, stat_defense = 1;
-    static constexpr bn::fixed stat_speed = bn::fixed(0.4);
-
     ~BadCat(){}
     // Constructor
-    BadCat(bn::point position, bn::camera_ptr cam, bn::random* random_ptr):
-        Enemy(position, random_ptr)
+    BadCat(bn::point position, bn::camera_ptr cam):
+        Enemy(position)
         {
+            hp = _stats.max_hp;
             bool isOnScreen = on_screen(cam);
             if(isOnScreen){
                 bn::sprite_builder builder(bn::sprite_items::enemy);
@@ -315,14 +306,15 @@ public:
         }
     
     // Getters
-    [[nodiscard]] uint8_t get_attack() override { return stat_attack;}
-    [[nodiscard]] uint8_t get_defense() override { return stat_defense;}
+    [[nodiscard]] uint8_t get_attack() override { return _stats.attack;}
+    [[nodiscard]] uint8_t get_defense() override { return _stats.defense;}
+    [[nodiscard]] short get_maxhp() override { return _stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
 
     // Functionality
-    void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bool isInvul) override;
+    void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) override;
     
     void got_hit(int damage){
         _state = State::HURTING;
@@ -330,7 +322,7 @@ public:
         _dir = 0;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
-        hp -= damage/stat_defense;
+        hp -= damage/_stats.defense;
         if(hp <= 0){
             _state = State::DEAD;
             _sprite->set_horizontal_flip(false);
@@ -349,12 +341,12 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(game_map& map){
+    void move(game_map& map, bn::random& randomizer){
         // Decide direction at random
         if(!_attack_cooldown){
             // Random direction
             if(_idle_time == 0){
-                _dir = _randomizer->get_int(16);
+                _dir = randomizer.get_int(16);
                 _idle_time++;
             }else if(_idle_time <= 2*60 + _dir*2){
                 _idle_time++;
@@ -375,17 +367,17 @@ private:
                 // Move if dir not obstructed
                 if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obs_up){          // UP
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() - stat_speed*diagonal); 
+                    set_position(this->x(), this->y() - _stats.speed*diagonal); 
                 }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obs_down){  // DOWN
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + stat_speed*diagonal);
+                    set_position(this->x(), this->y() + _stats.speed*diagonal);
                 }
                 if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obs_left){  // LEFT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - stat_speed*diagonal, this->y());
+                    set_position(this->x() - _stats.speed*diagonal, this->y());
                 }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obs_right){ // RIGHT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + stat_speed*diagonal, this->y());
+                    set_position(this->x() + _stats.speed*diagonal, this->y());
                 }
             }
             
@@ -433,6 +425,8 @@ private:
             }
         }
     
+    static constexpr basic_stats _stats = {1, 1, 3, bn::fixed(0.4)};
+
 };
 
 class NPC: public Actor{

@@ -2,6 +2,7 @@
 #define JV_fog_bg_H
 
 #include "bn_rect.h"
+//#include "bn_assert.h"
 #include "bn_display.h"
 #include "bn_blending.h"
 #include "bn_camera_ptr.h"
