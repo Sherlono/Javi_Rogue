@@ -12,13 +12,13 @@
 #endif
 
 namespace {
-    constexpr uint8_t FLOOROOM_COUNT = 22;                          // Number of Floor Blocks [0,21]
-    constexpr uint8_t WALL_COUNT = 45 - FLOOROOM_COUNT + 1;         // Number of Wall Blocks [22,43]
-    constexpr uint8_t BLOCK_COUNT = FLOOROOM_COUNT + WALL_COUNT;    // Total Blocks
+    constexpr uint8_t FLOOR_COUNT = 22;                          // Number of Floor Blocks [0,21]
+    constexpr uint8_t WALL_COUNT = 45 - FLOOR_COUNT + 1;         // Number of Wall Blocks [22,43]
+    constexpr uint8_t BLOCK_COUNT = FLOOR_COUNT + WALL_COUNT;    // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_COUNT = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
-    constexpr uint8_t ROOM_COUNT = 7;                               // Number of Room Prefabs
+    constexpr uint8_t ROOM_COUNT = 8;                               // Number of Room Prefabs
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 

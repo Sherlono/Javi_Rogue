@@ -7,6 +7,7 @@
 #include "bn_bg_palettes.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
+#include "bn_sprite_palette_actions.h"
 
 #include "jv_fog.h"
 #include "jv_math.h"
@@ -55,6 +56,10 @@ void start_scene(bn::random& randomizer, char& option){
     text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
     text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
 
+    for(int i = 4; i < menu_sprts.size(); i++){
+        menu_sprts[i].set_palette(bn::sprite_items::ball.palette_item().create_palette());
+    }
+
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
     cursor.set_bg_priority(1);
     
@@ -82,7 +87,7 @@ void start_scene(bn::random& randomizer, char& option){
     }
 
     // Selecting a scene
-    while(!bn::keypad::a_pressed()){
+    while(!bn::keypad::a_pressed() || option != 0){
         if(bn::keypad::down_pressed() && option < 2){
             option++;
             cursor.set_y(cursor.y() + 8);
@@ -157,10 +162,10 @@ void game_scene(bn::random& randomizer){
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
 
-    // Fog stuff
+    // ****** Fog stuff *******
+    bn::blending::set_transparency_alpha(0.8);
     jv::Fog fog(cam);
     fog_ptr = &fog;
-    bn::blending::set_transparency_alpha(0.8);
 
     // ****** Debug data ******
     bool Noclip = false;
@@ -210,8 +215,9 @@ void game_scene(bn::random& randomizer){
             }
         }
 
-        // Initialize level background
-        Fortress.init(cam, fog_ptr);
+        // Initialize level visuals
+        Fortress.init(cam);
+        if(fog_ptr){ fog_ptr->update(cat.position());}
         
         // Fade in
         jv::fade(true);
@@ -224,6 +230,23 @@ void game_scene(bn::random& randomizer){
             if(cat.alive()){
                 cat.update(cam, Noclip);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
+                if(fog_ptr){ fog_ptr->update(cat.position());}
+                
+                if(bn::keypad::select_pressed()){
+                    healthbar.set_visible(false);
+                    for(bn::sprite_ptr sprite : txt_sprts){ sprite.set_visible(false);}
+                    Debug::Start(options);
+                    healthbar.set_visible(true);
+                    for(bn::sprite_ptr sprite : txt_sprts){ sprite.set_visible(true);}
+                    
+                    if(Die){ cat.got_hit(cat.get_hp(), true);}
+                }
+            }else{
+                if(gameover_delay == 120){
+                    game_over = true;
+                    break;
+                }
+                gameover_delay++;
             }
 
             for(int i = 0; i < v_enemies.size(); i++){
@@ -237,23 +260,8 @@ void game_scene(bn::random& randomizer){
             healthbar.update();
 
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(cat, cam, stairs, objective);}
-
-            if(cat.alive()){
-                if(bn::keypad::select_pressed()){
-                    healthbar.set_visible(false);
-                    Debug::Start(options);
-                    healthbar.set_visible(true);
-                    if(Die){ cat.got_hit(cat.get_hp(), true);}
-                }
-            }else{
-                if(gameover_delay == 120){
-                    game_over = true;
-                    break;
-                }
-                gameover_delay++;
-            }
             
-            Fortress.update(cam, fog_ptr);
+            Fortress.update(cam);
 
             jv::Log_skipped_frames();
             jv::resetcombo();
@@ -267,6 +275,7 @@ void game_scene(bn::random& randomizer){
         // Reset Stuff
         stairs.set_open(false);
         cat.reset();
+        if(fog_ptr){ fog_ptr->reset();}
         v_npcs.clear();
         for(int i = 0; i < v_enemies.size(); i++){ delete v_enemies[i];}
         v_enemies.clear();

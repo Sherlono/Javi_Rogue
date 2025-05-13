@@ -15,6 +15,37 @@ void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option,
 roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t option){
     switch(option){
         // Rooms
+        case 0:{
+            const uint8_t width = 7, height = 7;
+            constexpr uint16_t size = width*height;
+
+            if(true){
+                uint8_t blockArr[size] = {
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0 };
+                bool flipArr[size] = {
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 0, 0, 0, 0, 0 };
+                
+                for(int y = 0; y < height; y++){
+                    for(int x = 0; x < width; x++){
+                        int index = x + y*width;
+                        BlockFactory(map, bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
+                    }
+                }
+            }
+            return roomData(bn::point(0, 0), bn::point(1, 1));
+        }
         case 1:{
             const uint8_t width = 7, height = 7;
             constexpr uint16_t size = width*height;
@@ -351,13 +382,13 @@ roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t optio
 void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
     map.reset();
     if(fog){ fog->reset();}
-    
+
     const int width = 4, height = 3;
     bool sectors[height][width] = { {0, 0, 0, 0},
                                     {0, 0, 0, 0},
                                     {0, 0, 0, 0} };
     
-    enum Room {nan, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
+    enum Room {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
     // Creating rooms
     for(int y = 0; y < height; y++){
@@ -367,6 +398,16 @@ void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
             bn::vector<uint8_t, ROOM_COUNT> validRooms;
             bn::point top_left(x, y);
 
+            /*if(x > 0){
+                if(sectors[y][x-1]){
+                    validRooms.push_back(Empty);
+                }
+            }
+            if(y > 0){
+                if(sectors[y-1][x]){
+                    validRooms.push_back(Empty);
+                }
+            }*/
             validRooms.push_back(Small);
             if(y + 1 < height){
                 if(!sectors[y+1][x]){
@@ -407,8 +448,11 @@ void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
     // Vertical corridors
     for(int y = 0; y < height - 1; y++){
         for(int x = 0; x < width; x++){
+            // Check if there is nothing between current and next room
+            if(sectors[y][x] == 0){ continue;}
             int Connected = map.cell((2 + x*7)*4, (6 + y*7)*4 + 1);
-            if(!Connected){ 
+            int nextExists =  map.cell((2 + x*7)*4, (7 + y*7)*4 + 1);
+            if(!Connected && nextExists){ 
                 InsertRoom(map, bn::point(2 + x*7, 5 + y*7), V_Corr);
             }
         }
@@ -416,8 +460,10 @@ void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
     // Horizontal corridors
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width - 1; x++){
+            if(sectors[y][x] == 0){ continue;}
             int Connected = map.cell((6 + x*7)*4 + 1, (2 + y*7)*4);
-            if(!Connected){
+            int nextExists = map.cell((7 + x*7)*4 + 1, (2 + y*7)*4);
+            if(!Connected && nextExists){ 
                 InsertRoom(map, bn::point(5 + x*7, 2 + y*7), H_Corr);
                 if(map.cell(22 + x*28, 20 + y*28) == 82){
                     uint8_t arr[4] = {91, 82,

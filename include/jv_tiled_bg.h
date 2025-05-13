@@ -34,7 +34,7 @@ public:
     }
 
     // Update must be run every frame
-    void update(bn::camera_ptr& cam, jv::Fog* fog = NULL){
+    void update(bn::camera_ptr& cam){
         int intcam_x = cam.x().integer()    , intcam_y = cam.y().integer();
         int current_x = (intcam_x + 56)>>3  , current_y = (intcam_y + 48)>>3;
         int cx_pthtw = current_x + 32       , cy_pthtw = current_y + 32;
@@ -95,9 +95,7 @@ public:
                 }
             }
         }
-
-        if(fog){ fog->update(bn::point(intcam_x, intcam_y));}
-
+        
         prev_x = current_x;
         prev_y = current_y;
         
@@ -105,7 +103,7 @@ public:
     }
 
     // Init must be called ONCE before the loop begins
-    void init(bn::camera_ptr& cam, jv::Fog* fog = NULL){
+    void init(bn::camera_ptr& cam){
         bg_m_ptr->reset();
 
         // Defining the MAP ARRAY bounds to redraw the map
@@ -124,8 +122,6 @@ public:
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }
         }
-        
-        if(fog){ fog->update(bn::point(intcam_x, intcam_y));}
         
         prev_x = current_x;
         prev_y = current_y;
