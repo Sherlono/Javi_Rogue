@@ -30,8 +30,12 @@ public:
     // Constructor
     Actor(bn::rect r): _rect(r){}
 
+    enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
+    enum State { NORMAL, ATTACKING, HURTING, DEAD};
+    
     struct basic_stats{
-        constexpr basic_stats(const uint8_t att, const uint8_t def, const short maxhp, const bn::fixed spe): attack(att), defense(def), max_hp(maxhp), speed(spe){}
+        constexpr basic_stats(const uint8_t att, const uint8_t def, const short maxhp, const bn::fixed spe):
+            attack(att), defense(def), max_hp(maxhp), speed(spe){}
         uint8_t attack, defense;
         short max_hp;
         bn::fixed speed;
@@ -41,7 +45,7 @@ public:
     [[nodiscard]] int int_x() const{ return _rect.x();}
     [[nodiscard]] int int_y() const{ return _rect.y();}
     [[nodiscard]] bn::fixed x() const{ return _sprite->x();}
-    [[nodiscard]] bn::fixed y() const{ return _sprite->y() + bn::fixed(8);}
+    [[nodiscard]] bn::fixed y() const{ return _sprite->y() + 8;}
     [[nodiscard]] bn::point position() const{ return _rect.position();}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
     [[nodiscard]] bn::sprite_ptr sprite() { return _sprite.value();}
@@ -61,9 +65,6 @@ public:
     void set_visible(bool visible){ _sprite->set_visible(visible);}
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
-    enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
-    enum State { NORMAL, ATTACKING, HURTING, DEAD};
-    
 protected:
     bn::rect _rect;
     bn::optional<bn::sprite_ptr> _sprite;
@@ -99,15 +100,15 @@ public:
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
     [[nodiscard]] inline bool attack_ended(){ return !is_attacking() && _prev_attack_cooldown != _attack_cooldown;}
 
-    [[nodiscard]] uint8_t get_state() { return _state;}
-    [[nodiscard]] int get_attack() { return _stats.attack;}
-    [[nodiscard]] int get_defense() { return _stats.defense;}
-    [[nodiscard]] int get_maxhp() { return _stats.max_hp;}
-    [[nodiscard]] int get_hp() { return _hp;}
+    [[nodiscard]] uint8_t get_state() const { return _state;}
+    [[nodiscard]] int get_attack() const { return _stats.attack;}
+    [[nodiscard]] int get_defense() const { return _stats.defense;}
+    [[nodiscard]] int get_maxhp() const { return _stats.max_hp;}
+    [[nodiscard]] int get_hp() const { return _hp;}
     [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
 
-    [[nodiscard]] short* get_hp_ptr(){ return &_hp;}
-    [[nodiscard]] short* get_maxhp_ptr(){ return &_stats.max_hp;}
+    [[nodiscard]] short* get_hp_ptr() { return &_hp;}
+    [[nodiscard]] short* get_maxhp_ptr() { return &_stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
@@ -120,7 +121,7 @@ public:
         _animation->update();
     }
 
-    void update(bn::camera_ptr cam, game_map& map, bool noClip);
+    void update(bn::camera_ptr& cam, game_map& map, bool noClip);
 
     void got_hit(int damage, bool ignoreDef = false){
         _state = State::HURTING;
@@ -193,7 +194,7 @@ private:
     }
     
     void attack(){
-        if(!_attack_cooldown && _state != State::HURTING){
+        if(!is_attacking() && _state != State::HURTING){
             _attack_cooldown = 20;
             insert_animation(frames::Attack, 4);
         }
@@ -253,14 +254,10 @@ public:
         _idle_time(0) {}
 
     // Getters
-    [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
-    [[nodiscard]] bool alive() { return _state != State::DEAD;}
-    [[nodiscard]] uint8_t get_state() { return _state;}
-    [[nodiscard]] virtual short get_maxhp() { return 0;}
-    [[nodiscard]] short get_hp() { return hp;}
-    [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
-    [[nodiscard]] virtual uint8_t get_attack() { return 0;}
-    [[nodiscard]] virtual uint8_t get_defense() { return 0;}
+    [[nodiscard]] bool alive() const { return _state != State::DEAD;}
+    [[nodiscard]] uint8_t get_state() const { return _state;}
+    [[nodiscard]] short get_hp() const { return hp;}
+    [[nodiscard]] bn::rect get_hitbox() const { return _hitbox;}
     [[nodiscard]] inline bool on_screen(bn::camera_ptr& cam) const {
         const uint8_t halfWidth = 16, halfHeight = 16;
         constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
@@ -268,9 +265,14 @@ public:
         bool left = this->int_x() > cam.x() - x_offset, right = this->int_x() < cam.x() + x_offset;
         return left && right && up && down;
     }
-    [[nodiscard]] inline bool attack_ended(){
+    [[nodiscard]] bool is_attacking() const { return bool(_attack_cooldown);}
+    [[nodiscard]] inline bool attack_ended() {
         return !is_attacking() && _prev_attack_cooldown != _attack_cooldown;
     }
+
+    [[nodiscard]] virtual short get_maxhp() { return 0;}
+    [[nodiscard]] virtual uint8_t get_attack() { return 0;}
+    [[nodiscard]] virtual uint8_t get_defense() { return 0;}
 
     // Functionality
     virtual void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul);
@@ -301,7 +303,7 @@ public:
                 
                 _sprite = builder.release_build();
                 
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::WalkAttack_ho[frames::Walk]);
+                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::WalkAttack_do[frames::Walk]);
             }
         }
     

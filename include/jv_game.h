@@ -189,12 +189,12 @@ void game_scene(bn::random& randomizer){
     }*/
     
     while(!game_over){
+        // Level generation
+        jv::GenerateLevel(Fortress.map, randomizer, fog_ptr);
+
         text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
         next_level = false;
         gameover_delay = 0;
-
-        // Level generation
-        jv::GenerateLevel(Fortress.map, randomizer, fog_ptr);
 
         {
             const uint8_t pointsSize = 32;

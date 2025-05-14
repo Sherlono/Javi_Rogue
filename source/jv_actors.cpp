@@ -2,7 +2,7 @@
 
 namespace jv{
 // ************ Player ************
-void Player::update(bn::camera_ptr cam, game_map& map, bool noClip){
+void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
     if(alive()){
         attack_update();
         if(get_state() == State::HURTING){
@@ -26,29 +26,23 @@ void Player::update(bn::camera_ptr cam, game_map& map, bool noClip){
     }
 }
 
-// ************* Enemy *************
+// ************* BadCat *************
 void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
-    bool isOnScreen = on_screen(cam);
-    if(!isOnScreen){
-        if(_sprite){
-            _sprite.reset();
-            _animation.reset();
+    if(on_screen(cam)){
+        if(!_sprite.has_value()){
+            bn::sprite_builder builder(bn::sprite_items::enemy);
+            builder.set_position(this->int_x(), this->int_y() - 8);
+            builder.set_camera(cam);
+            builder.set_bg_priority(1);
+            
+            _sprite = builder.release_build(); 
+            if(alive()){
+                insert_animation(frames::Walk);
+            }else{
+                _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+            }
         }
-    }else if(!_sprite){
-        bn::sprite_builder builder(bn::sprite_items::enemy);
-        builder.set_position(this->int_x(), this->int_y() - 8);
-        builder.set_camera(cam);
-        builder.set_bg_priority(1);
-        
-        _sprite = builder.release_build(); 
-        if(alive()){
-            insert_animation(frames::Walk);
-        }else{
-            _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
-        }
-    }
 
-    if(isOnScreen){
         if(player->sprite().y() > _sprite->y()){ _sprite->set_z_order(player->sprite().z_order() + 1);}
         else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
 
@@ -63,7 +57,7 @@ void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::
                         _dir = 0;
                         insert_animation(0);
                     }
-                    else{insert_animation(frames::Walk);}
+                    else{ insert_animation(frames::Walk);}
                 }
             }else{
                 move(map, randomizer);
@@ -87,51 +81,55 @@ void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::
                 }
             }
         }
+    }else{
+        if(_sprite.has_value()){
+            _sprite.reset();
+            _animation.reset();
+        }
     }
 }
 
 // ************** NPC **************
 void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective){
-    bool isOnScreen = on_screen(cam);
-    if(!isOnScreen){
-        if(_sprite){
-            _sprite.reset();
-            _animation.reset();
+    if(on_screen(cam)){
+        if(!_sprite.has_value()){
+            bn::sprite_builder builder(bn::sprite_items::cow);
+            builder.set_position(this->int_x(), this->int_y() - 8);
+            builder.set_camera(cam);
+            builder.set_bg_priority(1);
+            
+            _sprite = builder.release_build();
+            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
+                                    bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
         }
-    }else if(!_sprite){
-        bn::sprite_builder builder(bn::sprite_items::cow);
-        builder.set_position(this->int_x(), this->int_y() - 8);
-        builder.set_camera(cam);
-        builder.set_bg_priority(1);
-        
-        _sprite = builder.release_build();
-        _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
-                                bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
-    }
 
-
-    if(isOnScreen){
         if(player.sprite().y() > _sprite->y()){
             _sprite->set_z_order(player.sprite().z_order() + 1);
         }else{
             _sprite->set_z_order(player.sprite().z_order() - 1);
         }
-        _animation->update();
-    }
 
-    
-    if(player.get_state() == State::NORMAL && !player.is_attacking()){
-        // Dialog
-        if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
-            if(!objective){
-                jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
-            }else{
-                jv::Dialog::init("Thanks for getting rid of the evil", "cats! The stairs are open now!");
-                if(!stairs.isOpen){
-                    stairs.set_open(objective);
+        if(player.get_state() == State::NORMAL && !player.is_attacking()){
+            // Dialog
+            if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
+                if(!objective){
+                    jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+                }else{
+                    jv::Dialog::init("Thanks for getting rid of the evil", "cats! The stairs are open now!");
+                    if(!stairs.isOpen){
+                        stairs.set_open(objective);
+                    }
                 }
             }
         }
+
+        _animation->update();
+    }else{
+        if(_sprite.has_value()){
+            _sprite.reset();
+            _animation.reset();
+        }
     }
+    
 }
 }

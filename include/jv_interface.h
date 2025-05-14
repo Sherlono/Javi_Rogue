@@ -32,6 +32,7 @@ inline void Log_skipped_frames(){
             BN_LOG("Frames skipped: ", skipped);
             BN_LOG("******************");
         }
+        //BN_LOG("CPU usage: ", bn::core::last_cpu_usage());
     #endif
 }
 inline void Log_resources(){

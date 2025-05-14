@@ -1,7 +1,6 @@
 #ifndef JV_ENVIRONMENT_H
 #define JV_ENVIRONMENT_H
 
-#include "bn_math.h"
 #include "bn_vector.h"
 #include "bn_random.h"
 #include "bn_memory.h"
@@ -113,16 +112,8 @@ struct bg_map
 };
 
 namespace jv{
-    struct roomData{
-        roomData(bn::point s_shape, bn::point f_shape): data({s_shape, f_shape}){}
-        bn::point& sector_shape() { return data[0];}    // Represents how much space a room occupies
-        bn::point& fog_shape() { return data[1];}       // Represents the sectors the fog will cover
-        bn::array<bn::point, 2> data;
-    };
-
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    void FloorFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    roomData InsertRoom(game_map& map, const bn::point top_left, const uint8_t option);
+    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog = NULL);
     void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog = NULL);
 }
 #endif

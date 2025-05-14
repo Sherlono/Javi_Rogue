@@ -2,6 +2,7 @@
 #define JV_HEALTHBAR
 
 #include "bn_vector.h"
+#include "bn_assert.h"
 #include "bn_sprite_ptr.h"
 
 #include "bn_sprite_items_healthbar_hud.h"
@@ -37,8 +38,10 @@ struct healthbar{
     }
 
     void update(){
+        BN_ASSERT(*max_value >= *value, "Hp can't surpass MaxHp");
         bn::fixed v(*value);
         bn::fixed m_v(*max_value);
+
         int target_x = (-147 + 48*(v/m_v)).integer();
         bar().set_x(target_x);
     }

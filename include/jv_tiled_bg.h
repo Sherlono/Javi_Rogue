@@ -44,7 +44,7 @@ public:
     void set_blending_enabled(bool isBlend){ bg.set_blending_enabled(isBlend);}
 
     // Update must be run every frame
-    void update(bn::camera_ptr& cam){
+    void update(bn::camera_ptr const& cam){
         int intcam_x = cam.x().integer()    , intcam_y = cam.y().integer();
         int current_x = (intcam_x + 56)>>3  , current_y = (intcam_y + 48)>>3;
         int cx_pthtw = current_x + 32       , cy_pthtw = current_y + 32;
@@ -113,7 +113,7 @@ public:
     }
 
     // Init must be called ONCE before the loop begins
-    void init(bn::camera_ptr& cam){
+    void init(bn::camera_ptr const& cam){
         bg_m_ptr->reset();
 
         // Defining the MAP ARRAY bounds to redraw the map
