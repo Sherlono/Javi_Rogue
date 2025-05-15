@@ -12,7 +12,7 @@ void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option,
     map.insert_map(blk, top_left, blockFlip);
 }
 
-bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog){
+bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr){
     switch(option){
         // Rooms
         case 0:{
@@ -46,8 +46,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
         
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
                                         (width - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -95,8 +95,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
         
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 2*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 2*112),
                                         (width - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -144,10 +144,10 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
         
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
                                         (width - 1)*32, ((height>>1) - 1)*32 + 16));
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 3*112),
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 3*112),
                                         (width - 1)*32, ((height>>1) - 1)*32 + 16));
             }
             
@@ -181,8 +181,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
         
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 1*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 1*112),
                                         (width - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -216,10 +216,10 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
         
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
                                         ((width>>1) - 1)*32, (height - 1)*32 + 16));
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 3*112), -16 + (top_left.y()*224 + 1*112),
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 3*112), -16 + (top_left.y()*224 + 1*112),
                                         ((width>>1) - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -267,8 +267,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
 
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
                                         (width - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -316,8 +316,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
                 }
             }
 
-            if(fog){
-                fog->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
+            if(fog_ptr){
+                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
                                         (width - 1)*32, (height - 1)*32 + 16));
             }
             
@@ -379,60 +379,81 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
     }
 }
 
-void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
+void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog_ptr){
     map.reset();
-    if(fog){ fog->reset();}
+    if(fog_ptr){ fog_ptr->reset();}
 
-    const int width = 4, height = 3;
-    bool sectors[height][width] = { {0, 0, 0, 0},
-                                    {0, 0, 0, 0},
-                                    {0, 0, 0, 0} };
-    
     enum Room {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
+    struct Zone{
+        ~Zone(){ bn::memory::clear(size(), arr[0]);}
+        Zone(uint8_t w, uint8_t h, bool* a):_width(w), _height(h), arr(a){
+            bn::memory::clear(size(), arr[0]);
+        }
+        
+        bool cell(int x, int y) { 
+            if(x < 0 || y < 0 || x >= _width || y >= _height){
+                return false;
+            }else{
+                return arr[x + (y*_width)];
+            }
+        }
+        int size() const { return _width*_height;}
+        const uint8_t _width, _height;
+        bool* arr;
+    };
+
+    bool zData[3*4];
+    Zone zone(4, 3, zData);
+    bn::vector<uint8_t, ROOM_COUNT> validRooms;
+    bn::point top_left(0, 0);
+    
     // Creating rooms
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-            if(sectors[y][x] == true){ continue;}
+    for(int y = 0; y < zone._height; y++){
+        for(int x = 0; x < zone._width; x++){
+            if(zone.cell(x, y) == true){ continue;}
             
             // Valid room selection
-            bn::vector<uint8_t, ROOM_COUNT> validRooms;
-            bn::point top_left(x, y);
+            validRooms.clear();
+            top_left.set_x(x);
+            top_left.set_y(y);
 
-            if(x+y == 0 || (x > 0 && sectors[y][x-1]) || (y > 0 && sectors[y-1][x])){
+            uint8_t notEmptyCount = 1*(zone.cell(x-1, y)) + 1*(zone.cell(x, y-1)) + 1*(zone.cell(x+1, y));
+
+            if(x+y == 0 ||  notEmptyCount > 1){
                 validRooms.push_back(Empty);
             }
-            validRooms.push_back(Small);
-            if(y + 1 < height){
-                if(!sectors[y+1][x]){
+            if(x+y == 0 || zone.cell(x-1, y) || zone.cell(x, y-1) || zone.cell(x+1, y)){
+                validRooms.push_back(Small);
+            }
+            if(y + 1 < zone._height){
+                if((zone.cell(x, y-1) || zone.cell(x-1, y) || zone.cell(x+1, y)) || (zone.cell(x-1, y+1) || zone.cell(x+1, y+1))){
                     validRooms.push_back(Tall1);
-                    if((y - 1 > 0 && sectors[y-1][x]) || (x - 1 > 0 && (sectors[y][x-1] || sectors[y+1][x-1])) || (x + 1 < width && (sectors[y][x+1] || sectors[y+1][x+1]))){
-                        validRooms.push_back(Tall2);
-                    }
+                }
+                if((zone.cell(x, y-1) || zone.cell(x-1, y) || zone.cell(x+1, y)) && (zone.cell(x-1, y+1) || zone.cell(x+1, y+1))){
+                    validRooms.push_back(Tall2);
                 }
             }
-            if(x + 1 < width){
-                if(!sectors[y][x+1]){
+            if(x + 1 < zone._width && !zone.cell(x+1, y)){
+                if((zone.cell(x-1, y) || zone.cell(x, y-1)) || (zone.cell(x+1, y-1) || zone.cell(x+1, y+1))){
                     validRooms.push_back(Wide1);
-                    if((x - 1 > 0 && sectors[y][x-1]) || (y - 1 > 0 && (sectors[y-1][x] || sectors[y-1][x+1])) || (y + 1 < height && (sectors[y+1][x] || sectors[y+1][x+1]))){
-                        validRooms.push_back(Wide2);
-                    }
+                }
+                if((zone.cell(x-1, y) || zone.cell(x, y-1)) && (zone.cell(x+1, y-1) || zone.cell(x+1, y+1))){
+                    validRooms.push_back(Wide2);
                 }
             }
-            if(x + 1 < width && y + 1 < height){
-                if(!sectors[y][x+1] && !sectors[y+1][x] && !sectors[y+1][x+1]){
-                    validRooms.push_back(Big1);
-                    validRooms.push_back(Big2);
-                }
+            if((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1)){
+                validRooms.push_back(Big1);
+                validRooms.push_back(Big2);
             }
 
             uint8_t option = validRooms[randomizer.get_int(0, validRooms.size())];
-            bn::point occupied = InsertRoom(map, top_left, option, fog);
+            bn::point occupied = InsertRoom(map, top_left, option, fog_ptr);
 
             // Sectors update
             for(int row = y; row < y + occupied.y(); row++){
                 for(int column = x; column < x + occupied.x(); column++){
-                    sectors[row][column] = true;
+                    zone.arr[column + (row*zone._width)] = true;
                 }
             }
 
@@ -440,35 +461,29 @@ void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog){
     }
 
     // Vertical corridors
-    for(int y = 0; y < height - 1; y++){
-        for(int x = 0; x < width; x++){
-            
-            if(sectors[y][x] == 0){ continue;}
-            uint8_t Connected = map.cell((2 + x*7)*4, (6 + y*7)*4 + 1);     // Check if there is nothing between current and next room
-            uint8_t nextExists =  map.cell((2 + x*7)*4, (7 + y*7)*4 + 1);   // Check if a room exists in the next sector
-            if(!Connected && nextExists){ 
-                InsertRoom(map, bn::point(2 + x*7, 5 + y*7), V_Corr);
-            }
+    for(int y = 0; y < zone._height - 1; y++){
+        for(int x = 0; x < zone._width; x++){
+            // Cell not occupied   // Room exists in the next cell.         Nothing between current and next cell
+            if(!zone.cell(x, y) || !map.cell((2 + x*7)*4, (7 + y*7)*4 + 1) || map.cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
+            InsertRoom(map, bn::point(2 + x*7, 5 + y*7), V_Corr);
         }
     }
     // Horizontal corridors
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width - 1; x++){
-            if(sectors[y][x] == 0){ continue;}
-            uint8_t Connected = map.cell((6 + x*7)*4 + 1, (2 + y*7)*4);    // Check if there is nothing between current and next room
-            uint8_t nextExists = map.cell((7 + x*7)*4 + 1, (2 + y*7)*4);   // Check if a room exists in the next sector
-            if(!Connected && nextExists){ 
-                InsertRoom(map, bn::point(5 + x*7, 2 + y*7), H_Corr);
-                if(map.cell(22 + x*28, 20 + y*28) == 82){
-                    uint8_t arr[4] = {91, 82,
-                                      92, 84};
-                    map.insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
-                }
-                if(map.cell(29 + x*28, 20 + y*28) == 82){
-                    uint8_t arr[4] = {91, 82,
-                                      92, 84};
-                    map.insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
-                }
+    for(int y = 0; y < zone._height; y++){
+        for(int x = 0; x < zone._width - 1; x++){
+            // Cell not occupied   // Room exists in the next cell.         Nothing between current and next cell
+            if(!zone.cell(x, y) || !map.cell((7 + x*7)*4 + 1, (2 + y*7)*4) || map.cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
+            InsertRoom(map, bn::point(5 + x*7, 2 + y*7), H_Corr);
+
+            if(map.cell(22 + x*28, 20 + y*28) == 82){
+                uint8_t arr[4] = {91, 82,
+                                    92, 84};
+                map.insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
+            }
+            if(map.cell(29 + x*28, 20 + y*28) == 82){
+                uint8_t arr[4] = {91, 82,
+                                    92, 84};
+                map.insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
             }
         }
     }

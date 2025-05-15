@@ -113,7 +113,7 @@ struct bg_map
 
 namespace jv{
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog = NULL);
-    void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog = NULL);
+    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
+    void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog_ptr = NULL);
 }
 #endif
