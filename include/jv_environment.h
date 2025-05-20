@@ -16,7 +16,7 @@
 
 class game_map{
 public:
-    ~game_map(){}
+    ~game_map(){ bn::memory::clear(size(), _blocks[0]);}
     game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
 
     // Getters
@@ -111,9 +111,50 @@ struct bg_map
     }
 };
 
+struct Zone{
+    ~Zone(){ reset();}
+    Zone(uint8_t w, uint8_t h, bool* a):_width(w), _height(h), data(a){
+        bn::memory::clear(size(), data[0]);
+    }
+    
+    bool cell(int x, int y) { 
+        if(x < 0 || y < 0 || x >= _width || y >= _height){
+            return false;
+        }else{
+            return data[x + (y*_width)];
+        }
+    }
+    bool marginal(int x, int y){
+        if(x < 0 || y < 0 || x >= _width || y >= _height){
+            return true;
+        }
+        return false;
+    }
+
+    void get_empty_neighbours(int cell_x, int cell_y, bn::vector<bn::point, 8> neighbours){
+        int start_x = bn::max(cell_x-1, 0), start_y = bn::max(cell_y-1, 0);
+        int end_x = bn::min(cell_x+1, int(_width)), end_y = bn::min(cell_y+1, int(_height));
+
+        for(int y = start_y; y < end_y; y++){
+            for(int x = start_x; x < end_x; x++){
+                if(!(x == start_x+1 && y == start_y+1) && !cell(x, y)){
+                    neighbours.push_back(bn::point(x, y));
+                }
+            }
+        }
+    }
+
+    int size() const { return _width*_height;}
+    void reset(){
+        bn::memory::clear(size(), data[0]);
+    }
+    const uint8_t _width, _height;
+    bool* data;
+};
+
 namespace jv{
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
-    void GenerateLevel(game_map& map, bn::random& randomizer, Fog* fog_ptr = NULL);
+    void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_ptr = NULL);
 }
 #endif
