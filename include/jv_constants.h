@@ -1,6 +1,8 @@
 #ifndef JV_CONSTANTS_H
 #define JV_CONSTANTS_H
 
+#include "bn_span.h"
+
 /**
  *  Glossary
  * Tile: 8x8 pixel background tile
@@ -29,15 +31,16 @@ namespace {
 }
 
 namespace jv::fadespeed{
-    constexpr unsigned char VERYFAST = 15;  // Quarter of a second fade
-    constexpr unsigned char FAST = 30;      // Half a second fade
-    constexpr unsigned char MEDIUM = 60;    // One second fade
-    constexpr unsigned char SLOW = 120;     // Two seconds fade
+    constexpr uint8_t VERYFAST = 15;  // Quarter of a second fade
+    constexpr uint8_t FAST = 30;      // Half a second fade
+    constexpr uint8_t MEDIUM = 60;    // One second fade
+    constexpr uint8_t SLOW = 120;     // Two seconds fade
 }
 
 namespace jv::frames{
     constexpr uint8_t Walk = 0;
     constexpr uint8_t Attack = 1;
+    
     constexpr uint16_t WalkAttack_up[2][4] = {{6, 7, 6, 8}, {6, 15, 16, 17}};      // Walk up frames
     constexpr uint16_t WalkAttack_ho[2][4] = {{3, 4, 3, 5}, {3, 12, 13, 14}};      // Walk horizontal frames
     constexpr uint16_t WalkAttack_do[2][4] = {{0, 1, 0, 2}, {0, 9, 10, 11} };      // Walk down frames

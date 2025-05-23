@@ -217,6 +217,9 @@ void game_scene(bn::random& randomizer){
             for(int i = 0; i < max_enemies; i++){
                 v_enemies.push_back(new jv::BadCat(v_points[3+i], cam));
             }
+            for(int i = v_enemies.size(); i < v_enemies.max_size(); i++){
+                v_enemies.push_back(new jv::PaleTongue(v_points[3+i], cam));
+            }
         }
 
         // Initialize level visuals

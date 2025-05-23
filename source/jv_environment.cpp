@@ -218,8 +218,8 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             }
         
             if(fog_ptr){
-                fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
-                                        ((width>>1) - 1)*32, (height - 1)*32 + 16));
+                fog_ptr->create_room(bn::rect(0 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
+                                        ((width>>1) )*32, (height - 1)*32 + 16));
                 fog_ptr->create_room(bn::rect(-16 + (top_left.x()*224 + 3*112), -16 + (top_left.y()*224 + 1*112),
                                         ((width>>1) - 1)*32, (height - 1)*32 + 16));
             }
