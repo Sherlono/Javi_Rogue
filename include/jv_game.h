@@ -4,6 +4,7 @@
 #include "bn_vector.h"
 #include "bn_memory.h"
 #include "bn_colors.h"
+#include "bn_sprites.h"
 #include "bn_bg_palettes.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
@@ -56,10 +57,6 @@ void start_scene(bn::random& randomizer, char& option){
     text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
     text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
 
-    for(int i = 4; i < menu_sprts.size(); i++){
-        menu_sprts[i].set_palette(bn::sprite_items::ball.palette_item().create_palette());
-    }
-
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
     cursor.set_bg_priority(1);
     
@@ -87,7 +84,7 @@ void start_scene(bn::random& randomizer, char& option){
     }
 
     // Selecting a scene
-    while(!bn::keypad::a_pressed() || option != 0){
+    while(!bn::keypad::a_pressed()){
         if(bn::keypad::down_pressed() && option < 2){
             option++;
             cursor.set_y(cursor.y() + 8);
@@ -125,6 +122,7 @@ void start_scene(bn::random& randomizer, char& option){
 }
 
 void game_scene(bn::random& randomizer){
+    bn::sprites::set_blending_bottom_enabled(false);
     // Text generator
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);

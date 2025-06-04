@@ -41,12 +41,12 @@ namespace jv::frames{
     constexpr uint8_t Walk = 0;
     constexpr uint8_t Attack = 1;
     
-    constexpr uint16_t WalkAttack_up[2][4] = {{6, 7, 6, 8}, {6, 15, 16, 17}};      // Walk up frames
-    constexpr uint16_t WalkAttack_ho[2][4] = {{3, 4, 3, 5}, {3, 12, 13, 14}};      // Walk horizontal frames
-    constexpr uint16_t WalkAttack_do[2][4] = {{0, 1, 0, 2}, {0, 9, 10, 11} };      // Walk down frames
+    constexpr uint16_t WalkAttack_up[2][4] = {{6, 7, 6, 8}, {6, 15, 16, 17}};      // Walk/Attack up
+    constexpr uint16_t WalkAttack_ho[2][4] = {{3, 4, 3, 5}, {3, 12, 13, 14}};      // Walk/Attack horizontal
+    constexpr uint16_t WalkAttack_do[2][4] = {{0, 1, 0, 2}, {0, 9, 10, 11} };      // Walk/Attack down
     
-    constexpr uint16_t idle[4] = {18, 19, 18, 20};  // Idle frames
-    constexpr uint16_t hurt[4] = {22, 23, 22, 23};  // Hurt down frames
+    constexpr uint16_t idle[4] = {18, 19, 18, 20};  // Idle down
+    constexpr uint16_t hurt[4] = {22, 23, 22, 23};  // Hurt down
 }
 
 namespace jv::blocks{

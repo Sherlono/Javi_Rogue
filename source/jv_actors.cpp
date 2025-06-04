@@ -8,12 +8,12 @@ void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
         if(get_state() == State::HURTING){
             if(_animation->done()){
                 set_state(State::NORMAL);
-                set_animation(frames::Walk, bn::sprite_items::character.tiles_item());
+                set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else{
             move(cam, map, noClip);
             if(attack_ended()){
-                set_animation(frames::Walk, bn::sprite_items::character.tiles_item());
+                set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
             }
             if(_animation->done()){ animation_update();}
         }
@@ -30,16 +30,16 @@ void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
 void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
     if(on_screen(cam)){
         if(!_sprite.has_value()){
-            bn::sprite_builder builder(bn::sprite_items::enemy);
+            bn::sprite_builder builder(bn::sprite_items::bad_cat);
             builder.set_position(this->int_x(), this->int_y() - 8);
             builder.set_camera(cam);
             builder.set_bg_priority(1);
             
             _sprite = builder.release_build(); 
             if(alive()){
-                set_animation(frames::Walk, bn::sprite_items::enemy.tiles_item());
+                set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
             }else{
-                _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+                _sprite->set_tiles(bn::sprite_items::bad_cat.tiles_item().create_tiles(24));
             }
         }
 
@@ -55,15 +55,15 @@ void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
-                        set_animation(0, bn::sprite_items::enemy.tiles_item());
+                        set_animation(0, bn::sprite_items::bad_cat.tiles_item());
                     }
-                    else{ set_animation(frames::Walk, bn::sprite_items::enemy.tiles_item());}
+                    else{ set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());}
                 }
             }else{
                 move(map, randomizer);
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
                 if(attack_ended()){
-                    set_animation(frames::Walk, bn::sprite_items::enemy.tiles_item());
+                    set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
                 }
                 if(_animation->done()){ animation_update();}
             }
@@ -127,6 +127,69 @@ void PaleTongue::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, 
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
                 if(attack_ended()){
                     set_animation(frames::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
+                }
+                if(_animation->done()){ animation_update();}
+            }
+            if(!_animation->done()){ _animation->update();}
+            
+            // Combat
+            if(player->alive()){
+                if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
+                    got_hit(player->get_attack());
+                    player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+                }
+                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player->rect())){
+                    player->got_hit(get_attack());
+                    set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+                }
+            }
+        }
+    }else{
+        if(_sprite.has_value()){
+            _sprite.reset();
+            _animation.reset();
+        }
+    }
+}
+
+// ************* PaleTongue *************
+void PaleFinger::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
+    if(on_screen(cam, 32, 32)){
+        if(!_sprite.has_value()){
+            bn::sprite_builder builder(bn::sprite_items::pale_finger);
+            builder.set_position(this->int_x(), this->int_y() - 26);
+            builder.set_camera(cam);
+            builder.set_bg_priority(1);
+            
+            _sprite = builder.release_build(); 
+            if(alive()){
+                set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
+            }else{
+                _sprite->set_tiles(bn::sprite_items::pale_finger.tiles_item().create_tiles(24));
+            }
+        }
+
+        if(player->sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(player->sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
+
+        if(alive()){
+            attack_update();
+
+            // Movement and Animations
+            if(get_state() == State::HURTING){
+                if(_animation->done()){
+                    set_state(State::NORMAL);
+                    if(!_idle_time){
+                        _dir = 0;
+                        set_animation(0, bn::sprite_items::pale_finger.tiles_item(), 8);
+                    }
+                    else{ set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);}
+                }
+            }else{
+                move(map, randomizer);
+                //if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
+                if(attack_ended()){
+                    set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
                 if(_animation->done()){ animation_update();}
             }

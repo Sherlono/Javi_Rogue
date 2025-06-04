@@ -17,9 +17,10 @@
 #include "jv_environment.h"
 
 #include "bn_sprite_items_cow.h"
-#include "bn_sprite_items_enemy.h"
-#include "bn_sprite_items_character.h"
+#include "bn_sprite_items_bad_cat.h"
+#include "bn_sprite_items_good_cat.h"
 #include "bn_sprite_items_pale_tongue.h"
+#include "bn_sprite_items_pale_finger.h"
 
 
 namespace jv{
@@ -46,20 +47,20 @@ public:
     [[nodiscard]] int int_x() const{ return _rect.x();}
     [[nodiscard]] int int_y() const{ return _rect.y();}
     [[nodiscard]] bn::fixed x() const{ return _sprite->x();}
-    [[nodiscard]] bn::fixed y() const{ return _sprite->y() + 8;}
+    [[nodiscard]] bn::fixed y() const{ return _sprite->y();}
     [[nodiscard]] bn::point position() const{ return _rect.position();}
     [[nodiscard]] bn::rect rect() const{ return _rect;}
     [[nodiscard]] bn::sprite_ptr sprite() { return _sprite.value();}
     [[nodiscard]] bn::sprite_animate_action<MAX_FRAMES> animation() { return _animation.value();}
 
     // Setters
-    void set_position(bn::fixed x, bn::fixed y){
-        _sprite->set_position(x, y - 8);
+    void set_position(bn::fixed x, bn::fixed y, uint16_t y_offset = 8){
+        _sprite->set_position(x, y - y_offset);
         _rect.set_position(x.integer(), y.integer());
     }
-    void set_position(bn::point point){
-        _sprite->set_position(point.x(), point.y() - 8);
-        _rect.set_position(point.x(), point.y());
+    void set_position(bn::fixed_point point, uint16_t y_offset = 8){
+        _sprite->set_position(point.x(), point.y() - y_offset);
+        _rect.set_position(point.x().integer(), point.y().integer());
     }
     void set_camera(bn::camera_ptr& cam){ _sprite->set_camera(cam);}
     void remove_camera(){ _sprite->remove_camera();}
@@ -106,13 +107,13 @@ public:
         _prev_dir(Direction::SOUTH)
         {
             _hp = _stats.max_hp;
-            bn::sprite_builder builder(bn::sprite_items::character);
+            bn::sprite_builder builder(bn::sprite_items::good_cat);
             builder.set_position(position.x(), position.y() - 8);
             builder.set_camera(camera);
             builder.set_bg_priority(1);
             
             _sprite = builder.release_build();
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::character.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+            _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::good_cat.tiles_item(), frames::WalkAttack_do[frames::Walk]);
         }
     
     // Getters
@@ -137,7 +138,7 @@ public:
     void reset(){
         _prev_dir = Direction::NEUTRAL;
         _dir = Direction::SOUTH;
-        set_animation(frames::Walk, bn::sprite_items::character.tiles_item());
+        set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
         _hitbox.set_position(this->int_x(), this->int_y() + 10);
         _animation->update();
     }
@@ -156,17 +157,17 @@ public:
         if(_hp <= 0){
             _state = State::DEAD;
             _sprite->set_horizontal_flip(false);
-            _sprite->set_tiles(bn::sprite_items::character.tiles_item().create_tiles(24));
+            _sprite->set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(24));
         }else{
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::character.tiles_item(), frames::hurt);
+            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::good_cat.tiles_item(), frames::hurt);
         }
     }
     
 private:
     void animation_update(){
         if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::character.tiles_item());
+            set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -190,23 +191,23 @@ private:
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
                     bn::fixed target_y = cam.y() - _stats.speed*diagonal;
                     cam.set_position(cam.x(), target_y);
-                    set_position(cam.x(), target_y);
+                    this->set_position(cam.x(), target_y, 8);
                 }else if(bn::keypad::down_held() && obs_down){
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
                     bn::fixed target_y = cam.y() + _stats.speed*diagonal;
                     cam.set_position(cam.x(), target_y);
-                    set_position(cam.x(), target_y);
+                    this->set_position(cam.x(), target_y, 8);
                 }
                 if(bn::keypad::left_held() && obs_left){
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
                     bn::fixed target_x = cam.x() - _stats.speed*diagonal;
                     cam.set_position(target_x, cam.y());
-                    set_position(target_x, cam.y());
+                    this->set_position(target_x, cam.y(), 8);
                 }else if(bn::keypad::right_held() && obs_right){
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
                     bn::fixed target_x = cam.x() + _stats.speed*diagonal;
                     cam.set_position(target_x, cam.y());
-                    set_position(target_x, cam.y());
+                    this->set_position(target_x, cam.y(), 8);
                 }
             }
         
@@ -217,7 +218,7 @@ private:
     void attack(){
         if(!is_attacking() && _state != State::HURTING){
             _attack_cooldown = 20;
-            set_animation(frames::Attack, bn::sprite_items::character.tiles_item());
+            set_animation(frames::Attack, bn::sprite_items::good_cat.tiles_item());
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
                                  this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
@@ -257,9 +258,8 @@ public:
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] short get_hp() const { return hp;}
     [[nodiscard]] bn::rect get_hitbox() const { return _hitbox;}
-    [[nodiscard]] inline bool on_screen(bn::camera_ptr& cam) const {
-        const uint8_t halfWidth = 16, halfHeight = 16;
-        constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
+    [[nodiscard]] inline bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
+        uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
         bool up = this->int_y() > cam.y() - y_offset, down = this->int_y() < cam.y() + y_offset;
         bool left = this->int_x() > cam.x() - x_offset, right = this->int_x() < cam.x() + x_offset;
         return left && right && up && down;
@@ -269,9 +269,9 @@ public:
         return !is_attacking() && _prev_attack_cooldown != _attack_cooldown;
     }
 
-    [[nodiscard]] virtual short get_maxhp() { return 0;}
-    [[nodiscard]] virtual uint8_t get_attack() { return 0;}
-    [[nodiscard]] virtual uint8_t get_defense() { return 0;}
+    [[nodiscard]] virtual short get_maxhp() = 0;
+    [[nodiscard]] virtual uint8_t get_attack() = 0;
+    [[nodiscard]] virtual uint8_t get_defense() = 0;
 
     // Functionality
     virtual void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul);
@@ -295,14 +295,14 @@ public:
             hp = _stats.max_hp;
             bool isOnScreen = on_screen(cam);
             if(isOnScreen){
-                bn::sprite_builder builder(bn::sprite_items::enemy);
+                bn::sprite_builder builder(bn::sprite_items::bad_cat);
                 builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
                 _sprite = builder.release_build();
                 
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::enemy.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::bad_cat.tiles_item(), frames::WalkAttack_do[frames::Walk]);
             }
         }
     
@@ -327,17 +327,17 @@ public:
         if(hp <= 0){
             _state = State::DEAD;
             _sprite->set_horizontal_flip(false);
-            _sprite->set_tiles(bn::sprite_items::enemy.tiles_item().create_tiles(24));
+            _sprite->set_tiles(bn::sprite_items::bad_cat.tiles_item().create_tiles(24));
         }else{
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::enemy.tiles_item(), frames::hurt);
+            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::bad_cat.tiles_item(), frames::hurt);
         }
     }
     
 private:
     void animation_update(){
         if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::enemy.tiles_item());
+            set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -347,38 +347,37 @@ private:
         if(!_attack_cooldown){
             // Random direction
             if(_idle_time == 0){
-                _dir = randomizer.get_int(16);
+                _dir = randomizer.get_int(12);
                 _idle_time++;
-            }else if(_idle_time <= 2*60 + _dir*2){
+            }else if(_idle_time <= 1*60 + _dir*2){
                 _idle_time++;
             }else{
                 _idle_time = 0;
             }
 
-            bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
-            int x = this->x().integer()>>3, y = (this->y().integer() + 4)>>3;
+            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
                 
-            obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
-            obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
-            obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
-            obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
+            bool obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
+            bool obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
+            bool obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
+            bool obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
 
             // If direction is valid
             if(_dir != Direction::NEUTRAL && _dir < 9){
                 // Move if dir not obstructed
                 if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obs_up){          // UP
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() - _stats.speed*diagonal); 
+                    this->set_position(this->x(), this->y() + 8 - _stats.speed*diagonal, 8); 
                 }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obs_down){  // DOWN
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + _stats.speed*diagonal);
+                    this->set_position(this->x(), this->y() + 8 + _stats.speed*diagonal, 8);
                 }
                 if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obs_left){  // LEFT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - _stats.speed*diagonal, this->y());
+                    this->set_position(this->x() - _stats.speed*diagonal, this->y() + 8, 8);
                 }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obs_right){ // RIGHT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + _stats.speed*diagonal, this->y());
+                    this->set_position(this->x() + _stats.speed*diagonal, this->y() + 8, 8);
                 }
             }
             
@@ -390,7 +389,7 @@ private:
         if(!_attack_cooldown){
             _idle_time = 0;
             _attack_cooldown = 20;
-            set_animation(frames::Attack, bn::sprite_items::enemy.tiles_item());
+            set_animation(frames::Attack, bn::sprite_items::bad_cat.tiles_item());
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
                                  this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
@@ -417,8 +416,7 @@ public:
         Enemy(position)
         {
             hp = _stats.max_hp;
-            bool isOnScreen = on_screen(cam);
-            if(isOnScreen){
+            if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::pale_tongue);
                 builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);
@@ -479,30 +477,29 @@ private:
                 _idle_time = 0;
             }
 
-            bool obs_up = true, obs_down = true, obs_left = true, obs_right = true;
-            int x = this->x().integer()>>3, y = (this->y().integer() + 4)>>3;
+            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
                 
-            obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
-            obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
-            obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
-            obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
+            bool obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
+            bool obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
+            bool obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
+            bool obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
 
             // If direction is valid
             if(_dir != Direction::NEUTRAL && _dir < 9){
                 // Move if dir not obstructed
                 if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obs_up){          // UP
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() - _stats.speed*diagonal); 
+                    this->set_position(this->x(), this->y() + 8 - _stats.speed*diagonal, 8); 
                 }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obs_down){  // DOWN
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + _stats.speed*diagonal);
+                    this->set_position(this->x(), this->y() + 8 + _stats.speed*diagonal, 8);
                 }
                 if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obs_left){  // LEFT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - _stats.speed*diagonal, this->y());
+                    this->set_position(this->x() - _stats.speed*diagonal, this->y() + 8, 8);
                 }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obs_right){ // RIGHT
                     bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + _stats.speed*diagonal, this->y());
+                    this->set_position(this->x() + _stats.speed*diagonal, this->y() + 8, 8);
                 }
             }
             
@@ -515,6 +512,128 @@ private:
             _idle_time = 0;
             _attack_cooldown = 35;
             set_animation(frames::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
+            _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
+                                 this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
+        }
+    }
+    
+    void attack_update(){
+        _prev_attack_cooldown = _attack_cooldown;
+        if(_attack_cooldown){ _attack_cooldown--;}
+        if(_state != State::HURTING){
+            _state = State::NORMAL;
+            if(_attack_cooldown == 1){ _state = State::ATTACKING;}
+        }
+    }
+    
+    static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
+
+};
+
+class PaleFinger: public Enemy{
+public:
+    ~PaleFinger(){}
+    // Constructor
+    PaleFinger(bn::point position, bn::camera_ptr cam):
+        Enemy(position)
+        {
+            hp = _stats.max_hp;
+            if(on_screen(cam, 32, 32)){
+                bn::sprite_builder builder(bn::sprite_items::pale_finger);
+                builder.set_position(position.x(), position.y() - 26);
+                builder.set_camera(cam);
+                builder.set_bg_priority(1);
+                
+                _sprite = builder.release_build();
+                
+                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+            }
+        }
+    
+    // Getters
+    [[nodiscard]] uint8_t get_attack() override { return _stats.attack;}
+    [[nodiscard]] uint8_t get_defense() override { return _stats.defense;}
+    [[nodiscard]] short get_maxhp() override { return _stats.max_hp;}
+
+    // Setters
+    void set_state(int s){ _state = s;}
+
+    // Functionality
+    void update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) override;
+    
+    void got_hit(int damage){
+        _state = State::HURTING;
+        _prev_dir = 0;
+        _dir = 0;
+        _attack_cooldown = 0;
+        _prev_attack_cooldown = 0;
+        hp -= damage/_stats.defense;
+        if(hp <= 0){
+            _state = State::DEAD;
+            _sprite->set_horizontal_flip(false);
+            _sprite->set_tiles(bn::sprite_items::pale_finger.tiles_item().create_tiles(24));
+        }else{
+            _sprite->set_horizontal_flip(_dir == Direction::WEST);
+            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), frames::hurt);
+        }
+    }
+    
+private:
+    void animation_update(){
+        if(_prev_dir != _dir){
+            set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
+        }
+        _prev_dir = _dir;
+    }
+    
+    void move(game_map& map, bn::random& randomizer){
+        // Decide direction at random
+        if(!_attack_cooldown){
+            // Random direction
+            if(_idle_time == 0){
+                _dir = randomizer.get_int(16);
+                _idle_time++;
+            }else if(_idle_time <= 2*60 + _dir*2){
+                _idle_time++;
+            }else{
+                _idle_time = 0;
+            }
+
+            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+                
+            bool obs_up    = map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
+            bool obs_down  = map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
+            bool obs_left  = map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
+            bool obs_right = map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
+
+            // If direction is valid
+            if(_dir != Direction::NEUTRAL && _dir < 9){
+                // Move if dir not obstructed
+                if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obs_up){          // UP
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
+                    set_position(this->x(), this->y() + 26 - _stats.speed*diagonal, 26); 
+                }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obs_down){  // DOWN
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
+                    set_position(this->x(), this->y() + 26 + _stats.speed*diagonal, 26);
+                }
+                if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obs_left){  // LEFT
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
+                    set_position(this->x() - _stats.speed*diagonal, this->y() + 26, 26);
+                }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obs_right){ // RIGHT
+                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
+                    set_position(this->x() + _stats.speed*diagonal, this->y() + 26, 26);
+                }
+            }
+            
+            if(_state == State::NORMAL){ animation_update();}
+        }
+    }
+    
+    void attack(){
+        if(!_attack_cooldown){
+            _idle_time = 0;
+            _attack_cooldown = 35;
+            set_animation(frames::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
                                  this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
