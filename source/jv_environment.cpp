@@ -389,6 +389,7 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
 
     bn::vector<uint8_t, ROOM_COUNT> validRooms;
     bn::point top_left(0, 0);
+    uint8_t emptyCount = 0;
     
     // Creating rooms
     for(int y = 0; y < zone._height; y++){
@@ -398,6 +399,15 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
             // Valid room selection
             validRooms.clear();
             
+            if(emptyCount < 2){
+                bool Margin = !(x > 0 && x + 1 < zone._width && y > 0 && y + 1 < zone._height);
+                bool Corners = zone.cell(x+1, y+1) && zone.cell(x+1, y-1) && zone.cell(x-1, y+1) && zone.cell(x-1, y-1);
+
+                if(emptyCount == 0 || Margin || (!Margin && Corners)){
+                    validRooms.push_back(Empty);
+                }
+            }
+
             validRooms.push_back(Small);
             if(y + 1 < zone._height){
                 validRooms.push_back(Tall1);
@@ -411,12 +421,16 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
                     validRooms.push_back(Wide2);
                 }
             }
-            if(x+y == 0 || ((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1))){
+            /*if(x+y == 0 || ((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1))){
                 validRooms.push_back(Big1);
                 validRooms.push_back(Big2);
-            }
+            }*/
 
             uint8_t selectedRoom = validRooms[randomizer.get_int(0, validRooms.size())];
+            if(selectedRoom == Empty){
+                emptyCount++;
+            }
+
             top_left.set_x(x);
             top_left.set_y(y);
 

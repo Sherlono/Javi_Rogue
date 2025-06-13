@@ -4,6 +4,8 @@ namespace jv{
 // ************ Player ************
 void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
     if(alive()){
+        _interact_token = true;
+        
         attack_update();
         if(get_state() == State::HURTING){
             if(_animation->done()){
@@ -11,10 +13,7 @@ void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
                 set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else{
-            move(cam, map, noClip);
-            if(attack_ended()){
-                set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
-            }
+            move(map, noClip);
             if(_animation->done()){ animation_update();}
         }
         if(!_animation->done()){ _animation->update();}
@@ -24,10 +23,14 @@ void Player::update(bn::camera_ptr& cam, game_map& map, bool noClip){
             attack();
         }
     }
+
+    // Camera
+    bn::fixed t = bn::fixed(0.13);
+    cam.set_position(jv::lerp(cam.x(), _hitbox.x(), t), jv::lerp(cam.y(), _hitbox.y() + 8, t));
 }
 
 // ************* BadCat *************
-void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
+void BadCat::update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
     if(on_screen(cam)){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::bad_cat);
@@ -43,8 +46,8 @@ void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::
             }
         }
 
-        if(player->sprite().y() > _sprite->y()){ _sprite->set_z_order(player->sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
+        if(player.sprite().y() > _sprite->y()){ _sprite->set_z_order(player.sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(player.sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -60,37 +63,32 @@ void BadCat::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::
                     else{ set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());}
                 }
             }else{
-                move(map, randomizer);
-                if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
-                if(attack_ended()){
-                    set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
-                }
+                move(map, player, randomizer);
                 if(_animation->done()){ animation_update();}
             }
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(player->alive()){
-                if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
-                    got_hit(player->get_attack());
-                    player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+            if(player.alive()){
+                if(player.get_state() == State::ATTACKING && player.get_hitbox().intersects(rect())){
+                    got_hit(player.get_attack());
+                    player.set_state(player.get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
-                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player->rect())){
-                    player->got_hit(get_attack());
+                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player.rect())){
+                    player.got_hit(get_attack());
                     set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
             }
         }
     }else{
         if(_sprite.has_value()){
-            _sprite.reset();
-            _animation.reset();
+            reset_graphics();
         }
     }
 }
 
 // ************* PaleTongue *************
-void PaleTongue::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
+void PaleTongue::update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
     if(on_screen(cam)){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::pale_tongue);
@@ -106,8 +104,8 @@ void PaleTongue::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, 
             }
         }
 
-        if(player->sprite().y() > _sprite->y()){ _sprite->set_z_order(player->sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
+        if(player.sprite().y() > _sprite->y()){ _sprite->set_z_order(player.sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(player.sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -125,35 +123,31 @@ void PaleTongue::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, 
             }else{
                 move(map, randomizer);
                 if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
-                if(attack_ended()){
-                    set_animation(frames::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
-                }
                 if(_animation->done()){ animation_update();}
             }
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(player->alive()){
-                if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
-                    got_hit(player->get_attack());
-                    player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+            if(player.alive()){
+                if(player.get_state() == State::ATTACKING && player.get_hitbox().intersects(rect())){
+                    got_hit(player.get_attack());
+                    player.set_state(player.get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
-                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player->rect())){
-                    player->got_hit(get_attack());
+                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player.rect())){
+                    player.got_hit(get_attack());
                     set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
             }
         }
     }else{
         if(_sprite.has_value()){
-            _sprite.reset();
-            _animation.reset();
+            reset_graphics();
         }
     }
 }
 
 // ************* PaleTongue *************
-void PaleFinger::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
+void PaleFinger::update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul = false){
     if(on_screen(cam, 32, 32)){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::pale_finger);
@@ -169,8 +163,8 @@ void PaleFinger::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, 
             }
         }
 
-        if(player->sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(player->sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(player->sprite().z_order() - 1);}
+        if(player.sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(player.sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(player.sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -188,29 +182,25 @@ void PaleFinger::update(jv::Player* player, bn::camera_ptr& cam, game_map& map, 
             }else{
                 move(map, randomizer);
                 //if(_idle_time == 30 && _dir < 9 && _dir != 0){ attack();}
-                if(attack_ended()){
-                    set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
-                }
                 if(_animation->done()){ animation_update();}
             }
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(player->alive()){
-                if(player->get_state() == State::ATTACKING && player->get_hitbox().intersects(rect())){
-                    got_hit(player->get_attack());
-                    player->set_state(player->get_state() == State::HURTING ? State::HURTING : State::NORMAL);
+            if(player.alive()){
+                if(player.get_state() == State::ATTACKING && player.get_hitbox().intersects(rect())){
+                    got_hit(player.get_attack());
+                    player.set_state(player.get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
-                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player->rect())){
-                    player->got_hit(get_attack());
+                if(!isInvul && get_state() == State::ATTACKING && get_hitbox().intersects(player.rect())){
+                    player.got_hit(get_attack());
                     set_state(get_state() == State::HURTING ? State::HURTING : State::NORMAL);
                 }
             }
         }
     }else{
         if(_sprite.has_value()){
-            _sprite.reset();
-            _animation.reset();
+            reset_graphics();
         }
     }
 }
@@ -237,23 +227,23 @@ void NPC::update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, boo
 
         if(player.get_state() == State::NORMAL && !player.is_attacking()){
             // Dialog
-            if(bn::keypad::a_pressed() && player.rect().intersects(rect())){
+            if(bn::keypad::a_pressed() && player.rect().intersects(rect()) && player._interact_token){
                 if(!objective){
                     jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
                 }else{
                     jv::Dialog::init("Thanks for getting rid of the evil", "creatures! The stairs are open now!");
                     if(!stairs.isOpen){
-                        stairs.set_open(objective);
+                        stairs.set_open(true);
                     }
                 }
+                player._interact_token = false;
             }
         }
 
         _animation->update();
     }else{
         if(_sprite.has_value()){
-            _sprite.reset();
-            _animation.reset();
+            reset_graphics();
         }
     }
     

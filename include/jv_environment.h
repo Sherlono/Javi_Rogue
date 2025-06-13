@@ -118,7 +118,7 @@ struct Zone{
     }
     
     bool cell(int x, int y) { 
-        if(x < 0 || y < 0 || x >= _width || y >= _height){
+        if(x < 0 || y < 0 || x >= _width || y >= _height){ // If xy is outside the zone
             return false;
         }else{
             return data[x + (y*_width)];

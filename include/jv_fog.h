@@ -14,6 +14,12 @@
 
 #include "bn_regular_bg_items_darkness.h"
 
+#if LOGS_ENABLED
+    #include "bn_log.h"
+    #include "bn_string.h"
+    static_assert(LOGS_ENABLED, "Log is not enabled");
+#endif
+
 namespace jv{
 
 class Fog{
@@ -116,7 +122,7 @@ private:
     bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
     bn::rect_window_boundaries_hbe_ptr _horizontal_boundaries_hbe;
     bn::camera_ptr _cam;
-    bn::vector<bn::rect, 12> _rooms;
+    bn::vector<bn::rect, 16> _rooms;
 };
 
 }

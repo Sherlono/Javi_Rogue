@@ -28,6 +28,7 @@ namespace {
                                               0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
     constexpr int MAX_FRAMES = 8;
+    constexpr int MAX_ENEMIES = 10;
 }
 
 namespace jv::fadespeed{

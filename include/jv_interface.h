@@ -10,6 +10,8 @@
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
+/*#include "jv_items.h"
+#include "jv_actors.h"*/
 #include "jv_environment.h"
 
 #if LOGS_ENABLED
