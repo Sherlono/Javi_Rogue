@@ -1,6 +1,7 @@
 #ifndef JV_ENVIRONMENT_H
 #define JV_ENVIRONMENT_H
 
+#include "bn_rect.h"
 #include "bn_vector.h"
 #include "bn_random.h"
 #include "bn_memory.h"
@@ -16,67 +17,22 @@
 
 class game_map{
 public:
-    ~game_map(){ bn::memory::clear(size(), _blocks[0]);}
-    game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
+    ~game_map();
+    game_map(uint8_t x, uint8_t y, uint8_t* blocks);
 
     // Getters
-    [[nodiscard]] uint8_t x() const {return width;}
-    [[nodiscard]] uint8_t y() const {return height;}
-    [[nodiscard]] int size() const {return width*height;}
-    [[nodiscard]] bool horizontal_flip(int index) const {return _blocks[index] >= 127;}
-    [[nodiscard]] uint8_t cell(int x, int y) const {
-        uint8_t val = _blocks[x + y*width];
-        return val - 127*(val >= 127);
-    }
+    [[nodiscard]] uint8_t x() const;
+    [[nodiscard]] uint8_t y() const;
+    [[nodiscard]] int size() const;
+    [[nodiscard]] bool horizontal_flip(int index) const;
+    [[nodiscard]] uint8_t cell(int x, int y) const;
 
-    uint8_t operator[](int index){
-        BN_ASSERT(index >= 0, "Invalid index", index);
-        uint8_t val = _blocks[index];
-        return val - 127*(val >= 127);
-    }
-
+    uint8_t operator[](int index);
     // Setters
-    void set_horizontal_flip(int index, bool f){
-        if(f == true){
-            if(horizontal_flip(index) == false){
-                _blocks[index] += 127;
-            }
-        }else if(horizontal_flip(index) == true){
-            _blocks[index] -= 127;
-        }
-    }
-
-    void insert_map(const game_map room, const bn::point top_left, const bool fliped = false){
-        int y_begin = top_left.y()  ,   x_begin = top_left.x();
-        int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
-        int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
-
-        for(int y = y_begin; y < y_end; y++){
-            if(!fliped){
-                for(int x = x_begin; x < x_end; x++){
-                    int map_index = x + y * this->width;
-                    int room_index = (x - x_begin) + (y - y_begin) * room.width;
-                    if(!room._blocks[room_index]){ continue;}
-                    this->_blocks[map_index] =  room._blocks[room_index];
-                    this->set_horizontal_flip(map_index, room.horizontal_flip(room_index));
-                }
-            }else{
-                for(int x = x_end - 1; x >= x_begin; x--){
-                    int map_index = x + y * this->width;
-                    int room_index = -(x + 1 - x_end) + (y - y_begin) * room.width;
-                    if(!room._blocks[room_index]){ continue;}
-                    this->_blocks[map_index] = room._blocks[room_index];
-                    this->set_horizontal_flip(map_index, !room.horizontal_flip(room_index));
-                }
-            }
-        }
-    }
-    
-    void reset(){
-        bn::memory::clear(size(), _blocks[0]);
-    }
+    void set_horizontal_flip(int index, bool f);
+    void insert_map(const game_map room, const bn::point top_left, const bool fliped = false);
+    void reset();
 private:
-    // Members
     const uint8_t width, height;
     uint8_t *_blocks;
 };
@@ -153,6 +109,7 @@ struct Zone{
 };
 
 namespace jv{
+    class Fog;
     void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
     bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
     void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_ptr = NULL);

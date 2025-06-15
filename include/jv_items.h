@@ -12,7 +12,8 @@
 #include "bn_sprite_items_potion.h"
 
 namespace jv{
-    
+class Player;
+
 class Item{
 public:
     enum IDs {POTION};

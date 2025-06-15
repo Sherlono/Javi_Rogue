@@ -4,11 +4,9 @@
 #include "bn_colors.h"
 #include "bn_sprite_palette_ptr.h"
 
-#include "jv_actors.h"
 #include "jv_interface.h"
 #include "jv_constants.h"
 #include "jv_tiled_bg.h"
-#include "jv_environment.h"
 
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
@@ -18,6 +16,8 @@
     #include "bn_string.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
+
+class game_map;
 
 namespace jv::dev{
 

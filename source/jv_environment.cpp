@@ -1,5 +1,64 @@
 #include "jv_environment.h"
-#include "bn_log.h"
+
+game_map::~game_map(){ bn::memory::clear(size(), _blocks[0]);}
+game_map::game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
+
+// Getters
+[[nodiscard]] uint8_t game_map::x() const {return width;}
+[[nodiscard]] uint8_t game_map::y() const {return height;}
+[[nodiscard]] int game_map::size() const {return width*height;}
+[[nodiscard]] bool game_map::horizontal_flip(int index) const {return _blocks[index] >= 127;}
+[[nodiscard]] uint8_t game_map::cell(int x, int y) const {
+    uint8_t val = _blocks[x + y*width];
+    return val - 127*(val >= 127);
+}
+
+uint8_t game_map::operator[](int index){
+    BN_ASSERT(index >= 0, "Invalid index", index);
+    uint8_t val = _blocks[index];
+    return val - 127*(val >= 127);
+}
+
+// Setters
+void game_map::set_horizontal_flip(int index, bool f){
+    if(f == true){
+        if(horizontal_flip(index) == false){
+            _blocks[index] += 127;
+        }
+    }else if(horizontal_flip(index) == true){
+        _blocks[index] -= 127;
+    }
+}
+
+void game_map::insert_map(const game_map room, const bn::point top_left, const bool fliped){
+    int y_begin = top_left.y()  ,   x_begin = top_left.x();
+    int aux_y = y_begin + room.height   ,   aux_x = x_begin + room.width;
+    int y_end = aux_y * (aux_y < height) + height * (aux_y >= height)   ,   x_end = aux_x * (aux_x < width) + width * (aux_x >= width);
+
+    for(int y = y_begin; y < y_end; y++){
+        if(!fliped){
+            for(int x = x_begin; x < x_end; x++){
+                int map_index = x + y * this->width;
+                int room_index = (x - x_begin) + (y - y_begin) * room.width;
+                if(!room._blocks[room_index]){ continue;}
+                this->_blocks[map_index] =  room._blocks[room_index];
+                this->set_horizontal_flip(map_index, room.horizontal_flip(room_index));
+            }
+        }else{
+            for(int x = x_end - 1; x >= x_begin; x--){
+                int map_index = x + y * this->width;
+                int room_index = -(x + 1 - x_end) + (y - y_begin) * room.width;
+                if(!room._blocks[room_index]){ continue;}
+                this->_blocks[map_index] = room._blocks[room_index];
+                this->set_horizontal_flip(map_index, !room.horizontal_flip(room_index));
+            }
+        }
+    }
+}
+
+void game_map::reset(){
+    bn::memory::clear(size(), _blocks[0]);
+}
 
 namespace jv{
 // Make all block prefabs here

@@ -15,8 +15,18 @@ int main()
 
     while(true){
         jv::game::start_scene(randomizer, option);
-        if(option == 0){jv::game::game_scene(randomizer);}
-        else if(option == 1){ jv::dev::blocks_scene();}
-        else if(option == 2){ jv::dev::tile_scene();}
+        switch(option){
+            case 0:
+                jv::game::game_scene(randomizer);
+                break;
+            case 1:
+                jv::dev::blocks_scene();
+                break;
+            case 2:
+                jv::dev::tile_scene();
+                break;
+            default:
+                break;
+        }
     }
 }

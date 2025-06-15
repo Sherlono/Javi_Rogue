@@ -11,11 +11,11 @@
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
 
+#include "jv_constants.h"
 #include "jv_math.h"
 #include "jv_stairs.h"
 #include "jv_dialog.h"
-#include "jv_constants.h"
-#include "jv_environment.h"
+#include "jv_common.h"
 
 #include "bn_sprite_items_cow.h"
 #include "bn_sprite_items_bad_cat.h"
@@ -29,8 +29,11 @@
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 
+//class game_map;
+
 namespace jv{
 struct stairs;
+class Common;
 
 class Actor{
 public:
@@ -39,7 +42,7 @@ public:
     Actor(bn::rect r): _dir(Direction::SOUTH), _rect(r){}
 
     enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
-    enum State { NORMAL, ATTACKING, HURTING, DEAD};
+    enum State { NORMAL, ATTACKING, HURTING, CHARGING, DEAD};
     
     struct basic_stats{
         constexpr basic_stats(const uint8_t att, const uint8_t def, const short maxhp, const bn::fixed spe):
@@ -61,26 +64,7 @@ public:
     [[nodiscard]] bool in_range(int x, int y, const int distance){
         return x - int_x() <= distance && x - int_x() >= -distance && y - int_y() <= distance && y - int_y() >= -distance;
     }
-    [[nodiscard]] bool obstacle(int x, int y, const uint8_t direction, game_map& map){
-        switch(direction){
-            case Direction::NORTH:
-                return map.cell(x, y - 1) > 0 && map.cell(x, y - 1) < WTILES_COUNT;
-                break;
-            case Direction::SOUTH:
-                return map.cell(x, y + 1) > 0 && map.cell(x, y + 1) < WTILES_COUNT;
-                break;
-            case Direction::WEST:
-                return map.cell(x - 1, y) > 0 && map.cell(x - 1, y) < WTILES_COUNT;
-                break;
-            case Direction::EAST:
-                return map.cell(x + 1, y) > 0 && map.cell(x + 1, y) < WTILES_COUNT;
-                break;
-            default:
-                BN_ASSERT(false, "Invalid direction", direction);
-                return false;
-                break;
-        }
-    }
+    [[nodiscard]] bool obstacle(int x, int y, const uint8_t direction);
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y, uint16_t y_offset = 8){
@@ -204,7 +188,7 @@ public:
         _animation->update();
     }
 
-    void update(bn::camera_ptr& cam, game_map& map, bool noClip);
+    void update(bool noClip);
 
     void heal(int h){
         _hp = bn::min(_hp + h, int(_stats.max_hp));
@@ -239,39 +223,7 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(game_map& map, bool noClip = false){
-        if(!_attack_cooldown){
-            if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
-                _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
-
-                int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-
-                // Move if dir not obstructed
-                if(bn::keypad::up_held() && (noClip || obstacle(x, y, NORTH, map))){
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                    bn::fixed target_y = this->y() - _stats.speed*diagonal;
-                    set_position(this->x(), target_y + 8, 8);
-                }else if(bn::keypad::down_held() && (noClip || obstacle(x, y, SOUTH, map))){
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-                    bn::fixed target_y = this->y() + _stats.speed*diagonal;
-                    set_position(this->x(), target_y + 8, 8);
-                }
-                if(bn::keypad::left_held() && (noClip || obstacle(x, y, WEST, map))){
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                    bn::fixed target_x = this->x() - _stats.speed*diagonal;
-                    set_position(target_x, this->y() + 8, 8);
-                }else if(bn::keypad::right_held() && (noClip || obstacle(x, y, EAST, map))){
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-                    bn::fixed target_x = this->x() + _stats.speed*diagonal;
-                    set_position(target_x, this->y() + 8, 8);
-                }
-                _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
-                                    this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
-            }
-    
-            if(_state == State::NORMAL){ animation_update();}
-        }
-    }
+    void move( bool noClip = false);
     
     void attack(){
         if(!is_attacking() && _state != State::HURTING){
@@ -329,7 +281,7 @@ public:
     }
 
     // Functionality
-    virtual void update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) = 0;
+    virtual void update(bool isInvul) = 0;
 
 protected:
     short hp;
@@ -370,7 +322,7 @@ public:
     void set_state(int s){ _state = s;}
 
     // Functionality
-    void update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) override;
+    void update(bool isInvul) override;
     
     void got_hit(int damage){
         _state = State::HURTING;
@@ -395,78 +347,7 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(game_map& map, jv::Player& player, bn::random& randomizer){
-        // Decide direction at random
-        if(!_attack_cooldown){
-            bn::fixed_point xyVector = jv::normalize(player.position() - position());
-            bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
-            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-                
-            // Player within range
-            if(in_range(player.int_x(), player.int_y(), 20)){
-                look_at(xyVector, abs_x, abs_y);
-                
-                if(_idle_time == 0){
-                    attack();
-                    _idle_time++;
-                }else if(_idle_time <= 2*60){
-                    _idle_time++;
-                }else{
-                    _idle_time = 0;
-                }
-            }else if(in_range(player.int_x(), player.int_y(), 46)){
-                look_at(xyVector, abs_x, abs_y);
-                if(_idle_time <= 2*60){
-                    _idle_time++;
-                }
-                bn::fixed target_x = this->x();
-                bn::fixed target_y = this->y() + 8;
-                if((xyVector.x() > 0 && obstacle(x, y, EAST, map)) || (xyVector.x() < 0 && obstacle(x, y, WEST, map))){
-                    target_x += xyVector.x()*_stats.speed;
-                }
-                if((xyVector.y() > 0 && obstacle(x, y, SOUTH, map)) || (xyVector.y() < 0 && obstacle(x, y, NORTH, map))){
-                    target_y += xyVector.y()*_stats.speed;
-                }
-
-                set_position(target_x, target_y, 8);
-            }
-
-            // Random direction
-            else{
-                if(_idle_time == 0){
-                    _dir = randomizer.get_int(12);
-                    _idle_time++;
-                }else if(_idle_time <= 1*60 + _dir*2){
-                    _idle_time++;
-                }else{
-                    _idle_time = 0;
-                }
-
-                // If direction is valid
-                if(_dir != Direction::NEUTRAL && _dir < 9){
-                    // Move if dir not obstructed
-                    if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obstacle(x, y, NORTH, map)){          // UP
-                        bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                        set_position(this->x(), this->y() + 8 - _stats.speed*diagonal, 8); 
-                    }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obstacle(x, y, SOUTH, map)){  // DOWN
-                        bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                        set_position(this->x(), this->y() + 8 + _stats.speed*diagonal, 8);
-                    }
-                    if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obstacle(x, y, WEST, map)){  // LEFT
-                        bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                        set_position(this->x() - _stats.speed*diagonal, this->y() + 8, 8);
-                    }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obstacle(x, y, EAST, map)){ // RIGHT
-                        bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                        set_position(this->x() + _stats.speed*diagonal, this->y() + 8, 8);
-                    }
-                }
-                
-            }
-
-            
-            if(_state == State::NORMAL){ animation_update();}
-        }
-    }
+    void move();
     
     void attack(){
         if(!_attack_cooldown){
@@ -522,7 +403,7 @@ public:
     void set_state(int s){ _state = s;}
 
     // Functionality
-    void update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) override;
+    void update(bool isInvul) override;
     
     void got_hit(int damage){
         _state = State::HURTING;
@@ -547,47 +428,10 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(game_map& map, bn::random& randomizer){
-        // Decide direction at random
-        if(!_attack_cooldown){
-            // Random direction
-            if(_idle_time == 0){
-                _dir = randomizer.get_int(16);
-                _idle_time++;
-            }else if(_idle_time <= 2*60 + _dir*2){
-                _idle_time++;
-            }else{
-                _idle_time = 0;
-            }
-
-            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-
-            // If direction is valid
-            if(_dir != Direction::NEUTRAL && _dir < 9){
-                // Move if dir not obstructed
-                if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obstacle(x, y, NORTH, map)){          // UP
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() + 8 - _stats.speed*diagonal, 8); 
-                }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obstacle(x, y, SOUTH, map)){  // DOWN
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + 8 + _stats.speed*diagonal, 8);
-                }
-                if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obstacle(x, y, WEST, map)){  // LEFT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - _stats.speed*diagonal, this->y() + 8, 8);
-                }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obstacle(x, y, EAST, map)){ // RIGHT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + _stats.speed*diagonal, this->y() + 8, 8);
-                }
-            }
-            
-            if(_state == State::NORMAL){ animation_update();}
-        }
-    }
+    void move();
     
     void attack(){
         if(!_attack_cooldown){
-            _idle_time = 0;
             _attack_cooldown = 35;
             set_animation(frames::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
@@ -640,7 +484,7 @@ public:
     void set_state(int s){ _state = s;}
 
     // Functionality
-    void update(jv::Player& player, bn::camera_ptr& cam, game_map& map, bn::random& randomizer, bool isInvul) override;
+    void update(bool isInvul) override;
     
     void got_hit(int damage){
         _state = State::HURTING;
@@ -665,54 +509,10 @@ private:
         _prev_dir = _dir;
     }
     
-    void move(game_map& map, bn::random& randomizer){
-        // Decide direction at random
-        if(!_attack_cooldown){
-            // Random direction
-            if(_idle_time == 0){
-                _dir = randomizer.get_int(16);
-                _idle_time++;
-            }else if(_idle_time <= 2*60 + _dir*2){
-                _idle_time++;
-            }else{
-                _idle_time = 0;
-            }
+    void move();
+    
+    void attack();
 
-            int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
-                
-            // If direction is valid
-            if(_dir != Direction::NEUTRAL && _dir < 9){
-                // Move if dir not obstructed
-                if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && obstacle(x, y, NORTH, map)){           // UP
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() + 26 - _stats.speed*diagonal, 26); 
-                }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && obstacle(x, y, SOUTH, map)){     // DOWN
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + 26 + _stats.speed*diagonal, 26);
-                }
-                if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && obstacle(x, y, WEST, map)){             // LEFT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - _stats.speed*diagonal, this->y() + 26, 26);
-                }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && obstacle(x, y, EAST, map)){       // RIGHT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + _stats.speed*diagonal, this->y() + 26, 26);
-                }
-            }
-            
-            if(_state == State::NORMAL){ animation_update();}
-        }
-    }
-    
-    void attack(){
-        if(!_attack_cooldown){
-            _idle_time = 0;
-            _attack_cooldown = 35;
-            set_animation(frames::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
-            _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
-                                 this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
-        }
-    }
-    
     void attack_update(){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown){ _attack_cooldown--;}
@@ -726,7 +526,6 @@ private:
     }
     
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
-
 };
 
 class NPC: public Actor{

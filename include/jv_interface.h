@@ -10,9 +10,8 @@
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
-/*#include "jv_items.h"
-#include "jv_actors.h"*/
-#include "jv_environment.h"
+#include "jv_items.h"
+#include "jv_projectile.h"
 
 #if LOGS_ENABLED
     #include "bn_log.h"
@@ -20,6 +19,8 @@
     #include "bn_sprites.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
+
+class game_map;
 
 namespace jv{
 inline void resetcombo(){
