@@ -2,6 +2,7 @@
 #define JV_COMMON_H
 
 #include "bn_assert.h"
+#include "bn_vector.h"
 #include "bn_camera_ptr.h"
 #include "bn_fixed_point.h"
 #include "bn_random.h"
@@ -22,9 +23,8 @@ struct Common{
 public:
     Common(const Common&) = delete;
     Common operator=(Common const& other) = delete;
-    static Common& Get(){ return *instance;}
 
-    static void initialize(bn::camera_ptr* camera, jv::Player* player, game_map* map, bn::random* randomizer);
+    static void initialize(bn::camera_ptr* camera = nullptr, jv::Player* player = nullptr, game_map* map = nullptr, bn::random* randomizer = nullptr, bn::ivector<jv::Projectile*>* projectiles = nullptr);
 
     static void reset();
 
@@ -45,9 +45,8 @@ private:
     static jv::Player* _player;
     static game_map* _map;
     static bn::random* _randomizer;
-    static bn::vector<jv::Projectile*, MAX_ENEMIES> _projectiles;
+    inline static bn::ivector<jv::Projectile*>* _projectiles;
     static bn::point cam_position;
-    static Common* instance;
 };
 
 }

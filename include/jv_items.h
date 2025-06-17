@@ -95,7 +95,7 @@ public:
     }
 
     void get_item(jv::Player& player) override{
-        player.heal(3);
+        player.heal(1);
         _gotten = true;
     }
 };

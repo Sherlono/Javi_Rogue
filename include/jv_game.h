@@ -163,9 +163,9 @@ void game_scene(bn::random& randomizer){
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy*, MAX_ENEMIES> v_enemies;
     bn::vector<jv::Item*, MAX_ENEMIES> v_scene_items;
-    //bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
+    bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
 
-    jv::Common::initialize(&cam, &cat, &Fortress.map, &randomizer);
+    jv::Common::initialize(&cam, &cat, &Fortress.map, &randomizer, &v_projectiles);
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
@@ -177,13 +177,14 @@ void game_scene(bn::random& randomizer){
 
     // ****** Debug data ******
     bool Noclip = false;
-    bool Invuln = false;
+    bool FullHeal = false;
     bool Die = false;
     bn::vector<jv::menu_option, 5> options;
+    options.push_back(jv::menu_option(&cat._isInvul, "Invuln."));
+    options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
     options.push_back(jv::menu_option(&Noclip, "Noclip"));
-    options.push_back(jv::menu_option(&Invuln, "Invuln."));
-    options.push_back(jv::menu_option(&Die, "Die"));
     options.push_back(jv::menu_option(&next_level, "Next level"));
+    options.push_back(jv::menu_option(&Die, "Die"));
 
     /*bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(0, 0);
     ball.set_bg_priority(0);*/
@@ -220,14 +221,24 @@ void game_scene(bn::random& randomizer){
 
             v_npcs.push_back(jv::NPC(v_points[2], cam));
 
-            uint8_t A_enemies = MAX_ENEMIES/3;
-            //uint8_t A_enemies = MAX_ENEMIES;
-            uint8_t B_enemies = A_enemies + randomizer.get_int(MAX_ENEMIES - A_enemies);
-            for(int i = 0; i < B_enemies; i++){
+            bn::vector<uint8_t, 2> enemyCountList;
+            enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES));
+            enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES - enemyCountList[0]));
+            uint8_t enemyCount[2];
+            for(int i = 0; i < 2; i++){
+                int index = randomizer.get_int(enemyCountList.size());
+                enemyCount[i] = enemyCountList[index];
+                enemyCountList.erase(enemyCountList.begin()+index);
+            }
+
+            for(int i = 0; i < enemyCount[0]; i++){
                 v_enemies.push_back(new jv::BadCat(v_points[3+i], cam));
             }
-            for(int i = v_enemies.size(); i < MAX_ENEMIES; i++){
-                v_enemies.push_back(new jv::PaleFinger(v_points[3+i], cam));
+            for(int i = 0; i < enemyCount[1]; i++){
+                v_enemies.push_back(new jv::PaleTongue(v_points[3+enemyCount[0]+i], cam));
+            }
+            for(int i = 0; i < MAX_ENEMIES - enemyCount[0] - enemyCount[1]; i++){
+                v_enemies.push_back(new jv::PaleFinger(v_points[3+enemyCount[0]+enemyCount[1]+i], cam));
             }
         }
 
@@ -245,8 +256,8 @@ void game_scene(bn::random& randomizer){
             Objective = true;
 
             // Player update
+            cat.update(Noclip);
             if(cat.alive()){
-                cat.update(Noclip);
                 next_level = stairs.climb(cat.rect(), cat.get_state());
 
                 // Scene Items update
@@ -271,6 +282,10 @@ void game_scene(bn::random& randomizer){
                     for(bn::sprite_ptr sprite : txt_sprts){ sprite.set_visible(true);}
                     
                     if(Die){ cat.got_hit(cat.get_hp(), true);}
+                    if(FullHeal){
+                        cat.heal(cat.get_maxhp());
+                        FullHeal = false;
+                    }
                 }
             }else{
                 // Death sequence
@@ -283,7 +298,7 @@ void game_scene(bn::random& randomizer){
 
             // Enemy update
             for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i]->update(Invuln);
+                v_enemies[i]->update();
                 Objective = Objective && !v_enemies[i]->alive();
                 if(v_enemies[i]->get_state() == Actor::State::DEAD){
                     if(randomizer.get_bool()){

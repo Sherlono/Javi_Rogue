@@ -1,6 +1,7 @@
 #include "jv_projectile.h"
 
 jv::Projectile::Projectile(int x, int y):
+    _anim_frames(0),
     _point(bn::point(x, y)),
     _moveVector(jv::normalize(bn::fixed_point(jv::Common::Player().position().x(), jv::Common::Player().position().y() + 8) - position())*_speed)
     {}
@@ -16,12 +17,13 @@ jv::EnergyOrb::EnergyOrb(int x, int y):
         _sprite = builder.release_build();
     }
 
-bool jv::EnergyOrb::update(bool isInvul) {
+bool jv::EnergyOrb::update() {
+    animation_update();
     set_position(x() + _moveVector.x(), y() + _moveVector.y());
-    if(!on_screen(jv::Common::Camera(), 8, 8)){
+    if(!on_screen(jv::Common::Camera(), 32, 32)){
         return true;
     }else if(jv::Common::Player().alive()){
-        if(!isInvul && jv::Common::Player().rect().contains(_point)){
+        if(jv::Common::Player().rect().contains(_point)){
             jv::Common::Player().got_hit(2);
             return true;
         }

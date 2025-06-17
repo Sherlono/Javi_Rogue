@@ -57,7 +57,7 @@ inline void Log_resources(){
     return out;
 }
 
-void random_coords(auto& points_out, game_map& map, bn::random& randomizer){
+void random_coords(bn::ivector<bn::point>& points_out, game_map& map, bn::random& randomizer){
     bn::point* valid_points = nullptr;
     int pointCount = 0;
 

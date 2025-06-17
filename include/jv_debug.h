@@ -68,7 +68,7 @@ struct menu_option{
                 break;
         }
     }
-    void print(int x, int y, bn::vector<bn::sprite_ptr, 100>& v_text, bn::sprite_text_generator& text_generator){
+    void print(int x, int y, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator){
         switch(_type){
             case isInt:
                 text_generator.generate(x, y, bn::to_string<16>(*_i), v_text);
@@ -91,8 +91,8 @@ private:
 };
 
 namespace Debug{
-void debug_update(auto& options, bn::vector<bn::sprite_ptr, 100>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
-void Start(auto& options){
+void debug_update(bn::ivector<jv::menu_option>&  options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
+void Start(bn::ivector<jv::menu_option>&  options){
     // Hide all previous graphics
     bn::regular_bg_ptr black = bn::regular_bg_items::darkness.create_bg(0, 0);
     black.set_priority(0);
@@ -159,7 +159,7 @@ void Start(auto& options){
     #endif
 }
 
-void debug_update(auto& options, bn::vector<bn::sprite_ptr, 100>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+void debug_update(bn::ivector<jv::menu_option>&  options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
     if(increase){ options[index].increase();
     }else{ options[index].decrease();}
 

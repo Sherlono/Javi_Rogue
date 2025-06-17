@@ -18,6 +18,9 @@ class Projectile{
 public:
     virtual ~Projectile() = default;
     Projectile(int x, int y);
+    Projectile(const Projectile&) = delete;
+    Projectile operator=(Projectile const& other) = delete;
+
 
     // Getters
     [[nodiscard]] bn::fixed x() const { return _sprite->x();}
@@ -37,21 +40,29 @@ public:
         _sprite->set_position(x, y);
     };
 
-    virtual bool update(bool isInvul = false) = 0;
+    virtual void animation_update() = 0;
+
+    virtual bool update() = 0;
     
 protected:
+    uint8_t _anim_frames;
     bn::point _point;
     bn::fixed_point _moveVector;
     bn::optional<bn::sprite_ptr> _sprite;
     
-    static constexpr bn::fixed _speed = bn::fixed(1.5);
+    static constexpr bn::fixed _speed = bn::fixed(1.8);
 };
 class EnergyOrb: public Projectile{
 public:
     ~EnergyOrb(){ _sprite.reset();}
     EnergyOrb(int x, int y);
 
-    bool update(bool isInvul = false) override;
+    void animation_update(){
+        _anim_frames++;
+        _sprite->set_tiles(bn::sprite_items::energy_orb.tiles_item().create_tiles(bamod(_anim_frames>>2, 4)));
+    }
+
+    bool update() override;
 };
 
 }
