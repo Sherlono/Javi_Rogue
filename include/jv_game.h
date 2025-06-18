@@ -27,8 +27,8 @@
 #include "bn_regular_bg_items_intro_card.h"
 #include "bn_regular_bg_items_intro_card_bg.h"
 
-#include "bn_sprite_items_cursor.h"
 #include "bn_sprite_items_ball.h"
+#include "bn_sprite_items_cursor.h"
 
 namespace jv::game{
 void intro_scene(){
@@ -310,7 +310,7 @@ void game_scene(bn::random& randomizer){
             }
             
             // Others update
-            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(cat, cam, stairs, Objective);}
+            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Objective);}
             
             healthbar.update();
             Fortress.update(cam);

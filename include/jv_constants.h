@@ -1,8 +1,6 @@
 #ifndef JV_CONSTANTS_H
 #define JV_CONSTANTS_H
 
-#include "bn_span.h"
-
 /**
  *  Glossary
  * Tile: 8x8 pixel background tile

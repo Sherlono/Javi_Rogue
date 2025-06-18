@@ -36,7 +36,7 @@ class Actor{
 public:
     virtual ~Actor() = default;
     // Constructor
-    Actor(bn::rect r): _dir(Direction::SOUTH), _rect(r){}
+    Actor(bn::rect r): _prev_dir(Direction::SOUTH), _dir(Direction::SOUTH), _rect(r){}
 
     enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
     enum State { NORMAL, ATTACKING, HURTING, CHARGING, DEAD};
@@ -61,7 +61,7 @@ public:
     [[nodiscard]] bool in_range(int x, int y, const int r){
         return  (x - int_x())*(x - int_x()) + (y - int_y())*(y - int_y()) <= r*r;
     }
-    [[nodiscard]] bool obstacle(int x, int y, const uint8_t direction);
+    [[nodiscard]] bool map_obstacle(int x, int y, const uint8_t direction);
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y, uint16_t y_offset = 8){
@@ -76,33 +76,6 @@ public:
     void remove_camera(){ _sprite->remove_camera();}
     void set_visible(bool visible){ _sprite->set_visible(visible);}
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
-
-    void look_at(bn::fixed_point& xyVector){
-        bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
-        if(xyVector.y() < -0.5){
-            if(abs_y > abs_x){
-                _dir = Direction::NORTH;
-            }else if(xyVector.x() > 0){
-                _dir = Direction::NORTHEAST;
-            }else{
-                _dir = Direction::NORTHWEST;
-            }
-        }else if(xyVector.y() > 0.5){
-            if(abs_y > abs_x){
-                _dir = Direction::SOUTH;
-            }else if(xyVector.x() > 0){
-                _dir = Direction::SOUTHEAST;
-            }else{
-                _dir = Direction::SOUTHWEST;
-            }
-        }else{
-            if(xyVector.x() > 0){
-                _dir = Direction::EAST;
-            }else{
-                _dir = Direction::WEST;
-            }
-        }
-    }
 
     void set_animation(const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
         if(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST){        // UP
@@ -139,13 +112,49 @@ public:
         }
     }
 
+    void look_at(bn::fixed_point& xyVector){
+        bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
+        if(xyVector.y() < -0.5){
+            if(abs_y > abs_x){
+                _dir = Direction::NORTH;
+            }else if(xyVector.x() > 0){
+                _dir = Direction::NORTHEAST;
+            }else{
+                _dir = Direction::NORTHWEST;
+            }
+        }else if(xyVector.y() > 0.5){
+            if(abs_y > abs_x){
+                _dir = Direction::SOUTH;
+            }else if(xyVector.x() > 0){
+                _dir = Direction::SOUTHEAST;
+            }else{
+                _dir = Direction::SOUTHWEST;
+            }
+        }else{
+            if(xyVector.x() > 0){
+                _dir = Direction::EAST;
+            }else{
+                _dir = Direction::WEST;
+            }
+        }
+    }
+
+    void walking_update(const bn::sprite_tiles_item& tiles){
+        if(_prev_dir != _dir){
+            set_animation(frames::Walk, tiles);
+        }
+        _prev_dir = _dir;
+    }
+    
     void reset_graphics(){
         _sprite.reset();
         _animation.reset();
     }
 
+    void load_graphics(const bn::sprite_item& item, int y_offset, int wait_frames);
+
 protected:
-    uint8_t _dir;
+    uint8_t _prev_dir, _dir;
     bn::rect _rect;
     bn::optional<bn::sprite_ptr> _sprite;
     bn::optional<bn::sprite_animate_action<MAX_FRAMES>> _animation;
@@ -214,11 +223,10 @@ public:
             _state = State::HURTING;
             _attack_cooldown = 0;
             _prev_attack_cooldown = 0;
-            if(ignoreDef){
-                _hp -= damage;
-            }else{
-                _hp -= damage/_stats.defense;
-            }
+
+            if(ignoreDef){ _hp -= damage;}
+            else{ _hp -= damage/_stats.defense;}
+
             if(_hp <= 0){
                 _state = State::DEAD;
                 _sprite->set_horizontal_flip(false);
@@ -231,17 +239,14 @@ public:
         }
     }
     
+    void set_interact_token(const bool t){
+        _interact_token = t;
+    }
+
     bool _interact_token;
     bool _isInvul;
 
 private:
-    void walking_update(){
-        if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
-        }
-        _prev_dir = _dir;
-    }
-    
     void move( bool noClip = false);
     
     void attack(){
@@ -280,7 +285,6 @@ public:
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
-        _prev_dir(Direction::SOUTH),
         _idle_time(0) {}
 
     // Getters
@@ -307,7 +311,6 @@ protected:
     uint8_t _state;
     bn::rect _hitbox;
     int8_t _prev_attack_cooldown, _attack_cooldown;
-    uint8_t _prev_dir;
     uint8_t _idle_time;
 };
 
@@ -344,8 +347,6 @@ public:
     
     void got_hit(int damage){
         _state = State::HURTING;
-        _prev_dir = 0;
-        _dir = 0;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
@@ -358,13 +359,6 @@ public:
     }
     
 private:
-    void walking_update(){
-        if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
-        }
-        _prev_dir = _dir;
-    }
-    
     void move();
     
     void attack(){
@@ -383,7 +377,7 @@ private:
             _state = State::NORMAL;
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
-        if(attack_ended(39)){
+        if(attack_ended(40)){
             set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
         }
     }
@@ -425,8 +419,6 @@ public:
     
     void got_hit(int damage){
         _state = State::HURTING;
-        _prev_dir = 0;
-        _dir = 0;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
@@ -439,13 +431,6 @@ public:
     }
     
 private:
-    void walking_update(){
-        if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
-        }
-        _prev_dir = _dir;
-    }
-    
     void move();
     
     void attack(){
@@ -464,7 +449,7 @@ private:
             _state = State::NORMAL;
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
-        if(attack_ended(39)){
+        if(attack_ended(40)){
             set_animation(frames::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
         }
     }
@@ -506,8 +491,6 @@ public:
     
     void got_hit(int damage){
         _state = State::HURTING;
-        _prev_dir = 0;
-        _dir = 0;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
@@ -520,13 +503,6 @@ public:
     }
     
 private:
-    void walking_update(){
-        if(_prev_dir != _dir){
-            set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
-        }
-        _prev_dir = _dir;
-    }
-    
     void move();
     
     void attack();
@@ -538,7 +514,7 @@ private:
             _state = State::NORMAL;
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
-        if(attack_ended(39)){
+        if(attack_ended(40)){
             set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
         }
     }
@@ -578,7 +554,7 @@ public:
     // Setters
 
     // Functionality
-    void update(jv::Player& player, bn::camera_ptr cam, jv::stairs& stairs, bool objective);
+    void update(jv::stairs& stairs, bool objective);
     
 private:
 
