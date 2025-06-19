@@ -49,7 +49,7 @@ namespace jv::frames{
 }
 
 namespace jv::blocks{
-    constexpr uint8_t block_array[BLOCK_COUNT][16] = {
+    constexpr uint8_t data[BLOCK_COUNT][16] = {
         // block 0
             {0, 0, 0, 0,
             0, 0, 0, 0,

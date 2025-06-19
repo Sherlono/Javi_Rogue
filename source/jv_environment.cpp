@@ -1,7 +1,7 @@
 #include "jv_environment.h"
 
 game_map::~game_map(){ bn::memory::clear(size(), _blocks[0]);}
-game_map::game_map(uint8_t x, uint8_t y, uint8_t* blocks):width(x), height(y), _blocks(blocks){}
+game_map::game_map(uint8_t x, uint8_t y, uint8_t* blocks): width(x), height(y), _blocks(blocks){}
 
 // Getters
 [[nodiscard]] uint8_t game_map::x() const {return width;}
@@ -61,24 +61,19 @@ void game_map::reset(){
 }
 
 namespace jv{
-// Make all block prefabs here
-void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip){
-    uint8_t arr[16];
-    for(int i = 0; i < 16; i++){
-        arr[i] = jv::blocks::block_array[option < BLOCK_COUNT ? option : 0][i];
-    }
+enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
-    game_map blk(4, 4, arr);
-    map.insert_map(blk, top_left, blockFlip);
+void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
+    Common::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[option < BLOCK_COUNT ? option : 0]), top_left, blockFlip);
 }
 
-bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr){
+bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr){
     switch(option){
         // Rooms
-        case 0:{
+        case Empty:{
             return bn::point(0, 0);
         }
-        case 1:{
+        case Small:{
             const uint8_t width = 7, height = 7;
             constexpr uint16_t size = width*height;
 
@@ -102,7 +97,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
         
@@ -113,7 +108,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(1, 1);
         }
-        case 2:{
+        case Tall1:{
             const uint8_t width = 7, height = 14;
             constexpr uint16_t size = width*height;
 
@@ -151,7 +146,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
         
@@ -162,7 +157,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(1, 2);
         }
-        case 3:{
+        case Tall2:{
             const uint8_t width = 7, height = 14;
             constexpr uint16_t size = width*height;
 
@@ -200,7 +195,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
         
@@ -213,7 +208,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(1, 2);
         }
-        case 4:{
+        case Wide1:{
             const uint8_t width = 14, height = 7;
             constexpr uint16_t size = width*height;
             
@@ -237,7 +232,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
         
@@ -248,7 +243,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(2, 1);
         }
-        case 5:{
+        case Wide2:{
             const uint8_t width = 14, height = 7;
             constexpr uint16_t size = width*height;
             
@@ -272,7 +267,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
         
@@ -285,7 +280,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(2, 1);
         }
-        case 6:{
+        case Big1:{
             const uint8_t width = 14, height = 14;
             constexpr uint16_t size = width*height;
 
@@ -323,7 +318,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
 
@@ -334,7 +329,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             
             return bn::point(2, 2);
         }
-        case 7:{
+        case Big2:{
             const uint8_t width = 14, height = 14;
             constexpr uint16_t size = width*height;
 
@@ -372,7 +367,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
 
@@ -384,7 +379,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             return bn::point(2, 2);
         }
         // Corridors
-        case 8:{
+        case V_Corr:{
             const uint8_t width = 3, height = 5;
             constexpr uint16_t size = width*height;
 
@@ -404,12 +399,12 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
             return bn::point(0, 0);
         }
-        case 9:{
+        case H_Corr:{
             const uint8_t width = 4, height = 4;
             constexpr uint16_t size = width*height;
 
@@ -427,7 +422,7 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(map, bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
+                    BlockFactory(bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
                 }
             }
             return bn::point(0, 0);
@@ -439,12 +434,10 @@ bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t opti
     }
 }
 
-void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_ptr){
-    map.reset();
+void GenerateLevel(Zone& zone, Fog* fog_ptr){
+    Common::Map().reset();
     zone.reset();
     if(fog_ptr){ fog_ptr->reset();}
-
-    enum Room {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
     bn::vector<uint8_t, ROOM_COUNT> validRooms;
     bn::point top_left(0, 0);
@@ -485,7 +478,7 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
                 validRooms.push_back(Big2);
             }*/
 
-            uint8_t selectedRoom = validRooms[randomizer.get_int(0, validRooms.size())];
+            uint8_t selectedRoom = validRooms[Common::Random().get_int(0, validRooms.size())];
             if(selectedRoom == Empty){
                 emptyCount++;
             }
@@ -493,12 +486,13 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
             top_left.set_x(x);
             top_left.set_y(y);
 
-            bn::point occupied = InsertRoom(map, top_left, selectedRoom, fog_ptr);
+            bn::point occupied = InsertRoom(top_left, selectedRoom, fog_ptr);
 
             // Sectors update
             for(int row = y; row < y + occupied.y(); row++){
                 for(int column = x; column < x + occupied.x(); column++){
-                    zone.data[column + (row*zone._width)] = true;
+                    int index = column + (row*zone._width);
+                    zone.data[index] = true;
                 }
             }
 
@@ -509,26 +503,26 @@ void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_p
     for(int y = 0; y < zone._height - 1; y++){
         for(int x = 0; x < zone._width; x++){
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !map.cell((2 + x*7)*4, (7 + y*7)*4 + 1) || map.cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
-            InsertRoom(map, bn::point(2 + x*7, 5 + y*7), V_Corr);
+            if(!zone.cell(x, y) || !Common::Map().cell((2 + x*7)*4, (7 + y*7)*4 + 1) || Common::Map().cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
+            InsertRoom(bn::point(2 + x*7, 5 + y*7), V_Corr);
         }
     }
     // Horizontal corridors
     for(int y = 0; y < zone._height; y++){
         for(int x = 0; x < zone._width - 1; x++){
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !map.cell((7 + x*7)*4 + 1, (2 + y*7)*4) || map.cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
-            InsertRoom(map, bn::point(5 + x*7, 2 + y*7), H_Corr);
+            if(!zone.cell(x, y) || !Common::Map().cell((7 + x*7)*4 + 1, (2 + y*7)*4) || Common::Map().cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
+            InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
-            if(map.cell(22 + x*28, 20 + y*28) == 82){
+            if(Common::Map().cell(22 + x*28, 20 + y*28) == 82){
                 uint8_t arr[4] = {91, 82,
                                     92, 84};
-                map.insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
+                Common::Map().insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
             }
-            if(map.cell(29 + x*28, 20 + y*28) == 82){
+            if(Common::Map().cell(29 + x*28, 20 + y*28) == 82){
                 uint8_t arr[4] = {91, 82,
                                     92, 84};
-                map.insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
+                Common::Map().insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
             }
         }
     }

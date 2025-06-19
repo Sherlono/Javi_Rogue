@@ -13,7 +13,7 @@
 #include "bn_regular_bg_map_cell_info.h"
 
 #include "jv_fog.h"
-#include "jv_constants.h"
+#include "jv_common.h"
 
 class game_map{
 public:
@@ -110,8 +110,8 @@ struct Zone{
 
 namespace jv{
     class Fog;
-    void BlockFactory(game_map& map, const bn::point top_left, const uint8_t option, const bool blockFlip);
-    bn::point InsertRoom(game_map& map, const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
-    void GenerateLevel(game_map& map, Zone& zone, bn::random& randomizer, Fog* fog_ptr = NULL);
+    void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip);
+    bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
+    void GenerateLevel(Zone& zone, Fog* fog_ptr = NULL);
 }
 #endif

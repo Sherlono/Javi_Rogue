@@ -20,7 +20,6 @@
 class game_map;
 
 namespace jv::dev{
-
 void GenerateDevLevel(game_map& map){
     map.reset();
     int width = 12, height = 10;
@@ -51,7 +50,7 @@ void GenerateDevLevel(game_map& map){
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             int index = x + y*width;
-            jv::BlockFactory(map, bn::point(x*4, y*4), blockArr[index], flipArr[index]);
+            jv::BlockFactory(bn::point(x*4, y*4), blockArr[index], flipArr[index]);
         }
     }
 }
