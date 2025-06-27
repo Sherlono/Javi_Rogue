@@ -12,6 +12,9 @@
 
 #include "jv_constants.h"
 #include "jv_interface.h"
+#include "jv_common.h"
+#include "jv_healthbar.h"
+#include "jv_tiled_bg.h"
 
 #include "bn_sprite_items_cursor.h"
 
@@ -21,6 +24,7 @@
 #endif
 
 namespace jv{
+
 struct menu_option{
     enum {isInt, isFloat, isBool};
     menu_option(int* d, bn::string_view t):_text(t),  _i(d), _type(isInt){}
@@ -91,14 +95,21 @@ private:
 };
 
 namespace Debug{
-void debug_update(bn::ivector<jv::menu_option>&  options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase);
-void Start(bn::ivector<jv::menu_option>&  options){
-    // Hide all previous graphics
-    bn::regular_bg_ptr black = bn::regular_bg_items::darkness.create_bg(0, 0);
-    black.set_priority(0);
+void debug_update(bn::ivector<jv::menu_option>& options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+    if(increase){ options[index].increase();
+    }else{ options[index].decrease();}
 
+    v_text.clear();
+    for(int i = 0; i < options.size(); i++){
+        text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
+        options[i].print(-50, -70 + 9*i, v_text, text_generator);
+    }
+}
+
+void Start(bn::ivector<jv::menu_option>& options){
     static int index = 0;
     uint8_t hold = 0;
+
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     text_generator.set_bg_priority(0);
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, -70 + 9*index);
@@ -148,27 +159,17 @@ void Start(bn::ivector<jv::menu_option>&  options){
         jv::resetcombo();
         bn::core::update();
     }
-
+    
     // Print debug values
-    #if LOGS_ENABLED
+    /*#if LOGS_ENABLED
         for(int i = 0; i < options.size(); i++){
             if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
             else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}
             else if(options[i].is_Bool()){ BN_LOG(options[i].text(), ": ", options[i].getBool());}
         }
-    #endif
+    #endif*/
 }
 
-void debug_update(bn::ivector<jv::menu_option>&  options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
-    if(increase){ options[index].increase();
-    }else{ options[index].decrease();}
-
-    v_text.clear();
-    for(int i = 0; i < options.size(); i++){
-        text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
-        options[i].print(-50, -70 + 9*i, v_text, text_generator);
-    }
-}
 }
 }
 

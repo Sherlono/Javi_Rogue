@@ -29,6 +29,9 @@ public:
     ~Fog(){ _rooms.clear();}
     Fog();
 
+    // Getters
+    bool visible(){ return _fog_bg.visible();}
+
     void update();
 
     void create_room(bn::rect room);
@@ -43,6 +46,10 @@ private:
     void set_position(int x, int y){
         _x = x;
         _y = y;
+    }
+
+    void set_visible(bool visible){
+        _fog_bg.set_visible(visible);
     }
 
     void set_boundaries(int w, int a);

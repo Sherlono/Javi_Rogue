@@ -17,8 +17,6 @@
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 
-class game_map;
-
 namespace jv::dev{
 void GenerateDevLevel(game_map& map){
     map.reset();
@@ -108,7 +106,7 @@ void blocks_scene(){
         sprts.push_back(sprite);
     }
     
-    Fortress.init(cam);
+    Fortress.init();
     bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
 
@@ -122,7 +120,7 @@ void blocks_scene(){
             if(bn::keypad::up_pressed() && _y > 0){
                 _y--;
                 cam.set_y(cam.y() - 8);
-                Fortress.init(cam);
+                Fortress.init();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*Fortress.map.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -130,7 +128,7 @@ void blocks_scene(){
             }else if(bn::keypad::down_pressed() && _y < height*4 - 1){
                 _y++;
                 cam.set_y(cam.y() + 8);
-                Fortress.init(cam);
+                Fortress.init();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*Fortress.map.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -139,7 +137,7 @@ void blocks_scene(){
             if(bn::keypad::left_pressed() && _x > 0){
                 _x--;
                 cam.set_x(cam.x() - 8);
-                Fortress.init(cam);
+                Fortress.init();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*Fortress.map.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -147,7 +145,7 @@ void blocks_scene(){
             }else if(bn::keypad::right_pressed() && _x < width*4 - 1){
                 _x++;
                 cam.set_x(cam.x() + 8);
-                Fortress.init(cam);
+                Fortress.init();
                 current_block = _x/8 + (_y*mapSize.x()/80)*6;
                 current_tile = tiles_arr[_x + _y*Fortress.map.x()];
                 if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
@@ -175,11 +173,11 @@ void blocks_scene(){
             if(bn::keypad::up_pressed()){
                 tiles_arr[_x + _y*Fortress.map.x()] = current_tile + 1;
                 tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = current_tile + 1 + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
-                Fortress.init(cam);
+                Fortress.init();
             }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
                 tiles_arr[_x + _y*Fortress.map.x()] = current_tile - 1;
                 tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = current_tile - 1 + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
-                Fortress.init(cam);
+                Fortress.init();
             }
         }
         // Hide block index
@@ -197,7 +195,7 @@ void blocks_scene(){
         }else if(bn::keypad::r_pressed() && bamod(_x/4, 2) == 0){   // Paste
             tiles_arr[_x + _y*Fortress.map.x()] = tile_copy;
             tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = tile_copy + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
-            Fortress.init(cam);
+            Fortress.init();
         }
 
 
@@ -253,7 +251,7 @@ void tile_scene(){
 
     text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
 
-    Fortress.init(cam);
+    Fortress.init();
     bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     
@@ -289,7 +287,7 @@ void tile_scene(){
                     }
                 }
             }
-            Fortress.init(cam);
+            Fortress.init();
         }else if(bn::keypad::r_pressed() && current_tile < 126){
             current_tile++;
             tile_sprites.clear();
@@ -302,7 +300,7 @@ void tile_scene(){
                     }
                 }
             }
-            Fortress.init(cam);
+            Fortress.init();
         }
 
         if(bamod(timer>>6, 2)){ toggle = true;}
@@ -317,17 +315,17 @@ void tile_scene(){
                         }
                     }
                 }
-                Fortress.init(cam);
+                Fortress.init();
             }else{
                 jv::dev::GenerateDevLevel(Fortress.map);
-                Fortress.init(cam);
+                Fortress.init();
             }
         }
 
         prev_toggle = toggle;
         timer++;
         
-        Fortress.update(cam);
+        Fortress.update();
         jv::resetcombo();
         bn::core::update();
     }

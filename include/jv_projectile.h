@@ -21,7 +21,6 @@ public:
     Projectile(const Projectile&) = delete;
     Projectile operator=(Projectile const& other) = delete;
 
-
     // Getters
     [[nodiscard]] bn::fixed x() const { return _sprite->x();}
     [[nodiscard]] bn::fixed y() const { return _sprite->y();}
@@ -39,6 +38,10 @@ public:
         _point.set_y(y.integer());
         _sprite->set_position(x, y);
     };
+
+    void set_visible(bool visible){
+        if(_sprite.has_value()){ _sprite->set_visible(visible);}
+    }
 
     virtual void animation_update() = 0;
 

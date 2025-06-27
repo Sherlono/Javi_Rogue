@@ -15,6 +15,11 @@ void Common::initialize(bn::camera_ptr* camera, jv::Player* player, game_map* ma
     _projectiles = projectiles;
 }
 
+void Common::extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies){
+    _npcs = npcs;
+    _enemies = enemies;
+}
+
 void Common::reset(){
     _camera = nullptr;
     _player = nullptr;
@@ -54,6 +59,20 @@ void Common::clear_projectiles(){
     }
     _projectiles->clear();
 }
+
+void Common::npcs_set_visible(bool visible){
+    BN_ASSERT(_npcs != nullptr, "NPCs not found");
+    if(_npcs != nullptr){ for(int i = 0; i < _npcs->size(); i++){ _npcs->data()[i].set_visible(visible);}}
+}
+void Common::enemies_set_visible(bool visible){
+    BN_ASSERT(_enemies != nullptr, "Enemies not found");
+    if(_enemies != nullptr){ for(int i = 0; i < _enemies->size(); i++){ _enemies->data()[i]->set_visible(visible);}}
+}
+void Common::projectiles_set_visible(bool visible){
+    BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
+    if(_projectiles != nullptr){ for(int i = 0; i < _projectiles->size(); i++){ _projectiles->data()[i]->set_visible(visible);}}
+}
+
 
 [[nodiscard]] bn::camera_ptr& Common::Camera(){
     BN_ASSERT(_camera != nullptr, "Camera not found");

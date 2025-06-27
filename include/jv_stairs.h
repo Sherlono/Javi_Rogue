@@ -2,9 +2,12 @@
 #define JV_STAIRS
 
 #include "bn_rect.h"
+#include "bn_keypad.h"
 #include "bn_optional.h"
 #include "bn_sprite_ptr.h"
 #include "bn_camera_ptr.h"
+
+#include "jv_actors.h"
 
 #include "bn_sprite_items_stairs.h"
 
@@ -25,6 +28,9 @@ struct stairs{
         _sprite.set_position(p);
         _rect.set_position(p);
     }
+    void set_visible(bool visible){
+        _sprite.set_visible(visible);
+    }
     void set_open(bool open){
         isOpen = open;
         if(open){
@@ -34,7 +40,7 @@ struct stairs{
         }
     }
 
-    inline bool climb(bn::rect playerRect, bool playerState);
+    bool climb();
 
     bn::sprite_ptr _sprite;
     bn::rect _rect;

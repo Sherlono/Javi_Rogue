@@ -74,7 +74,9 @@ public:
     }
     void set_camera(bn::camera_ptr& cam){ _sprite->set_camera(cam);}
     void remove_camera(){ _sprite->remove_camera();}
-    void set_visible(bool visible){ _sprite->set_visible(visible);}
+    void set_visible(bool visible){
+        if(_sprite.has_value()){ _sprite->set_visible(visible);};
+    }
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
     void set_animation(const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
@@ -560,15 +562,6 @@ private:
 
 };
 
-}
-
-bool jv::stairs::climb(bn::rect playerRect, bool playerState){
-    bool isOnStairs = playerRect.intersects(_rect) && bn::keypad::a_pressed();
-    if(isOpen && playerState == Actor::State::NORMAL && isOnStairs){
-        return true;
-    }else{
-        return false;
-    }
 }
 
 #endif
