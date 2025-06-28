@@ -5,14 +5,14 @@
 #include "bn_keypad.h"
 #include "bn_optional.h"
 #include "bn_sprite_ptr.h"
+#include "bn_sprite_tiles_ptr.h"
 #include "bn_camera_ptr.h"
-
-#include "jv_actors.h"
 
 #include "bn_sprite_items_stairs.h"
 
-
 namespace jv{
+class Player;
+
 struct stairs{
     stairs(int x, int y, bn::camera_ptr cam):_sprite(bn::sprite_items::stairs.create_sprite(x, y)), _rect(bn::rect(x, y, 16, 16)), isOpen(false)
     {

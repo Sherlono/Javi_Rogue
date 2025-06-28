@@ -10,18 +10,18 @@
 #include "bn_blending_actions.h"
 #include "bn_sprite_palette_actions.h"
 
-//#include "jv_fog.h"
-//#include "jv_math.h"
+#include "jv_fog.h"
 #include "jv_debug.h"
-//#include "jv_items.h"
-//#include "jv_actors.h"
+#include "jv_items.h"
+#include "jv_actors.h"
+#include "jv_stairs.h"
 #include "jv_common.h"
-//#include "jv_stairs.h"
 #include "jv_tiled_bg.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
+#include "jv_level_generation.h"
 
-#include "bn_sprite_items_ball.h"
+//#include "bn_sprite_items_ball.h"
 #include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_intro1.h"
 #include "bn_regular_bg_items_intro_card.h"
@@ -36,9 +36,9 @@ void intro_scene(){
     bn::sprite_palettes::set_fade(bn::colors::black, 0);
     bn::bg_palettes::set_fade(bn::colors::black, 0);
     
-    jv::fade(true);
+    jv::Interface::fade(true);
     for(int i = 0; i < 180; i++){ bn::core::update();}
-    jv::fade(false);
+    jv::Interface::fade(false);
 
     bn::sprite_palettes::set_fade(bn::colors::black, 0);
     bn::bg_palettes::set_fade(bn::colors::black, 0);
@@ -103,7 +103,7 @@ void start_scene(bn::random& randomizer, char& option){
             }
         }
 
-        jv::resetcombo();
+        jv::Interface::resetcombo();
         randomizer.update();
         bg.set_y(bg.y() + scrollSpeed);
         if(bg.y() == end_y){ bg.set_y(start_y);}
@@ -166,7 +166,7 @@ void game_scene(bn::random& randomizer){
     bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
 
     jv::Common::initialize(&cam, &cat, &Fortress.map, &randomizer, &v_projectiles);
-    jv::Common::extra_data_init(&v_npcs, &v_enemies);
+    jv::Common::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
     text_generator.generate(64, -70, "Floor", txt_sprts);
@@ -213,7 +213,7 @@ void game_scene(bn::random& randomizer){
         {
             const uint8_t pointsSize = 3 + MAX_ENEMIES;
             bn::vector<bn::point, pointsSize> v_points;
-            jv::random_coords(v_points);
+            jv::Interface::random_coords(v_points);
             
             cat.set_position(v_points[0]);
             cat.reset();
@@ -249,12 +249,13 @@ void game_scene(bn::random& randomizer){
         if(fog_ptr){ fog_ptr->update();}
         
         // Fade in
-        jv::fade(true);
+        jv::Interface::fade(true);
         
-        //jv::Log_resources();
+        //jv::Interface::Log_resources();
 
         while(!next_level){
             jv::Common::update();
+            Fortress.update();
             Objective = true;
 
             // Player update
@@ -277,9 +278,9 @@ void game_scene(bn::random& randomizer){
                 
                 // Start Debug menu
                 if(bn::keypad::select_pressed()){
-                    set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
+                    jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
                     Debug::Start(options);
-                    set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
+                    jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
                     
                     if(Die){ cat.got_hit(cat.get_hp(), true);}
                     if(FullHeal){
@@ -301,8 +302,11 @@ void game_scene(bn::random& randomizer){
                 v_enemies[i]->update();
                 Objective = Objective && !v_enemies[i]->alive();
                 if(v_enemies[i]->get_state() == Actor::State::DEAD){
-                    if(randomizer.get_bool()){
+                    int item_check = randomizer.get_int(0, 3);
+                    if(item_check == 1){
                         v_scene_items.push_back(new jv::Potion(v_enemies[i]->int_x(), v_enemies[i]->int_y()));
+                    }else if(item_check == 2){
+                        v_scene_items.push_back(new jv::Key(v_enemies[i]->int_x(), v_enemies[i]->int_y()));
                     }
                     delete v_enemies[i];
                     v_enemies.erase(v_enemies.begin() + i);
@@ -313,26 +317,23 @@ void game_scene(bn::random& randomizer){
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Objective);}
             
             healthbar.update();
-            Fortress.update();
 
-            jv::Log_skipped_frames();
-            jv::resetcombo();
+            jv::Interface::Log_skipped_frames();
+            jv::Interface::resetcombo();
             bn::core::update();
         }
         floor--;
         
         // Fade out
-        jv::fade(false, cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
+        jv::Interface::fade(false, cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
 
         // Reset Stuff
+        jv::Common::clear_enemies();
+        jv::Common::clear_scene_items();
         jv::Common::clear_projectiles();
+        v_npcs.clear();
         stairs.set_open(false);
         if(fog_ptr){ fog_ptr->reset();}
-        for(int i = 0; i < v_enemies.size(); i++){ delete v_enemies[i];}
-        v_enemies.clear();
-        for(int i = 0; i < v_scene_items.size(); i++){ delete v_scene_items[i];}
-        v_scene_items.clear();
-        v_npcs.clear();
         txt_sprts.erase(txt_sprts.begin() + 1);
 
         bn::core::update();

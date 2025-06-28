@@ -1,5 +1,10 @@
 #include "jv_common.h"
 
+#include "jv_items.h"
+#include "jv_actors.h"
+#include "jv_projectile.h"
+#include "jv_map_classes.h"
+
 namespace jv{
 bn::camera_ptr* Common::_camera = nullptr;
 Player* Common::_player = nullptr;
@@ -15,9 +20,10 @@ void Common::initialize(bn::camera_ptr* camera, jv::Player* player, game_map* ma
     _projectiles = projectiles;
 }
 
-void Common::extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies){
+void Common::extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies, bn::ivector<jv::Item*>* items){
     _npcs = npcs;
     _enemies = enemies;
+    _scene_items = items;
 }
 
 void Common::reset(){
@@ -25,6 +31,9 @@ void Common::reset(){
     _player = nullptr;
     _map = nullptr;
     _randomizer = nullptr;
+    _npcs = nullptr;
+    _enemies = nullptr;
+    _scene_items = nullptr;
     for(int i = 0; i < _projectiles->size(); i++){
         delete _projectiles->data()[i];
     }
@@ -47,9 +56,33 @@ void Common::update(){
     }
 }
 
-void Common::create_projectile(int x, int y){
+void Common::create_projectile(int x, int y, uint8_t option){
     BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
-    _projectiles->push_back(new EnergyOrb(x, y));
+    switch(option){
+        case 0:{
+            _projectiles->push_back(new EnergyOrb(x, y));
+            break;
+        }
+        default:
+            BN_ASSERT(false, "Invalid Projectile id");
+            break;
+    }
+}
+
+void Common::clear_enemies(){
+    BN_ASSERT(_enemies != nullptr, "Enemies not found");
+    for(int i = 0; i < _enemies->size(); i++){
+        delete _enemies->data()[i];
+    }
+    _enemies->clear();
+}
+
+void Common::clear_scene_items(){
+    BN_ASSERT(_scene_items != nullptr, "Items not found");
+    for(int i = 0; i < _scene_items->size(); i++){
+        delete _scene_items->data()[i];
+    }
+    _scene_items->clear();
 }
 
 void Common::clear_projectiles(){
@@ -62,15 +95,19 @@ void Common::clear_projectiles(){
 
 void Common::npcs_set_visible(bool visible){
     BN_ASSERT(_npcs != nullptr, "NPCs not found");
-    if(_npcs != nullptr){ for(int i = 0; i < _npcs->size(); i++){ _npcs->data()[i].set_visible(visible);}}
+    for(int i = 0; i < _npcs->size(); i++){ _npcs->data()[i].set_visible(visible);}
 }
 void Common::enemies_set_visible(bool visible){
     BN_ASSERT(_enemies != nullptr, "Enemies not found");
-    if(_enemies != nullptr){ for(int i = 0; i < _enemies->size(); i++){ _enemies->data()[i]->set_visible(visible);}}
+    for(int i = 0; i < _enemies->size(); i++){ _enemies->data()[i]->set_visible(visible);}
+}
+void Common::items_set_visible(bool visible){
+    BN_ASSERT(_scene_items != nullptr, "Items not found");
+    for(int i = 0; i < _scene_items->size(); i++){ _scene_items->data()[i]->set_visible(visible);}
 }
 void Common::projectiles_set_visible(bool visible){
     BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
-    if(_projectiles != nullptr){ for(int i = 0; i < _projectiles->size(); i++){ _projectiles->data()[i]->set_visible(visible);}}
+    for(int i = 0; i < _projectiles->size(); i++){ _projectiles->data()[i]->set_visible(visible);}
 }
 
 

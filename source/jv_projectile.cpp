@@ -1,5 +1,7 @@
 #include "jv_projectile.h"
 
+#include "jv_actors.h"
+
 namespace jv{
 Projectile::Projectile(int x, int y):
     _anim_frames(0),

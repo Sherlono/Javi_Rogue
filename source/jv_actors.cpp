@@ -1,5 +1,11 @@
 #include "jv_actors.h"
 
+#include "jv_math.h"
+#include "jv_dialog.h"
+#include "jv_stairs.h"
+#include "jv_projectile.h"
+#include "jv_map_classes.h"
+
 namespace jv{
 // ************ Actor ************
 [[nodiscard]] bool Actor::map_obstacle(int x, int y, const uint8_t direction){
@@ -397,7 +403,7 @@ void PaleFinger::attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
         set_animation(frames::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
-        Common::create_projectile(this->int_x(), this->int_y() - 40);
+        Common::create_projectile(this->int_x(), this->int_y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
 
@@ -464,7 +470,7 @@ void NPC::update(jv::stairs& stairs, bool objective){
 
         if(Common::Player().get_state() == State::NORMAL && !Common::Player().is_attacking()){
             // Dialog
-            if(bn::keypad::a_pressed() && Common::Player().rect().intersects(rect()) && Common::Player()._interact_token){
+            if(bn::keypad::a_pressed() && Common::Player().rect().intersects(rect()) && Common::Player().can_interact()){
                 if(!objective){
                     jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
                 }else{

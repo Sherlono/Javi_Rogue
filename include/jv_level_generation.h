@@ -12,7 +12,6 @@
 #include "jv_map_classes.h"
 
 namespace jv{
-    class Fog;
     void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip);
     bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
     void GenerateLevel(Zone& zone, Fog* fog_ptr = NULL);

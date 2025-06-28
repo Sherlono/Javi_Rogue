@@ -156,7 +156,7 @@ void Start(bn::ivector<jv::menu_option>& options){
 
         if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
 
-        jv::resetcombo();
+        jv::Interface::resetcombo();
         bn::core::update();
     }
     

@@ -1,5 +1,7 @@
 #include "jv_stairs.h"
 
+#include "jv_actors.h"
+
 namespace jv{
 bool stairs::climb(){
     bool isOnStairs = Common::Player().rect().intersects(_rect) && bn::keypad::a_pressed();

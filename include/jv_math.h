@@ -2,8 +2,7 @@
 #define JV_MATH_H
 
 #include "bn_math.h"
-#include "bn_point.h"
-#include "bn_fixed.h"
+#include "bn_fixed_point.h"
 
 namespace jv{
  // "Bitwise And Modulus". Accurately returns the modulo (as long as d is a power of two) faster.

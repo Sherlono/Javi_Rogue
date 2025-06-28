@@ -1,5 +1,8 @@
 #include "jv_tiled_bg.h"
 
+#include "jv_math.h"
+#include "jv_map_classes.h"
+
 namespace jv{
 tiled_bg::tiled_bg(game_map m, const uint8_t priority):
     map(m), prev_x(0), prev_y(0), bg_m_ptr(new bg_map()),

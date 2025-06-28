@@ -4,14 +4,13 @@
 #include "bn_unique_ptr.h"
 #include "bn_camera_ptr.h"
 
-#include "jv_math.h"
 #include "jv_common.h"
-#include "jv_interface.h"
 #include "jv_map_classes.h"
-#include "jv_level_generation.h"
 
 #include "bn_regular_bg_tiles_items_floor_tiles.h"
 #include "bn_bg_palette_items_floor_palette.h"
+
+class game_map;
 
 namespace jv{
 class tiled_bg{

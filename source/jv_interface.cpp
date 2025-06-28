@@ -1,7 +1,14 @@
 #include "jv_interface.h"
 
-namespace jv{
-void zone_layout(Zone& zone){
+#include "jv_actors.h"
+#include "jv_healthbar.h"
+#include "jv_tiled_bg.h"
+#include "jv_stairs.h"
+#include "jv_projectile.h"
+#include "jv_map_classes.h"
+
+namespace jv::Interface{
+void Log_zone_layout(Zone& zone){
     #if LOGS_ENABLED
         BN_LOG("Level Layout");
         for(int y = 0; y < zone._height; y++){
@@ -22,6 +29,7 @@ void set_hide_all(jv::healthbar& healthbar, jv::stairs& stairs, bn::regular_bg_p
     jv::Common::Player().set_visible(!hide);
     jv::Common::npcs_set_visible(!hide);
     jv::Common::enemies_set_visible(!hide);
+    jv::Common::items_set_visible(!hide);
     jv::Common::projectiles_set_visible(!hide);
     for(bn::sprite_ptr sprite : txt){ sprite.set_visible(!hide);}
 }

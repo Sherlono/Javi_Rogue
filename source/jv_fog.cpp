@@ -1,5 +1,7 @@
 #include "jv_fog.h"
 
+#include "jv_actors.h"
+
 namespace jv{
 Fog::Fog():
     _x(0), _y(0), _width(0), _height(0), current_room(-1),

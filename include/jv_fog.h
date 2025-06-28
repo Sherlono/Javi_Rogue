@@ -10,8 +10,8 @@
 #include "bn_rect_window_actions.h"
 #include "bn_rect_window_boundaries_hbe_ptr.h"
 
-#include "jv_common.h"
 #include "jv_constants.h"
+#include "jv_common.h"
 
 #include "bn_regular_bg_items_darkness.h"
 
@@ -22,7 +22,7 @@
 #endif
 
 namespace jv{
-class Common;
+class Player;
 
 class Fog{
 public:

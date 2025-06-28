@@ -12,10 +12,12 @@
 #include "bn_sprite_items_energy_orb.h"
 
 namespace jv{
-class Common;
+class Player;
 
 class Projectile{
 public:
+    enum IDs{ ENERGYORB};
+
     virtual ~Projectile() = default;
     Projectile(int x, int y);
     Projectile(const Projectile&) = delete;

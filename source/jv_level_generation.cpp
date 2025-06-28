@@ -467,7 +467,7 @@ void GenerateLevel(Zone& zone, Fog* fog_ptr){
         }
     }
     
-    jv::zone_layout(zone);
+    jv::Interface::Log_zone_layout(zone);
 }
 
 }

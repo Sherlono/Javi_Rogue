@@ -11,11 +11,8 @@
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
 
-#include "jv_constants.h"
-#include "jv_math.h"
-#include "jv_stairs.h"
-#include "jv_dialog.h"
 #include "jv_common.h"
+#include "jv_inventory.h"
 
 #include "bn_sprite_items_cow.h"
 #include "bn_sprite_items_bad_cat.h"
@@ -28,6 +25,8 @@
     #include "bn_string.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
+
+class game_map;
 
 namespace jv{
 struct stairs;
@@ -168,8 +167,9 @@ public:
     // Constructor
     Player(bn::point position, bn::camera_ptr& camera):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        _interact_token(true),
         _isInvul(false),
+        _inventory(),
+        _interact_token(true),
         _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
         _state(State::NORMAL),
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
@@ -191,6 +191,7 @@ public:
     [[nodiscard]] bool alive() { return _state != State::DEAD;}
     [[nodiscard]] bool is_attacking() { return bool(_attack_cooldown);}
     [[nodiscard]] inline bool attack_ended() { return !is_attacking() && _prev_attack_cooldown != _attack_cooldown;}
+    [[nodiscard]] bool can_interact() const { return _interact_token;}
 
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] int get_attack() const { return _stats.attack;}
@@ -245,8 +246,8 @@ public:
         _interact_token = t;
     }
 
-    bool _interact_token;
     bool _isInvul;
+    Inventory _inventory;
 
 private:
     void move( bool noClip = false);
@@ -270,6 +271,7 @@ private:
         }
     }
     
+    bool _interact_token;
     short _hp;
     basic_stats _stats;
     uint8_t _state;

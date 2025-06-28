@@ -7,17 +7,13 @@
 #include "bn_keypad.h"
 #include "bn_assert.h"
 #include "bn_colors.h"
+#include "bn_memory.h"
+#include "bn_sprite_ptr.h"
 #include "bn_bg_palettes.h"
+#include "bn_regular_bg_ptr.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
-#include "jv_items.h"
-#include "jv_healthbar.h"
-#include "jv_tiled_bg.h"
-#include "jv_stairs.h"
-#include "jv_projectile.h"
-#include "jv_map_classes.h"
-#include "jv_level_generation.h"
 #include "jv_common.h"
 
 #if LOGS_ENABLED
@@ -31,11 +27,12 @@ class game_map;
 class Zone;
 
 namespace jv{
-class Item;
+class Player;
 class tiled_bg;
 struct stairs;
 struct healthbar;
 
+namespace Interface{
 inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
@@ -51,6 +48,7 @@ inline void Log_skipped_frames(){
         //BN_LOG("CPU usage: ", bn::core::last_cpu_usage());
     #endif
 }
+
 inline void Log_resources(){
     #if LOGS_ENABLED
         BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
@@ -60,7 +58,7 @@ inline void Log_resources(){
     #endif
 }
 
-void zone_layout(Zone& zone);
+void Log_zone_layout(Zone& z);
 
 void set_hide_all(jv::healthbar& healthbar, jv::stairs& stairs, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide);
 
@@ -103,6 +101,7 @@ inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIU
     }
 }
 
+}
 }
 
 #endif
