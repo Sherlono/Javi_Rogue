@@ -23,9 +23,9 @@ public:
     Common(const Common&) = delete;
     Common operator=(Common const& other) = delete;
 
-    static void initialize(bn::camera_ptr* camera = nullptr, jv::Player* player = nullptr, game_map* map = nullptr, bn::random* randomizer = nullptr, bn::ivector<jv::Projectile*>* projectiles = nullptr);
+    static void initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, bn::ivector<jv::Projectile*>* projectiles);
 
-    static void extra_data_init(bn::ivector<jv::NPC>* npcs = nullptr, bn::ivector<jv::Enemy*>* enemies = nullptr, bn::ivector<jv::Item*>* items = nullptr);
+    static void extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies, bn::ivector<jv::Item*>* items);
 
     static void reset();
 
@@ -51,8 +51,8 @@ public:
 
 private:
     static bn::camera_ptr* _camera;
-    static jv::Player* _player;
     static game_map* _map;
+    static jv::Player* _player;
     static bn::random* _randomizer;
     inline static bn::ivector<jv::NPC>* _npcs;
     inline static bn::ivector<jv::Enemy*>* _enemies;

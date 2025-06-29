@@ -16,6 +16,7 @@
 #include "jv_actors.h"
 #include "jv_stairs.h"
 #include "jv_common.h"
+#include "jv_credits.h"
 #include "jv_tiled_bg.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
@@ -33,35 +34,33 @@
 namespace jv::game{
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
-    bn::sprite_palettes::set_fade(bn::colors::black, 0);
-    bn::bg_palettes::set_fade(bn::colors::black, 0);
     
     jv::Interface::fade(true);
     for(int i = 0; i < 180; i++){ bn::core::update();}
     jv::Interface::fade(false);
-
-    bn::sprite_palettes::set_fade(bn::colors::black, 0);
-    bn::bg_palettes::set_fade(bn::colors::black, 0);
 }
-    
+
 void start_scene(bn::random& randomizer, char& option){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
-    card.set_priority(0);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, -54);
-    bg.set_priority(3);
     
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 45> menu_sprts;
     int y_offset = 50;
-    text_generator.set_bg_priority(0);
-    text_generator.generate(-96, y_offset - 16, "Select scene", menu_sprts);
-    text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
-    text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
-    text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
-
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
-    cursor.set_bg_priority(1);
-    
+
+    {// Configs
+        card.set_priority(0);
+        cursor.set_bg_priority(1);
+        bg.set_priority(3);
+
+        text_generator.set_bg_priority(0);
+        text_generator.generate(-96, y_offset - 16, "Select scene", menu_sprts);
+        text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
+        text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
+        text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
+    }
+
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
     bn::string_view explain_text[3][5] = {{"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
                                           {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
@@ -119,8 +118,6 @@ void start_scene(bn::random& randomizer, char& option){
         if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
-    
-    bn::core::update();
 }
 
 void game_scene(bn::random& randomizer){
@@ -158,14 +155,14 @@ void game_scene(bn::random& randomizer){
     jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
-    jv::Fog* fog_ptr = NULL;
+    jv::Fog* fog_ptr = nullptr;
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy*, MAX_ENEMIES> v_enemies;
     bn::vector<jv::Item*, MAX_ENEMIES> v_scene_items;
     bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
 
-    jv::Common::initialize(&cam, &cat, &Fortress.map, &randomizer, &v_projectiles);
+    jv::Common::initialize(&cam, &Fortress.map, &cat, &randomizer, &v_projectiles);
     jv::Common::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
@@ -181,7 +178,7 @@ void game_scene(bn::random& randomizer){
     bool FullHeal = false;
     bool Die = false;
     bn::vector<jv::menu_option, 5> options;
-    options.push_back(jv::menu_option(&cat._isInvul, "Invuln."));
+    options.push_back(jv::menu_option(&cat.invulnerable, "Invuln."));
     options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
     options.push_back(jv::menu_option(&Noclip, "Noclip"));
     options.push_back(jv::menu_option(&next_level, "Next level"));
@@ -209,8 +206,7 @@ void game_scene(bn::random& randomizer){
         next_level = false;
         gameover_delay = 0;
 
-        // Populate level
-        {
+        {// Populate level
             const uint8_t pointsSize = 3 + MAX_ENEMIES;
             bn::vector<bn::point, pointsSize> v_points;
             jv::Interface::random_coords(v_points);
@@ -341,7 +337,6 @@ void game_scene(bn::random& randomizer){
     jv::Common::reset();
     bn::sprites::set_blending_bottom_enabled(true);
 }
-
 }
 
 #endif

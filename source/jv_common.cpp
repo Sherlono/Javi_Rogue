@@ -7,12 +7,12 @@
 
 namespace jv{
 bn::camera_ptr* Common::_camera = nullptr;
-Player* Common::_player = nullptr;
 game_map* Common::_map = nullptr;
+Player* Common::_player = nullptr;
 bn::random* Common::_randomizer = nullptr;
 bn::point Common::cam_position;
 
-void Common::initialize(bn::camera_ptr* camera, jv::Player* player, game_map* map, bn::random* randomizer, bn::ivector<Projectile*>* projectiles){
+void Common::initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, bn::ivector<Projectile*>* projectiles){
     _camera = camera;
     _player = player;
     _map = map;

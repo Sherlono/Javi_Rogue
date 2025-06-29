@@ -8,13 +8,13 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED true       // Turns all BN_LOG call functionality off
+    #define LOGS_ENABLED false       // Turns all BN_LOG call functionality off
 #endif
 
 namespace {
-    constexpr uint8_t FLOOR_COUNT = 22;                          // Number of Floor Blocks [0,21]
-    constexpr uint8_t WALL_COUNT = 45 - FLOOR_COUNT + 1;         // Number of Wall Blocks [22,43]
-    constexpr uint8_t BLOCK_COUNT = FLOOR_COUNT + WALL_COUNT;    // Total Blocks
+    constexpr uint8_t FLOOR_COUNT = 22;                             // Number of Floor Blocks [0,21]
+    constexpr uint8_t WALL_COUNT = 45 - FLOOR_COUNT + 1;            // Number of Wall Blocks [22,43]
+    constexpr uint8_t BLOCK_COUNT = FLOOR_COUNT + WALL_COUNT;       // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_COUNT = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles

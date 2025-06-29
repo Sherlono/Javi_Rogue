@@ -14,7 +14,7 @@ void Log_zone_layout(Zone& zone){
         for(int y = 0; y < zone._height; y++){
             bn::string_view line = "";
             for(int x = 0; x < zone._width; x++){
-                line = line + (bn::string<16>)(zone.cell(x, y) ? "□ " : "■ ");
+                line = line + (bn::string<32>)(zone.cell(x, y) ? "□ " : "■ ");
             }
             BN_LOG(line);
         }

@@ -54,9 +54,9 @@ public:
     [[nodiscard]] bn::fixed x() const{ return _sprite->x();}
     [[nodiscard]] bn::fixed y() const{ return _sprite->y();}
     [[nodiscard]] bn::fixed_point position() const{ return _sprite->position();}
-    [[nodiscard]] bn::rect rect() const{ return _rect;}
-    [[nodiscard]] bn::sprite_ptr sprite() { return _sprite.value();}
-    [[nodiscard]] bn::sprite_animate_action<MAX_FRAMES> animation() { return _animation.value();}
+    [[nodiscard]] bn::rect& rect() { return _rect;}
+    [[nodiscard]] bn::sprite_ptr& sprite() { return _sprite.value();}
+    [[nodiscard]] bn::sprite_animate_action<MAX_FRAMES>& animation() { return _animation.value();}
     [[nodiscard]] bool in_range(int x, int y, const int r){
         return  (x - int_x())*(x - int_x()) + (y - int_y())*(y - int_y()) <= r*r;
     }
@@ -167,8 +167,8 @@ public:
     // Constructor
     Player(bn::point position, bn::camera_ptr& camera):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        _isInvul(false),
-        _inventory(),
+        invulnerable(false),
+        playerInventory(),
         _interact_token(true),
         _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
         _state(State::NORMAL),
@@ -198,7 +198,7 @@ public:
     [[nodiscard]] int get_defense() const { return _stats.defense;}
     [[nodiscard]] int get_maxhp() const { return _stats.max_hp;}
     [[nodiscard]] int get_hp() const { return _hp;}
-    [[nodiscard]] bn::rect get_hitbox() { return _hitbox;}
+    [[nodiscard]] bn::rect& get_hitbox() { return _hitbox;}
 
     [[nodiscard]] short* get_hp_ptr() { return &_hp;}
     [[nodiscard]] short* get_maxhp_ptr() { return &_stats.max_hp;}
@@ -222,7 +222,7 @@ public:
     }
 
     void got_hit(int damage, bool ignoreDef = false){
-        if(!_isInvul){
+        if(!invulnerable){
             _state = State::HURTING;
             _attack_cooldown = 0;
             _prev_attack_cooldown = 0;
@@ -246,8 +246,8 @@ public:
         _interact_token = t;
     }
 
-    bool _isInvul;
-    Inventory _inventory;
+    bool invulnerable;
+    Inventory playerInventory;
 
 private:
     void move( bool noClip = false);
@@ -295,7 +295,7 @@ public:
     [[nodiscard]] bool alive() const { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] short get_hp() const { return hp;}
-    [[nodiscard]] bn::rect get_hitbox() const { return _hitbox;}
+    [[nodiscard]] bn::rect& get_hitbox() { return _hitbox;}
     [[nodiscard]] bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
         uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
         bool up = this->int_y() > cam.y() - y_offset, down = this->int_y() < cam.y() + y_offset;
@@ -386,6 +386,7 @@ private:
         }
     }
     
+    static constexpr uint8_t SPRTYOFFSET = 8;
     static constexpr basic_stats _stats = {1, 1, 3, bn::fixed(0.4)};
 
 };
@@ -400,7 +401,7 @@ public:
             hp = _stats.max_hp;
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::pale_tongue);
-                builder.set_position(position.x(), position.y() - 8);
+                builder.set_position(position.x(), position.y() - SPRTYOFFSET);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -458,6 +459,7 @@ private:
         }
     }
     
+    static constexpr uint8_t SPRTYOFFSET = 8;
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 
 };
@@ -472,7 +474,7 @@ public:
             hp = _stats.max_hp;
             if(on_screen(cam, 32, 58)){
                 bn::sprite_builder builder(bn::sprite_items::pale_finger);
-                builder.set_position(position.x(), position.y() - 20);
+                builder.set_position(position.x(), position.y() - SPRTYOFFSET);
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -523,6 +525,7 @@ private:
         }
     }
     
+    static constexpr uint8_t SPRTYOFFSET = 16;
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
 

@@ -3,6 +3,7 @@
 #include "bn_regular_bg_ptr.h"
 
 #include "jv_game.h"
+#include "jv_credits.h"
 #include "jv_dev_tools.h"
 
 int main()
@@ -18,6 +19,7 @@ int main()
         switch(option){
             case 0:
                 jv::game::game_scene(randomizer);
+                jv::credits::credits_scene();
                 break;
             case 1:
                 jv::dev::blocks_scene();

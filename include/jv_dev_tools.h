@@ -5,9 +5,9 @@
 #include "bn_sprite_palette_ptr.h"
 
 #include "jv_math.h"
+#include "jv_common.h"
 #include "jv_tiled_bg.h"
 #include "jv_interface.h"
-#include "jv_constants.h"
 
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
@@ -53,7 +53,7 @@ void GenerateDevLevel(game_map& map){
         }
     }
 }
-    
+
 void blocks_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
@@ -82,8 +82,6 @@ void blocks_scene(){
     uint8_t tiles_arr[cellCount*16];
     jv::tiled_bg Fortress(game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr), 3);
     
-    jv::dev::GenerateDevLevel(Fortress.map);
-
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
     background.set_camera(cam);
@@ -107,7 +105,11 @@ void blocks_scene(){
         sprts.push_back(sprite);
     }
     
+    jv::Common::initialize(&cam, &Fortress.map, nullptr, nullptr, nullptr);
+    jv::dev::GenerateDevLevel(Fortress.map);
+
     Fortress.init();
+
     bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
 
@@ -115,7 +117,9 @@ void blocks_scene(){
     int current_tile = 0, tile_copy = 0, _x = 0, _y = 0;
     bool selected = false;
 
+
     while(true){
+        jv::Common::update();
         // Movement
         if(!selected){
             if(bn::keypad::up_pressed() && _y > 0){
@@ -220,8 +224,6 @@ void tile_scene(){
     uint8_t tiles_arr[cellCount*16];
     jv::tiled_bg Fortress(game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr), 3);
     
-    jv::dev::GenerateDevLevel(Fortress.map);
-
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
     background.set_camera(cam);
@@ -252,11 +254,16 @@ void tile_scene(){
 
     text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
 
+    jv::Common::initialize(&cam, &Fortress.map, nullptr, nullptr, nullptr);
+    jv::dev::GenerateDevLevel(Fortress.map);
+
     Fortress.init();
     bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     
     while(true){
+        jv::Common::update();
+
         if(bn::keypad::up_held()){
             bn::fixed target_y = cam.y() - 2;
             cam.set_position(cam.x(), target_y);

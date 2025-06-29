@@ -51,8 +51,7 @@ Key::Key(int x, int y): Item(x, y)
 }
 
 void Key::get_item() {
-    BN_LOG("Key get!");
-    jv::Common::Player()._inventory.gain_item(Item::IDs::KEY);
+    jv::Common::Player().playerInventory.gain_item(Item::IDs::KEY);
     _gotten = true;
 }
 
