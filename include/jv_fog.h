@@ -11,7 +11,7 @@
 #include "bn_rect_window_boundaries_hbe_ptr.h"
 
 #include "jv_constants.h"
-#include "jv_common.h"
+#include "jv_global.h"
 
 #include "bn_regular_bg_items_darkness.h"
 
@@ -27,7 +27,7 @@ class Player;
 class Fog{
 public:
     ~Fog(){ _rooms.clear();}
-    Fog();
+    Fog(bn::camera_ptr cam);
 
     // Getters
     bool visible(){ return _fog_bg.visible();}

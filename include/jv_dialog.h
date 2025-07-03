@@ -1,11 +1,11 @@
 #ifndef JV_DIALOG_H
 #define JV_DIALOG_H
 
-#include "common_variable_8x8_sprite_font.h"
 #include "bn_string.h"
 #include "bn_sprite_ptr.h"
-#include "bn_sprite_text_generator.h"
 #include "bn_regular_bg_ptr.h"
+#include "bn_sprite_text_generator.h"
+#include "common_variable_8x8_sprite_font.h"
 
 #include "bn_regular_bg_items_dialog_window.h"
 

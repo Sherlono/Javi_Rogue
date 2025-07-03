@@ -10,13 +10,15 @@
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 
-#define SECTIONTOTAL 11
-#define MAXCREDITBODY 10
-#define MAXHEADLINES 4
-#define MAXBODYLINES 20
+#ifndef SECTION_TOTAL
+    #define SECTION_TOTAL 11
+    #define MAX_SECTION_SIZE 10
+    #define MAX_HEAD_LINES 4
+    #define MAX_BODY_LINES 20
+#endif
 
 namespace jv::credits{
-constexpr bn::string_view Header[SECTIONTOTAL] = {
+constexpr bn::string_view Header[SECTION_TOTAL] = {
     "Director",
     "Programming",
     "Writing",
@@ -29,7 +31,7 @@ constexpr bn::string_view Header[SECTIONTOTAL] = {
     "Playtesters",
     "Special Thanks"};
 
-constexpr bn::string_view Body[SECTIONTOTAL][MAXCREDITBODY] = {
+constexpr bn::string_view Body[SECTION_TOTAL][MAX_SECTION_SIZE] = {
     {"Javier Sánchez"},
     {"Javier Sánchez"},
     {"Javier Sánchez"},
@@ -43,16 +45,16 @@ constexpr bn::string_view Body[SECTIONTOTAL][MAXCREDITBODY] = {
     {"Claudia Andrade", "Freddy Sánchez", "And you!"}};
 
 void generate_credits(bn::sprite_text_generator& text_gen, auto& header_sprts, auto& body_sprts, int section, int const y_offset){
-    for(int i = 0; i < MAXHEADLINES; i++){
+    for(int i = 0; i < MAX_HEAD_LINES; i++){
         if(header_sprts[i].empty()){
             text_gen.generate(0, y_offset, Header[section], header_sprts[i]);
             break;
         }
     }
     
-    for(int i = 0; i < MAXCREDITBODY; i++){
+    for(int i = 0; i < MAX_SECTION_SIZE; i++){
         if(Body[section][i] == ""){ break;}
-        for(int j = 0; j < MAXBODYLINES; j++){
+        for(int j = 0; j < MAX_BODY_LINES; j++){
             if(body_sprts[j].empty()){
                 text_gen.generate(0, y_offset + (i+2)*8, Body[section][i], body_sprts[j]);
                 break;
@@ -63,9 +65,9 @@ void generate_credits(bn::sprite_text_generator& text_gen, auto& header_sprts, a
 
 void credits_scene(){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    bn::vector<bn::sprite_ptr, 4> header_sprts[MAXHEADLINES];
-    bn::vector<bn::sprite_ptr, 4> body_sprts[MAXBODYLINES];
-    const bn::fixed scrollSpeed = 0.1;
+    bn::vector<bn::sprite_ptr, 4> header_sprts[MAX_HEAD_LINES];
+    bn::vector<bn::sprite_ptr, 4> body_sprts[MAX_BODY_LINES];
+    const bn::fixed scrollSpeed = 0.2;
     int lowestLine, section = 0;
     bool done = false;
 
@@ -79,7 +81,7 @@ void credits_scene(){
         lowestLine = 0;
 
         if(section != 0){
-            for(int line = 0; line < MAXHEADLINES; line++){
+            for(int line = 0; line < MAX_HEAD_LINES; line++){
                 if(!header_sprts[line].empty()){
                     lowestLine = bn::max(lowestLine, header_sprts[line][0].y().integer());
 
@@ -93,7 +95,7 @@ void credits_scene(){
                 }
             }
             
-            for(int line = 0; line < MAXBODYLINES; line++){
+            for(int line = 0; line < MAX_BODY_LINES; line++){
                 if(!body_sprts[line].empty()){
                     lowestLine = bn::max(lowestLine, body_sprts[line][0].y().integer());
                     
@@ -109,17 +111,17 @@ void credits_scene(){
             
         }
 
-        if(section < SECTIONTOTAL){
+        if(section < SECTION_TOTAL){
             if(lowestLine < 50){
                 generate_credits(text_generator, header_sprts, body_sprts, section, 90);
                 section++;
             }
         }else{
             bool headsEmpty = true, bodiesEmpty = true;
-            for(int line = 0; line < MAXHEADLINES; line++){
+            for(int line = 0; line < MAX_HEAD_LINES; line++){
                 headsEmpty = headsEmpty && header_sprts[line].empty();
             }
-            for(int line = 0; line < MAXBODYLINES; line++){
+            for(int line = 0; line < MAX_BODY_LINES; line++){
                 bodiesEmpty = bodiesEmpty && body_sprts[line].empty();
             }
             done = headsEmpty && bodiesEmpty;

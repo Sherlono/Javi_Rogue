@@ -14,7 +14,7 @@
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
-#include "jv_common.h"
+#include "jv_global.h"
 
 #if LOGS_ENABLED
     #include "bn_log.h"

@@ -11,7 +11,7 @@
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
 
-#include "jv_common.h"
+#include "jv_global.h"
 #include "jv_inventory.h"
 
 #include "bn_sprite_items_cow.h"
@@ -215,7 +215,7 @@ public:
         _animation->update();
     }
 
-    void update(bool noClip);
+    void update(bool noClip = false);
 
     void heal(int h){
         _hp = bn::min(_hp + h, int(_stats.max_hp));
@@ -250,7 +250,7 @@ public:
     Inventory playerInventory;
 
 private:
-    void move( bool noClip = false);
+    void move(bool noClip = false);
     
     void attack(){
         if(!is_attacking() && _state != State::HURTING){
@@ -525,7 +525,7 @@ private:
         }
     }
     
-    static constexpr uint8_t SPRTYOFFSET = 16;
+    static constexpr uint8_t SPRTYOFFSET = 24;
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
 

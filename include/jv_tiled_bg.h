@@ -4,11 +4,11 @@
 #include "bn_unique_ptr.h"
 #include "bn_camera_ptr.h"
 
-#include "jv_common.h"
+#include "jv_global.h"
 #include "jv_map_classes.h"
 
-#include "bn_regular_bg_tiles_items_floor_tiles.h"
-#include "bn_bg_palette_items_floor_palette.h"
+#include "bn_regular_bg_tiles_items_fortress_tiles.h"
+#include "bn_bg_palette_items_fortress_palette.h"
 
 class game_map;
 

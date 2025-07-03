@@ -1,5 +1,5 @@
-#ifndef JV_COMMON_H
-#define JV_COMMON_H
+#ifndef JV_GLOBAL_H
+#define JV_GLOBAL_H
 
 #include "bn_random.h"
 #include "bn_assert.h"
@@ -8,6 +8,11 @@
 #include "bn_fixed_point.h"
 
 #include "jv_constants.h"
+
+#if LOGS_ENABLED
+    #include "bn_log.h"
+    static_assert(LOGS_ENABLED, "Log is not enabled");
+#endif
 
 class game_map;
 
@@ -18,10 +23,11 @@ class Enemy;
 class NPC;
 class Projectile;
 
-struct Common{
+struct Global{
 public:
-    Common(const Common&) = delete;
-    Common operator=(Common const& other) = delete;
+    Global() = delete;
+    Global(const Global&) = delete;
+    Global operator=(Global const& other) = delete;
 
     static void initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, bn::ivector<jv::Projectile*>* projectiles);
 
@@ -42,11 +48,18 @@ public:
     static void items_set_visible(bool visible);
     static void projectiles_set_visible(bool visible);
 
+    static void scene_items_update();
+    static void enemies_update(bool& Objective);
+    
     // Getters
     [[nodiscard]] static bn::camera_ptr& Camera();
     [[nodiscard]] static jv::Player& Player();
     [[nodiscard]] static game_map& Map();
     [[nodiscard]] static bn::random& Random();
+    [[nodiscard]] static bn::ivector<jv::NPC>& NPCs();
+    [[nodiscard]] static bn::ivector<jv::Enemy*>& Enemies();
+    [[nodiscard]] static bn::ivector<jv::Item*>& Scene_Items();
+    [[nodiscard]] static bn::ivector<jv::Projectile*>& Projectiles();
     [[nodiscard]] static bn::point cam_pos();
 
 private:

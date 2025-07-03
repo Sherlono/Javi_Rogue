@@ -12,7 +12,7 @@
 
 #include "jv_constants.h"
 #include "jv_interface.h"
-#include "jv_common.h"
+#include "jv_global.h"
 #include "jv_healthbar.h"
 #include "jv_tiled_bg.h"
 

@@ -9,13 +9,13 @@
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 #include "bn_sprite_palette_actions.h"
+#include "common_variable_8x8_sprite_font.h"
 
 #include "jv_fog.h"
-#include "jv_debug.h"
 #include "jv_items.h"
 #include "jv_actors.h"
 #include "jv_stairs.h"
-#include "jv_common.h"
+#include "jv_global.h"
 #include "jv_credits.h"
 #include "jv_tiled_bg.h"
 #include "jv_healthbar.h"
@@ -31,6 +31,15 @@
 #include "bn_sprite_items_ball.h"
 #include "bn_sprite_items_cursor.h"
 
+#if LOGS_ENABLED
+    #include "bn_log.h"
+    #include "bn_string.h"
+    static_assert(LOGS_ENABLED, "Log is not enabled");
+#endif
+#if DEV_ENABLED
+    #include "jv_debug.h"
+#endif
+
 namespace jv::game{
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
@@ -40,10 +49,12 @@ void intro_scene(){
     jv::Interface::fade(false);
 }
 
-void start_scene(bn::random& randomizer, char& option){
+int start_scene(bn::random& randomizer){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, -54);
     
+    int option = 0;
+
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 45> menu_sprts;
     int y_offset = 50;
@@ -57,14 +68,20 @@ void start_scene(bn::random& randomizer, char& option){
         text_generator.set_bg_priority(0);
         text_generator.generate(-96, y_offset - 16, "Select scene", menu_sprts);
         text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
-        text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
-        text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
+        #if DEV_ENABLED
+            text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
+            text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
+        #endif
     }
 
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
-    bn::string_view explain_text[3][5] = {{"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
-                                          {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
-                                          {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}};
+    bn::string_view explain_text[3][5] = {
+        {"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
+        #if DEV_ENABLED
+            {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
+            {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
+        #endif
+    };
 
     int x_offset = -16;
     y_offset = 40;
@@ -86,21 +103,23 @@ void start_scene(bn::random& randomizer, char& option){
 
     // Selecting a scene
     while(!bn::keypad::a_pressed()){
-        if(bn::keypad::down_pressed() && option < 2){
-            option++;
-            cursor.set_y(cursor.y() + 8);
-            explain_sprts.clear();
-            for(int i = 0; i < 5; i++){
-                text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
+        #if DEV_ENABLED
+            if(bn::keypad::down_pressed() && option < 2){
+                option++;
+                cursor.set_y(cursor.y() + 8);
+                explain_sprts.clear();
+                for(int i = 0; i < 5; i++){
+                    text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
+                }
+            }else if(bn::keypad::up_pressed() && option > 0){
+                option--;
+                cursor.set_y(cursor.y() - 8);
+                explain_sprts.clear();
+                for(int i = 0; i < 5; i++){
+                    text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
+                }
             }
-        }else if(bn::keypad::up_pressed() && option > 0){
-            option--;
-            cursor.set_y(cursor.y() - 8);
-            explain_sprts.clear();
-            for(int i = 0; i < 5; i++){
-                text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
-            }
-        }
+        #endif
 
         jv::Interface::resetcombo();
         randomizer.update();
@@ -118,71 +137,73 @@ void start_scene(bn::random& randomizer, char& option){
         if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
+
+    return option;
 }
 
 void game_scene(bn::random& randomizer){
-    bn::sprites::set_blending_bottom_enabled(false);
     // Text generator
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);
 
     // Music
     bn::music_items::cyberrid.play(0.1);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-    background.set_priority(3);
+    uint8_t zone_x = 4, zone_y = 4;
 
-    constexpr uint8_t zone_x = 4, zone_y = 4;
-    bool zData[zone_x*zone_y];
-    Zone zone(zone_x, zone_y, zData);
+    unsigned short cellCount = ((zone_x*7) - 1)*4*((zone_y*7) - 1)*4 + ((zone_y*7) - 1)*4*2;
 
-    constexpr int cellCount = ((zone_x*7) - 1)*4*((zone_y*7) - 1)*4 + ((zone_y*7) - 1)*4*2;
-
-    uint8_t tileData[cellCount];
+    uint8_t* tileData = new uint8_t[cellCount];
     jv::tiled_bg Fortress(game_map(((zone_x*7) - 1)*4 + 2, (((zone_y*7) - 1)*4), tileData), 2);
-
-    // ******** Camera ********
-    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
-    background.set_camera(cam);
-    Fortress.set_camera(cam);
-
+    
     // ****** Level data ******
     int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, Objective = true;
 
     // ** Universal entities **
+    bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
     jv::Fog* fog_ptr = nullptr;
+    jv::Fog fog(cam);
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy*, MAX_ENEMIES> v_enemies;
     bn::vector<jv::Item*, MAX_ENEMIES> v_scene_items;
     bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
 
-    jv::Common::initialize(&cam, &Fortress.map, &cat, &randomizer, &v_projectiles);
-    jv::Common::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
-
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
-    text_generator.generate(64, -70, "Floor", txt_sprts);
-
-    // ****** Fog stuff *******
-    bn::blending::set_transparency_alpha(0.8);
-    jv::Fog fog;
-    fog_ptr = &fog;
 
     // ****** Debug data ******
-    bool Noclip = false;
-    bool FullHeal = false;
-    bool Die = false;
-    bn::vector<jv::menu_option, 5> options;
-    options.push_back(jv::menu_option(&cat.invulnerable, "Invuln."));
-    options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
-    options.push_back(jv::menu_option(&Noclip, "Noclip"));
-    options.push_back(jv::menu_option(&next_level, "Next level"));
-    options.push_back(jv::menu_option(&Die, "Die"));
+    #if DEV_ENABLED
+        bool Noclip = false;
+        bool FullHeal = false;
+        bool Die = false;
+        bn::vector<jv::menu_option, 5> options;
+        options.push_back(jv::menu_option(&cat.invulnerable, "Invuln."));
+        options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
+        options.push_back(jv::menu_option(&Noclip, "Noclip"));
+        options.push_back(jv::menu_option(&next_level, "Next level"));
+        options.push_back(jv::menu_option(&Die, "Die"));
+    #endif
+
+    {// Configs
+        bn::sprites::set_blending_bottom_enabled(false);
+        bn::blending::set_transparency_alpha(0.8);
+
+        text_generator.set_bg_priority(0);
+        background.set_priority(3);
+        background.set_camera(cam);
+        Fortress.set_camera(cam);
+        fog_ptr = &fog;
+
+        jv::Global::initialize(&cam, &Fortress.map, &cat, &randomizer, &v_projectiles);
+        jv::Global::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
+
+        text_generator.generate(64, -70, "Floor", txt_sprts);
+    }
 
     /*bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(0, 0);
     ball.set_bg_priority(0);*/
@@ -199,91 +220,59 @@ void game_scene(bn::random& randomizer){
     }*/
     
     while(!game_over){
-        // Level generation
-        jv::GenerateLevel(zone, fog_ptr);
-
         text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
         next_level = false;
         gameover_delay = 0;
 
-        {// Populate level
-            const uint8_t pointsSize = 3 + MAX_ENEMIES;
-            bn::vector<bn::point, pointsSize> v_points;
-            jv::Interface::random_coords(v_points);
-            
-            cat.set_position(v_points[0]);
-            cat.reset();
-            cam.set_position(cat.get_hitbox().position());
-            stairs.set_position(v_points[1]);
+        // Level generation
+        jv::Level::Generate(zone_x, zone_y, fog_ptr);
+        jv::Level::Populate(stairs);
+        jv::Global::update();
 
-            v_npcs.push_back(jv::NPC(v_points[2], cam));
-
-            bn::vector<uint8_t, 2> enemyCountList;
-            enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES));
-            enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES - enemyCountList[0]));
-            uint8_t enemyCount[2];
-            for(int i = 0; i < 2; i++){
-                int index = randomizer.get_int(enemyCountList.size());
-                enemyCount[i] = enemyCountList[index];
-                enemyCountList.erase(enemyCountList.begin()+index);
-            }
-
-            for(int i = 0; i < enemyCount[0]; i++){
-                v_enemies.push_back(new jv::BadCat(v_points[3+i], cam));
-            }
-            for(int i = 0; i < enemyCount[1]; i++){
-                v_enemies.push_back(new jv::PaleTongue(v_points[3+enemyCount[0]+i], cam));
-            }
-            for(int i = 0; i < MAX_ENEMIES - enemyCount[0] - enemyCount[1]; i++){
-                v_enemies.push_back(new jv::PaleFinger(v_points[3+enemyCount[0]+enemyCount[1]+i], cam));
-            }
-        }
-
-        jv::Common::update();
         // Initialize level visuals
         Fortress.init();
         if(fog_ptr){ fog_ptr->update();}
         
+        jv::Interface::Log_resources();
+        
         // Fade in
         jv::Interface::fade(true);
-        
-        //jv::Interface::Log_resources();
 
         while(!next_level){
-            jv::Common::update();
+            jv::Global::update();
             Fortress.update();
             Objective = true;
 
             // Player update
-            cat.update(Noclip);
+            #if DEV_ENABLED
+                cat.update(Noclip);
+            #else 
+                cat.update();
+            #endif
+
             if(cat.alive()){
                 next_level = stairs.climb();
 
-                // Scene Items update
-                for(int i = 0; i < v_scene_items.size(); i++){
-                    if(!v_scene_items[i]->gotten()){
-                        v_scene_items[i]->update();
-                    }else{
-                        delete v_scene_items[i];
-                        v_scene_items.erase(v_scene_items.begin() + i);
-                    }
-                }
+                Global::scene_items_update();
 
                 // Fog update
                 if(fog_ptr){ fog_ptr->update();}
                 
-                // Start Debug menu
-                if(bn::keypad::select_pressed()){
-                    jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
-                    Debug::Start(options);
-                    jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
-                    
-                    if(Die){ cat.got_hit(cat.get_hp(), true);}
-                    if(FullHeal){
-                        cat.heal(cat.get_maxhp());
-                        FullHeal = false;
+                // Debug menu
+                #if DEV_ENABLED
+                    if(bn::keypad::select_pressed()){
+                        jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
+                        jv::Debug::Start(options);
+                        jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
+                        
+                        if(Die){ cat.got_hit(cat.get_hp(), true);}
+                        if(FullHeal){
+                            cat.heal(cat.get_maxhp());
+                            FullHeal = false;
+                        }
                     }
-                }
+                #endif
+
             }else{
                 // Death sequence
                 if(gameover_delay == 120){
@@ -293,22 +282,8 @@ void game_scene(bn::random& randomizer){
                 gameover_delay++;
             }
 
-            // Enemy update
-            for(int i = 0; i < v_enemies.size(); i++){
-                v_enemies[i]->update();
-                Objective = Objective && !v_enemies[i]->alive();
-                if(v_enemies[i]->get_state() == Actor::State::DEAD){
-                    int item_check = randomizer.get_int(0, 3);
-                    if(item_check == 1){
-                        v_scene_items.push_back(new jv::Potion(v_enemies[i]->int_x(), v_enemies[i]->int_y()));
-                    }else if(item_check == 2){
-                        v_scene_items.push_back(new jv::Key(v_enemies[i]->int_x(), v_enemies[i]->int_y()));
-                    }
-                    delete v_enemies[i];
-                    v_enemies.erase(v_enemies.begin() + i);
-                }
-            }
-            
+            jv::Global::enemies_update(Objective);
+
             // Others update
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Objective);}
             
@@ -318,15 +293,16 @@ void game_scene(bn::random& randomizer){
             jv::Interface::resetcombo();
             bn::core::update();
         }
+
         floor--;
         
         // Fade out
         jv::Interface::fade(false, cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
 
         // Reset Stuff
-        jv::Common::clear_enemies();
-        jv::Common::clear_scene_items();
-        jv::Common::clear_projectiles();
+        jv::Global::clear_enemies();
+        jv::Global::clear_scene_items();
+        jv::Global::clear_projectiles();
         v_npcs.clear();
         stairs.set_open(false);
         if(fog_ptr){ fog_ptr->reset();}
@@ -334,8 +310,10 @@ void game_scene(bn::random& randomizer){
 
         bn::core::update();
     }
-    jv::Common::reset();
+    
+    jv::Global::reset();
     bn::sprites::set_blending_bottom_enabled(true);
+    delete[] tileData;
 }
 }
 

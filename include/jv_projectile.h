@@ -7,7 +7,7 @@
 #include "bn_sprite_builder.h"
 
 #include "jv_math.h"
-#include "jv_common.h"
+#include "jv_global.h"
 
 #include "bn_sprite_items_energy_orb.h"
 

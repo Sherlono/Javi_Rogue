@@ -1,10 +1,13 @@
 #include "jv_level_generation.h"
 
-namespace jv{
+#include "jv_actors.h"
+#include "jv_stairs.h"
+
+namespace jv::Level{
 enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
 void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
-    Common::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[option < BLOCK_COUNT ? option : 0]), top_left, blockFlip);
+    Global::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[option < BLOCK_COUNT ? option : 0]), top_left, blockFlip);
 }
 
 bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr){
@@ -374,12 +377,13 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
     }
 }
 
-void GenerateLevel(Zone& zone, Fog* fog_ptr){
-    Common::Map().reset();
-    zone.reset();
+void Generate(int const z_x, int const z_y, Fog* fog_ptr){
+    Global::Map().reset();
+    bool* zData = new bool[z_x*z_y];
+    Zone zone(z_x, z_y, zData);
     if(fog_ptr){ fog_ptr->reset();}
 
-    bn::vector<uint8_t, ROOM_COUNT> validRooms;
+    bn::vector<uint8_t, ROOM_PREFAB_COUNT> validRooms;
     bn::point top_left(0, 0);
     uint8_t emptyCount = 0;
     
@@ -418,7 +422,7 @@ void GenerateLevel(Zone& zone, Fog* fog_ptr){
                 validRooms.push_back(Big2);
             }*/
 
-            uint8_t selectedRoom = validRooms[Common::Random().get_int(0, validRooms.size())];
+            uint8_t selectedRoom = validRooms[Global::Random().get_int(0, validRooms.size())];
             if(selectedRoom == Empty){
                 emptyCount++;
             }
@@ -443,7 +447,7 @@ void GenerateLevel(Zone& zone, Fog* fog_ptr){
     for(int y = 0; y < zone._height - 1; y++){
         for(int x = 0; x < zone._width; x++){
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !Common::Map().cell((2 + x*7)*4, (7 + y*7)*4 + 1) || Common::Map().cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
+            if(!zone.cell(x, y) || !Global::Map().cell((2 + x*7)*4, (7 + y*7)*4 + 1) || Global::Map().cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
             InsertRoom(bn::point(2 + x*7, 5 + y*7), V_Corr);
         }
     }
@@ -451,23 +455,57 @@ void GenerateLevel(Zone& zone, Fog* fog_ptr){
     for(int y = 0; y < zone._height; y++){
         for(int x = 0; x < zone._width - 1; x++){
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !Common::Map().cell((7 + x*7)*4 + 1, (2 + y*7)*4) || Common::Map().cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
+            if(!zone.cell(x, y) || !Global::Map().cell((7 + x*7)*4 + 1, (2 + y*7)*4) || Global::Map().cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
             InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
-            if(Common::Map().cell(22 + x*28, 20 + y*28) == 82){
+            if(Global::Map().cell(22 + x*28, 20 + y*28) == 82){
                 uint8_t arr[4] = {91, 82,
                                     92, 84};
-                Common::Map().insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
+                Global::Map().insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
             }
-            if(Common::Map().cell(29 + x*28, 20 + y*28) == 82){
+            if(Global::Map().cell(29 + x*28, 20 + y*28) == 82){
                 uint8_t arr[4] = {91, 82,
                                     92, 84};
-                Common::Map().insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
+                Global::Map().insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
             }
         }
     }
     
     jv::Interface::Log_zone_layout(zone);
+    delete[] zData;
+}
+
+void Populate(jv::stairs& stairs){
+    const uint8_t pointsSize = 3 + MAX_ENEMIES; // positions for Player, npc, stairs and enemies
+    bn::vector<bn::point, pointsSize> v_points;
+    jv::Interface::random_coords(v_points);
+    
+    Global::Player().set_position(v_points[0]);
+    Global::Player().reset();
+    Global::Camera().set_position(Global::Player().get_hitbox().position());
+    stairs.set_position(v_points[1]);
+
+    Global::NPCs().push_back(jv::NPC(v_points[2], Global::Camera()));
+
+    bn::vector<uint8_t, 2> enemyCountList;
+    enemyCountList.push_back(Global::Random().get_int(MAX_ENEMIES));
+    enemyCountList.push_back(Global::Random().get_int(MAX_ENEMIES - enemyCountList[0]));
+    uint8_t enemyCount[2];
+    for(int i = 0; i < 2; i++){
+        int index = Global::Random().get_int(enemyCountList.size());
+        enemyCount[i] = enemyCountList[index];
+        enemyCountList.erase(enemyCountList.begin()+index);
+    }
+
+    for(int i = 0; i < enemyCount[0]; i++){
+        Global::Enemies().push_back(new jv::BadCat(v_points[3+i], Global::Camera()));
+    }
+    for(int i = 0; i < enemyCount[1]; i++){
+        Global::Enemies().push_back(new jv::PaleTongue(v_points[3+enemyCount[0]+i], Global::Camera()));
+    }
+    for(int i = 0; i < MAX_ENEMIES - enemyCount[0] - enemyCount[1]; i++){
+        Global::Enemies().push_back(new jv::PaleFinger(v_points[3+enemyCount[0]+enemyCount[1]+i], Global::Camera()));
+    }
 }
 
 }

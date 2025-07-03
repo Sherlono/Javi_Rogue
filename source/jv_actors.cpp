@@ -11,16 +11,16 @@ namespace jv{
 [[nodiscard]] bool Actor::map_obstacle(int x, int y, const uint8_t direction){
     switch(direction){
         case Direction::NORTH:
-            return Common::Map().cell(x, y - 1) > 0 && Common::Map().cell(x, y - 1) < WTILES_COUNT;
+            return Global::Map().cell(x, y - 1) > 0 && Global::Map().cell(x, y - 1) < WTILES_COUNT;
             break;
         case Direction::SOUTH:
-            return Common::Map().cell(x, y + 1) > 0 && Common::Map().cell(x, y + 1) < WTILES_COUNT;
+            return Global::Map().cell(x, y + 1) > 0 && Global::Map().cell(x, y + 1) < WTILES_COUNT;
             break;
         case Direction::WEST:
-            return Common::Map().cell(x - 1, y) > 0 && Common::Map().cell(x - 1, y) < WTILES_COUNT;
+            return Global::Map().cell(x - 1, y) > 0 && Global::Map().cell(x - 1, y) < WTILES_COUNT;
             break;
         case Direction::EAST:
-            return Common::Map().cell(x + 1, y) > 0 && Common::Map().cell(x + 1, y) < WTILES_COUNT;
+            return Global::Map().cell(x + 1, y) > 0 && Global::Map().cell(x + 1, y) < WTILES_COUNT;
             break;
         default:
             BN_ASSERT(false, "Invalid direction", direction);
@@ -32,7 +32,7 @@ namespace jv{
 void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_frames){
     bn::sprite_builder builder(item);
     builder.set_position(this->int_x(), this->int_y() - y_offset);
-    builder.set_camera(Common::Camera());
+    builder.set_camera(Global::Camera());
     builder.set_bg_priority(1);
     
     _sprite = builder.release_build();
@@ -95,18 +95,18 @@ void Player::update(bool noClip){
 
     // Camera
     bn::fixed t = bn::fixed(0.13);
-    Common::Camera().set_position(jv::lerp(Common::Camera().x(), _hitbox.x(), t), jv::lerp(Common::Camera().y(), _hitbox.y() + 8, t));
+    Global::Camera().set_position(jv::lerp(Global::Camera().x(), _hitbox.x(), t), jv::lerp(Global::Camera().y(), _hitbox.y() + 8, t));
 }
 
 // ************* BadCat *************
 void BadCat::move(){
     // Decide direction at random
     if(!is_attacking(40)){
-        bn::fixed_point xyVector = jv::normalize(Common::Player().position() - position());
+        bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());
         int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
         // Player within range
-        if(in_range(Common::Player().int_x(), Common::Player().int_y(), 18)){
+        if(in_range(Global::Player().int_x(), Global::Player().int_y(), 18)){
             look_at(xyVector);
             attack();
             
@@ -115,7 +115,7 @@ void BadCat::move(){
             }else{
                 _idle_time = 0;
             }
-        }else if(in_range(Common::Player().int_x(), Common::Player().int_y(), 46)){
+        }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46)){
             look_at(xyVector);
             if(_idle_time <= 2*60){
                 _idle_time++;
@@ -135,7 +135,7 @@ void BadCat::move(){
         // Random direction
         else{
             if(_idle_time == 0){
-                _dir = Common::Random().get_int(12);
+                _dir = Global::Random().get_int(12);
                 _idle_time++;
             }else if(_idle_time <= 1*60 + _dir*2){
                 _idle_time++;
@@ -169,13 +169,13 @@ void BadCat::move(){
 }
 
 void BadCat::update(){
-    if(on_screen(Common::Camera())){
+    if(on_screen(Global::Camera())){
         if(!_sprite.has_value()){
             load_graphics(bn::sprite_items::bad_cat, SPRTYOFFSET, 4);
         }
 
-        if(Common::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Common::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Common::Player().sprite().z_order() - 1);}
+        if(Global::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -196,13 +196,13 @@ void BadCat::update(){
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(Common::Player().alive()){
-                if(Common::Player().get_state() == State::ATTACKING && Common::Player().get_hitbox().intersects(rect())){
-                    got_hit(Common::Player().get_attack());
-                    if(Common::Player().get_state() != State::HURTING){ Common::Player().set_state(State::NORMAL);}
+            if(Global::Player().alive()){
+                if(Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect())){
+                    got_hit(Global::Player().get_attack());
+                    if(Global::Player().get_state() != State::HURTING){ Global::Player().set_state(State::NORMAL);}
                 }
-                if(get_state() == State::ATTACKING && get_hitbox().intersects(Common::Player().rect())){
-                    Common::Player().got_hit(get_attack());
+                if(get_state() == State::ATTACKING && get_hitbox().intersects(Global::Player().rect())){
+                    Global::Player().got_hit(get_attack());
                     if(get_state() != State::HURTING){ set_state(State::NORMAL);}
                 }
             }
@@ -217,11 +217,11 @@ void BadCat::update(){
 // ************* PaleTongue *************
 void PaleTongue::move(){
     // Decide direction at random
-    bn::fixed_point xyVector = jv::normalize(Common::Player().position() - position());
+    bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
     // Player within range
-    if(in_range(Common::Player().int_x(), Common::Player().int_y(), 20)){
+    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 20)){
         look_at(xyVector);
         attack();
         
@@ -230,7 +230,7 @@ void PaleTongue::move(){
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Common::Player().int_x(), Common::Player().int_y(), 46) && !is_attacking(40)){
+    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46) && !is_attacking(40)){
         look_at(xyVector);
 
         if(_idle_time <= 2*60){
@@ -251,7 +251,7 @@ void PaleTongue::move(){
     // Random direction
     else{
         if(_idle_time == 0){
-            _dir = Common::Random().get_int(12);
+            _dir = Global::Random().get_int(12);
             _idle_time++;
         }else if(_idle_time <= 1*60 + _dir*2){
             _idle_time++;
@@ -283,13 +283,13 @@ void PaleTongue::move(){
 }
 
 void PaleTongue::update(){
-    if(on_screen(Common::Camera())){
+    if(on_screen(Global::Camera())){
         if(!_sprite.has_value()){
             load_graphics(bn::sprite_items::pale_tongue, SPRTYOFFSET, 8);
         }
 
-        if(Common::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Common::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Common::Player().sprite().z_order() - 1);}
+        if(Global::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -310,13 +310,13 @@ void PaleTongue::update(){
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(Common::Player().alive()){
-                if(Common::Player().get_state() == State::ATTACKING && Common::Player().get_hitbox().intersects(rect())){
-                    got_hit(Common::Player().get_attack());
-                    if(Common::Player().get_state() != State::HURTING){ Common::Player().set_state(State::NORMAL);}
+            if(Global::Player().alive()){
+                if(Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect())){
+                    got_hit(Global::Player().get_attack());
+                    if(Global::Player().get_state() != State::HURTING){ Global::Player().set_state(State::NORMAL);}
                 }
-                if(get_state() == State::ATTACKING && get_hitbox().intersects(Common::Player().rect())){
-                    Common::Player().got_hit(get_attack());
+                if(get_state() == State::ATTACKING && get_hitbox().intersects(Global::Player().rect())){
+                    Global::Player().got_hit(get_attack());
                     if(get_state() != State::HURTING){ set_state(State::NORMAL);}
                 }
             }
@@ -331,18 +331,18 @@ void PaleTongue::update(){
 // ************* PaleFinger *************
 void PaleFinger::move(){
     // Decide direction at random
-    bn::fixed_point xyVector = jv::normalize(Common::Player().position() - bn::point(this->int_x(), this->int_y()));
+    bn::fixed_point xyVector = jv::normalize(Global::Player().position() - bn::point(this->int_x(), this->int_y() - 8));
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
     // Player within range
-    if(in_range(Common::Player().int_x(), Common::Player().int_y(), 40)){
+    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 40)){
         look_at(xyVector);
 
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = this->x();
-        bn::fixed target_y = this->y();
+        bn::fixed target_x = this->x(), target_y = this->y();
+
         if((xyVector.x() < 0 && map_obstacle(x, y, EAST)) || (xyVector.x() > 0 && map_obstacle(x, y, WEST))){
             target_x -= xyVector.x()*_stats.speed;
         }
@@ -351,7 +351,8 @@ void PaleFinger::move(){
         }
 
         set_position(target_x, target_y + SPRTYOFFSET, SPRTYOFFSET);
-    }else if(in_range(Common::Player().int_x(), Common::Player().int_y(), 70)){
+
+    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 70)){
         look_at(xyVector);
         
         if(_idle_time == 0){
@@ -367,7 +368,7 @@ void PaleFinger::move(){
     // Random direction
     else{
         if(_idle_time == 0){
-            _dir = Common::Random().get_int(12);
+            _dir = Global::Random().get_int(12);
             _idle_time++;
         }else if(_idle_time <= 1*60 + _dir*2){
             _idle_time++;
@@ -402,18 +403,18 @@ void PaleFinger::attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
         set_animation(frames::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
-        Common::create_projectile(this->int_x(), this->int_y() - 40, Projectile::IDs::ENERGYORB);
+        Global::create_projectile(this->int_x(), this->int_y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
 
 void PaleFinger::update(){
-    if(on_screen(Common::Camera(), 32, 58)){
+    if(on_screen(Global::Camera(), 32, 58)){
         if(!_sprite.has_value()){
             load_graphics(bn::sprite_items::pale_finger, SPRTYOFFSET, 8);
         }
 
-        if(Common::Player().sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(Common::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Common::Player().sprite().z_order() - 1);}
+        if(Global::Player().sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
+        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
             attack_update();
@@ -433,10 +434,10 @@ void PaleFinger::update(){
             if(!_animation->done()){ _animation->update();}
             
             // Combat
-            if(Common::Player().alive()){
-                if(Common::Player().get_state() == State::ATTACKING && Common::Player().get_hitbox().intersects(rect())){
-                    got_hit(Common::Player().get_attack());
-                    if(Common::Player().get_state() != State::HURTING){ Common::Player().set_state(State::NORMAL);}
+            if(Global::Player().alive()){
+                if(Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect())){
+                    got_hit(Global::Player().get_attack());
+                    if(Global::Player().get_state() != State::HURTING){ Global::Player().set_state(State::NORMAL);}
                 }
             }
         }
@@ -449,11 +450,11 @@ void PaleFinger::update(){
 
 // ************** NPC **************
 void NPC::update(jv::stairs& stairs, bool objective){
-    if(on_screen(Common::Camera())){
+    if(on_screen(Global::Camera())){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
             builder.set_position(this->int_x(), this->int_y() - 8);
-            builder.set_camera(Common::Camera());
+            builder.set_camera(Global::Camera());
             builder.set_bg_priority(1);
             
             _sprite = builder.release_build();
@@ -461,15 +462,15 @@ void NPC::update(jv::stairs& stairs, bool objective){
                                     bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
         }
 
-        if(Common::Player().sprite().y() > _sprite->y()){
-            _sprite->set_z_order(Common::Player().sprite().z_order() + 1);
+        if(Global::Player().sprite().y() > _sprite->y()){
+            _sprite->set_z_order(Global::Player().sprite().z_order() + 1);
         }else{
-            _sprite->set_z_order(Common::Player().sprite().z_order() - 1);
+            _sprite->set_z_order(Global::Player().sprite().z_order() - 1);
         }
 
-        if(Common::Player().get_state() == State::NORMAL && !Common::Player().is_attacking()){
+        if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()){
             // Dialog
-            if(bn::keypad::a_pressed() && Common::Player().rect().intersects(rect()) && Common::Player().can_interact()){
+            if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
                 if(!objective){
                     jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
                 }else{
@@ -478,7 +479,7 @@ void NPC::update(jv::stairs& stairs, bool objective){
                         stairs.set_open(true);
                     }
                 }
-                Common::Player().set_interact_token(false);
+                Global::Player().set_interact_token(false);
             }
         }
 

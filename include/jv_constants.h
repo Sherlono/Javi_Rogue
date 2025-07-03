@@ -8,7 +8,11 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED false       // Turns all BN_LOG call functionality off
+    #define LOGS_ENABLED true      // Turns all BN_LOG call functionality on/off
+#endif
+
+#ifndef DEV_ENABLED
+    #define DEV_ENABLED true       // Turns all dev exclusive functionality on/off
 #endif
 
 namespace {
@@ -18,7 +22,7 @@ namespace {
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_COUNT = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
-    constexpr uint8_t ROOM_COUNT = 8;                               // Number of Room Prefabs
+    constexpr uint8_t ROOM_PREFAB_COUNT = 8;                        // Number of Room Prefabs
 
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 

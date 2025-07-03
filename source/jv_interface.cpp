@@ -8,7 +8,7 @@
 #include "jv_map_classes.h"
 
 namespace jv::Interface{
-void Log_zone_layout(Zone& zone){
+void Log_zone_layout([[maybe_unused]] Zone& zone){
     #if LOGS_ENABLED
         BN_LOG("Level Layout");
         for(int y = 0; y < zone._height; y++){
@@ -26,11 +26,11 @@ void set_hide_all(jv::healthbar& healthbar, jv::stairs& stairs, bn::regular_bg_p
     healthbar.set_visible(!hide);
     background.set_visible(!hide);
     Fortress.set_visible(!hide);
-    jv::Common::Player().set_visible(!hide);
-    jv::Common::npcs_set_visible(!hide);
-    jv::Common::enemies_set_visible(!hide);
-    jv::Common::items_set_visible(!hide);
-    jv::Common::projectiles_set_visible(!hide);
+    jv::Global::Player().set_visible(!hide);
+    jv::Global::npcs_set_visible(!hide);
+    jv::Global::enemies_set_visible(!hide);
+    jv::Global::items_set_visible(!hide);
+    jv::Global::projectiles_set_visible(!hide);
     for(bn::sprite_ptr sprite : txt){ sprite.set_visible(!hide);}
 }
 
@@ -40,20 +40,20 @@ void random_coords(bn::ivector<bn::point>& points_out){
 
     {
         int current_size = 0;
-        int width = (Common::Map().x() - 2)>>2, height = (Common::Map().y() - 3)>>2;
+        int width = (Global::Map().x() - 2)>>2, height = (Global::Map().y() - 3)>>2;
         int tileIndex[4] = {0, 0, 0, 0};
 
         // Finding coordinates with floor in them
         for(int y = 2; y < height; y++){
             for(int x = 1; x < width; x++){
                 bool w_check = true; // Walkable check
-                tileIndex[0] = x*4 - 1 + (y*4 - 1)*Common::Map().x();
-                tileIndex[1] = x*4 + 2 + (y*4 - 1)*Common::Map().x();
-                tileIndex[2] = x*4 - 1 + (y*4 + 2)*Common::Map().x();
-                tileIndex[3] = x*4 + 2 + (y*4 + 2)*Common::Map().x();
+                tileIndex[0] = x*4 - 1 + (y*4 - 1)*Global::Map().x();
+                tileIndex[1] = x*4 + 2 + (y*4 - 1)*Global::Map().x();
+                tileIndex[2] = x*4 - 1 + (y*4 + 2)*Global::Map().x();
+                tileIndex[3] = x*4 + 2 + (y*4 + 2)*Global::Map().x();
 
                 for(int i = 0; i < 4; i++){
-                    w_check = w_check && (Common::Map()[tileIndex[i]] > 0 && Common::Map()[tileIndex[i]] < WTILES_COUNT);
+                    w_check = w_check && (Global::Map()[tileIndex[i]] > 0 && Global::Map()[tileIndex[i]] < WTILES_COUNT);
                 }
                 
                 if(w_check){
@@ -82,7 +82,7 @@ void random_coords(bn::ivector<bn::point>& points_out){
     }
     // Storing random valid coordinates
     for(int i = 0; i < points_out.max_size(); i++){
-        int pointIndex = Common::Random().get_int(0, pointCount);
+        int pointIndex = Global::Random().get_int(0, pointCount);
         points_out.push_back(pop_point(valid_points, pointCount, pointIndex));
     }
     delete[] valid_points;
