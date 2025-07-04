@@ -14,17 +14,20 @@ int main()
 {
     bn::core::init();
     bn::random randomizer;
-    
-    jv::game::intro_scene();
-
+    #if !DEV_ENABLED
+        jv::game::intro_scene();
+    #endif
     while(true){
         switch(jv::game::start_scene(randomizer)){
             case 0:
                 jv::game::game_scene(randomizer);
-                jv::credits::credits_scene();
                 break;
                 
-            #if DEV_ENABLED
+            #if !DEV_ENABLED
+                case 1:
+                    jv::credits::credits_scene();
+                    break;
+            #else
                 case 1:
                     jv::dev::blocks_scene();
                     break;

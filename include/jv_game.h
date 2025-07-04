@@ -71,13 +71,18 @@ int start_scene(bn::random& randomizer){
         #if DEV_ENABLED
             text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
             text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
+        #else
+            text_generator.generate(-100, y_offset + 8, "Credits", menu_sprts);
         #endif
     }
 
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
     bn::string_view explain_text[3][5] = {
-        {"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
-        #if DEV_ENABLED
+        {"", "A: Interact", "B: Attack", 
+        #if !DEV_ENABLED
+            }
+        #else
+            "SELECT: Debug menu"},
             {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
             {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
         #endif
@@ -105,6 +110,22 @@ int start_scene(bn::random& randomizer){
     while(!bn::keypad::a_pressed()){
         #if DEV_ENABLED
             if(bn::keypad::down_pressed() && option < 2){
+                option++;
+                cursor.set_y(cursor.y() + 8);
+                explain_sprts.clear();
+                for(int i = 0; i < 5; i++){
+                    text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
+                }
+            }else if(bn::keypad::up_pressed() && option > 0){
+                option--;
+                cursor.set_y(cursor.y() - 8);
+                explain_sprts.clear();
+                for(int i = 0; i < 5; i++){
+                    text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
+                }
+            }
+        #else
+            if(bn::keypad::down_pressed() && option < 1){
                 option++;
                 cursor.set_y(cursor.y() + 8);
                 explain_sprts.clear();
@@ -254,8 +275,6 @@ void game_scene(bn::random& randomizer){
                 next_level = stairs.climb();
 
                 Global::scene_items_update();
-
-                // Fog update
                 if(fog_ptr){ fog_ptr->update();}
                 
                 // Debug menu
@@ -283,8 +302,6 @@ void game_scene(bn::random& randomizer){
             }
 
             jv::Global::enemies_update(Objective);
-
-            // Others update
             for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Objective);}
             
             healthbar.update();

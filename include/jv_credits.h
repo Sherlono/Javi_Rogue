@@ -24,7 +24,7 @@ constexpr bn::string_view Header[SECTION_TOTAL] = {
     "Writing",
     "Game Design",
     "Graphic Design",
-    "Character Desig",
+    "Character Design",
     "Background Design",
     "Composers",
     "Audio Design",

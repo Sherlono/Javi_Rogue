@@ -102,7 +102,7 @@ struct bg_map
             current_cell_info.set_tile_index(value);
             if(current_cell_info.horizontal_flip() != flip){ current_cell_info.set_horizontal_flip(flip);}
         }
-        
+        //current_cell_info.set_palette_id(0);
         current_cell = current_cell_info.cell();
     }
 

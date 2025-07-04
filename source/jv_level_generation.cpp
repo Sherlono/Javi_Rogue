@@ -451,6 +451,7 @@ void Generate(int const z_x, int const z_y, Fog* fog_ptr){
             InsertRoom(bn::point(2 + x*7, 5 + y*7), V_Corr);
         }
     }
+    
     // Horizontal corridors
     for(int y = 0; y < zone._height; y++){
         for(int x = 0; x < zone._width - 1; x++){
@@ -459,14 +460,14 @@ void Generate(int const z_x, int const z_y, Fog* fog_ptr){
             InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
             if(Global::Map().cell(22 + x*28, 20 + y*28) == 82){
-                uint8_t arr[4] = {91, 82,
-                                    92, 84};
-                Global::Map().insert_map(game_map(2, 2, arr), bn::point(22 + x*28, 18 + y*28), true);
+                uint8_t cornerFix[4] = {77, 82,
+                                        78, 84};
+                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(22 + x*28, 18 + y*28), true);
             }
             if(Global::Map().cell(29 + x*28, 20 + y*28) == 82){
-                uint8_t arr[4] = {91, 82,
-                                    92, 84};
-                Global::Map().insert_map(game_map(2, 2, arr), bn::point(28 + x*28, 18 + y*28));
+                uint8_t cornerFix[4] = {77, 82,
+                                        78, 84};
+                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(28 + x*28, 18 + y*28));
             }
         }
     }
