@@ -41,6 +41,10 @@ public:
         _rooms.clear();
     }
 
+    void set_visible(bool visible){
+        _fog_bg.set_visible(visible);
+    }
+
 private:
     // Setters
     void set_position(int x, int y){
@@ -48,14 +52,10 @@ private:
         _y = y;
     }
 
-    void set_visible(bool visible){
-        _fog_bg.set_visible(visible);
-    }
-
     void set_boundaries(int w, int a);
 
-    void reshape(bn::point player_position, int w, int a){
-        set_position(player_position.x(), player_position.y());
+    void reshape(bn::point position, int w, int a){
+        set_position(position.x(), position.y());
         set_boundaries(w, a);
     }
     
@@ -64,15 +64,15 @@ private:
         set_boundaries(shape.width()>>1, shape.height()>>1);
     }
 
-    int _x, _y;
-    int _width, _height;
-    int current_room;
-    bn::regular_bg_ptr _fog_bg;
+    int8_t current_room;
+    short _x, _y;
+    short _width, _height;
     bn::window _window;
     bn::rect_window _internal_window;
-    bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
     bn::rect_window_boundaries_hbe_ptr _horizontal_boundaries_hbe;
+    bn::regular_bg_ptr _fog_bg;
     bn::vector<bn::rect, 16> _rooms;
+    bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
 };
 
 }

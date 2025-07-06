@@ -4,11 +4,11 @@
 
 namespace jv{
 Fog::Fog(bn::camera_ptr cam):
-    _x(0), _y(0), _width(0), _height(0), current_room(-1),
-    _fog_bg(bn::regular_bg_items::darkness.create_bg(0, 0)),
+    current_room(-1), _x(0), _y(0), _width(0), _height(0),
     _window(bn::window::internal()),
     _internal_window(bn::rect_window::internal()),
-    _horizontal_boundaries_hbe(bn::rect_window_boundaries_hbe_ptr::create_horizontal(_internal_window, _horizontal_boundaries))
+    _horizontal_boundaries_hbe(bn::rect_window_boundaries_hbe_ptr::create_horizontal(_internal_window, _horizontal_boundaries)),
+    _fog_bg(bn::regular_bg_items::darkness.create_bg(0, 0))
     {
         _internal_window.set_top(_y - _height - cam.y());
         _internal_window.set_bottom(_y + _height - cam.y());
@@ -19,7 +19,7 @@ Fog::Fog(bn::camera_ptr cam):
 
 void Fog::update(){
     if(visible()){
-        bn::point player_position = bn::point(Global::Player().int_x(), Global::Player().int_y());
+        bn::point player_position = Global::Player().int_position();
         bool flag = false;
         for(int i = 0; i < _rooms.size(); i++){
             if(_rooms[i].contains(player_position)){
@@ -32,8 +32,12 @@ void Fog::update(){
             }
         }
         if(!flag){
-            reshape(player_position, 24, 24);
-            current_room = -1;
+            if(current_room != -1){
+                reshape(player_position, 24, 24);
+                current_room = -1;
+            }else{
+                set_position(player_position.x(), player_position.y());
+            }
         }
         
         int y_int = _y - Global::cam_pos().y();
@@ -63,12 +67,16 @@ void Fog::create_room(bn::rect room){
 }
 
 void Fog::set_boundaries(int w, int a){
-    _internal_window.restore_boundaries();
     _width = w;
     _height = a;
-    bn::fixed cam_y = Global::Camera().y();
-    _internal_window.set_top(_y - _height - cam_y);
-    _internal_window.set_bottom(_y + _height - cam_y);
+    bn::fixed new_top = _y - _height - Global::Camera().y(), new_bottom = _y + _height - Global::Camera().y();
+    if(new_top < _internal_window.bottom()){
+        _internal_window.set_top(new_top);
+        _internal_window.set_bottom(new_bottom);
+    }else{
+        _internal_window.set_bottom(new_bottom);
+        _internal_window.set_top(new_top);
+    }
 }
 
 }

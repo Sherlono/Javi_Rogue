@@ -5,6 +5,7 @@
 #include "bn_memory.h"
 #include "bn_colors.h"
 #include "bn_sprites.h"
+#include "bn_music_items.h"
 #include "bn_bg_palettes.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
@@ -12,6 +13,7 @@
 #include "common_variable_8x8_sprite_font.h"
 
 #include "jv_fog.h"
+#include "jv_math.h"
 #include "jv_items.h"
 #include "jv_actors.h"
 #include "jv_stairs.h"
@@ -159,6 +161,9 @@ int start_scene(bn::random& randomizer){
         bn::core::update();
     }
 
+    bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+    bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+    
     return option;
 }
 
@@ -202,12 +207,16 @@ void game_scene(bn::random& randomizer){
         bool Noclip = false;
         bool FullHeal = false;
         bool Die = false;
-        bn::vector<jv::menu_option, 5> options;
+        bool Clear = false;
+        bool NoFog = false;
+        bn::vector<jv::menu_option, 7> options;
         options.push_back(jv::menu_option(&cat.invulnerable, "Invuln."));
         options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
         options.push_back(jv::menu_option(&Noclip, "Noclip"));
         options.push_back(jv::menu_option(&next_level, "Next level"));
         options.push_back(jv::menu_option(&Die, "Die"));
+        options.push_back(jv::menu_option(&Clear, "Clear"));
+        options.push_back(jv::menu_option(&NoFog, "No Fog"));
     #endif
 
     {// Configs
@@ -227,9 +236,8 @@ void game_scene(bn::random& randomizer){
     }
 
     /*bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(0, 0);
-    ball.set_bg_priority(0);*/
-
-    /*bn::vector<bn::sprite_ptr, 8> v_balls;
+    ball.set_bg_priority(0);
+    bn::vector<bn::sprite_ptr, 8> v_balls;
     for(int y = 0; y < 3; y++){
         for(int x = 0; x < 3; x++){
             if(!(x == 1 && y == 1)){
@@ -271,12 +279,16 @@ void game_scene(bn::random& randomizer){
                 cat.update();
             #endif
 
+            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), bn::fixed(0.13));
+            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, bn::fixed(0.13));
+            cam.set_position(cam_x_target, cam_y_target);
+            
+            if(fog_ptr){ fog_ptr->update();}
+            
             if(cat.alive()){
                 next_level = stairs.climb();
 
                 Global::scene_items_update();
-                if(fog_ptr){ fog_ptr->update();}
-                
                 // Debug menu
                 #if DEV_ENABLED
                     if(bn::keypad::select_pressed()){
@@ -284,16 +296,35 @@ void game_scene(bn::random& randomizer){
                         jv::Debug::Start(options);
                         jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
                         
-                        if(Die){ cat.got_hit(cat.get_hp(), true);}
                         if(FullHeal){
                             cat.heal(cat.get_maxhp());
                             FullHeal = false;
                         }
+                        if(Die){
+                            cat.invulnerable = false;
+                            cat.got_hit(cat.get_hp(), true);
+                        }
+                        if(Clear){
+                            jv::Global::clear_enemies();
+                            jv::Global::clear_scene_items();
+                            jv::Global::clear_projectiles();
+                            Clear = false;
+                        }
+                        if(fog_ptr){
+                            if(NoFog){
+                                if(fog_ptr->visible()){
+                                    fog_ptr->set_visible(false);
+                                }
+                            }else{
+                                if(!fog_ptr->visible()){
+                                    fog_ptr->set_visible(true);
+                                }
+                            }
+                        }
                     }
                 #endif
 
-            }else{
-                // Death sequence
+            }else{  // Death sequence
                 if(gameover_delay == 120){
                     game_over = true;
                     break;

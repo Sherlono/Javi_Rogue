@@ -22,35 +22,80 @@ namespace jv::dev{
 void GenerateDevLevel(game_map& map){
     map.reset();
     int width = 12, height = 10;
-    uint8_t blockArr[120] = {
-         0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5,
-         6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,
-        12,12,13,13,14,14,15,15,16,16,17,17,
-        18,18,19,19,20,20,21,21,22,22,23,23,
-        24,24,25,25,26,26,27,27,28,28,29,29,
-        30,30,31,31,32,32,33,33,34,34,35,35,
-        36,36,37,37,38,38,39,39,40,40,41,41,
-        42,42,43,43,44,44,45,45,46,46,47,47,
-        48,48,49,49,50,51,52,53,54,55,56,57,
-        58,59,60,61,62,63,64,65,66,67,68,69 };
-        
-    bool flipArr[120] = {
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-         0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
 
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             int index = x + y*width;
-            jv::Level::BlockFactory(bn::point(x*4, y*4), blockArr[index], flipArr[index]);
+            jv::Level::BlockFactory(bn::point(x*4, y*4), index>>1, index%2);
         }
+    }
+}
+
+void Log_block_data(uint8_t* tiles_arr, game_map& map){
+    for(int block_y = 0; block_y < 6; block_y++){
+        for(int block_x = 0; block_x < 6; block_x++){
+            if(block_x + block_y*6 >= BLOCK_TOTAL){ break;}
+
+            int start_x = block_x*8, start_y = block_y*4;
+
+            BN_LOG("//block ", block_x + block_y*6);
+            for(int y = start_y; y < start_y + 4; y++){
+                bn::string_view line = (y == start_y) ? "{" : "";
+                for(int x = start_x; x < start_x + 4; x++){
+                    line = line + bn::to_string<32>(tiles_arr[x + y*map.x()]) + ", ";
+                }
+                line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
+                BN_LOG(line);
+            }
+        }
+    }
+}
+
+void tile_grid_move(int& _x, int& _y, int const width, int const height, int const map_x, int& current_block, int& current_tile, uint8_t* tiles_arr, bn::camera_ptr& cam, tiled_bg& tb, bn::sprite_ptr& cursor){
+    if(bn::keypad::up_pressed() && _y > 0){
+        _y--;
+        cam.set_y(cam.y() - 8);
+        tb.init();
+        current_block = (_x>>3) + (_y*map_x/80)*6;
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+    }else if(bn::keypad::down_pressed() && _y < height*4 - 1){
+        _y++;
+        cam.set_y(cam.y() + 8);
+        tb.init();
+        current_block = (_x>>3) + (_y*map_x/80)*6;
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+    }
+    if(bn::keypad::left_pressed() && _x > 0){
+        _x--;
+        cam.set_x(cam.x() - 8);
+        tb.init();
+        current_block = (_x>>3) + (_y*map_x/80)*6;
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+        if(bamod(_x>>2, 2) == 0){ cursor.set_palette(bn::sprite_items::cursor.palette_item().create_palette());}
+        else{ cursor.set_palette(bn::sprite_items::good_cat.palette_item().create_palette());}
+    }else if(bn::keypad::right_pressed() && _x < width*4 - 1){
+        _x++;
+        cam.set_x(cam.x() + 8);
+        tb.init();
+        current_block = (_x>>3) + (_y*map_x/80)*6;
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+        if(bamod(_x>>2, 2) == 0){ cursor.set_palette(bn::sprite_items::cursor.palette_item().create_palette());}
+        else{ cursor.set_palette(bn::sprite_items::good_cat.palette_item().create_palette());}
+    }
+    
+}
+
+void tile_change(int& _x, int& _y, int& current_tile, uint8_t* tiles_arr, tiled_bg& tb){
+    if(bn::keypad::up_pressed()){
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+        tiles_arr[_x + _y*tb.map.x()] = current_tile + 1;
+        tiles_arr[_x + 7 - 2*(_x%4) + _y*tb.map.x()] = current_tile + 1 + 127*(1 - 2*tb.map.horizontal_flip(_x + _y*tb.map.x()));
+        tb.init();
+    }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
+        current_tile = tiles_arr[_x + _y*tb.map.x()];
+        tiles_arr[_x + _y*tb.map.x()] = current_tile - 1;
+        tiles_arr[_x + 7 - 2*(_x%4) + _y*tb.map.x()] = current_tile - 1 + 127*(1 - 2*tb.map.horizontal_flip(_x + _y*tb.map.x()));
+        tb.init();
     }
 }
 
@@ -61,14 +106,13 @@ void blocks_scene(){
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(9, 0);
     bn::sprite_ptr arrowDown = bn::sprite_items::cursor.create_sprite(0, 8);
     bn::sprite_ptr arrowUp = bn::sprite_items::cursor.create_sprite(-1, -8);
-    bn::sprite_palette_ptr palette1 = bn::sprite_items::cursor.palette_item().create_palette();
-    bn::sprite_palette_ptr palette2 = bn::sprite_items::good_cat.palette_item().create_palette();
 
     // Background
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
 
     constexpr bn::point mapSize(20, 20);
     constexpr int cellCount = mapSize.x()*mapSize.y();
+    int width = 12, height = 6;
 
     // *** Level Generation ***
     uint8_t tiles_arr[cellCount*16];
@@ -76,25 +120,7 @@ void blocks_scene(){
     
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
-
-    // **** Number sprites ****
-    bn::vector<bn::sprite_ptr, 128> sprts;
-    int width = 12, height = 8;
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-            if(bamod(x, 2) == 0){
-                int num = (x + y*width)/2;
-                if(num >= BLOCK_COUNT){ break;}
-                bn::string_view text = bn::to_string<8>(num);
-                text_generator.generate(x*32, 4 + y*32, text, numbers);
-            }
-        }
-    }
-    for(bn::sprite_ptr sprite : numbers){
-        sprite.set_camera(cam);
-        sprts.push_back(sprite);
-    }
-
+    
     {// Configs
         cursor.set_bg_priority(1);
         arrowDown.set_bg_priority(1);
@@ -112,94 +138,52 @@ void blocks_scene(){
 
         Fortress.init();
 
-        bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
-        bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+        // **** Number sprites ****
+        text_generator.set_camera(cam);
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                if(bamod(x, 2) == 0){
+                    int num = (x + y*width)/2;
+                    if(num >= BLOCK_TOTAL){ break;}
+                    bn::string_view text = bn::to_string<8>(num);
+                    text_generator.generate(x*32, 4 + y*32, text, numbers);
+                }
+            }
+        }
     }
 
-    bn::optional<int> current_block;
-    int current_tile = 0, tile_copy = 0, _x = 0, _y = 0;
+    int current_block = 0, current_tile = 0, tile_copy = 0, _x = 0, _y = 0;
     bool selected = false;
 
     while(true){
         jv::Global::update();
         // Movement
         if(!selected){
-            if(bn::keypad::up_pressed() && _y > 0){
-                _y--;
-                cam.set_y(cam.y() - 8);
-                Fortress.init();
-                current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = tiles_arr[_x + _y*Fortress.map.x()];
-                if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
-                else{ cursor.set_palette(palette2);}    
-            }else if(bn::keypad::down_pressed() && _y < height*4 - 1){
-                _y++;
-                cam.set_y(cam.y() + 8);
-                Fortress.init();
-                current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = tiles_arr[_x + _y*Fortress.map.x()];
-                if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
-                else{ cursor.set_palette(palette2);}
-            }
-            if(bn::keypad::left_pressed() && _x > 0){
-                _x--;
-                cam.set_x(cam.x() - 8);
-                Fortress.init();
-                current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = tiles_arr[_x + _y*Fortress.map.x()];
-                if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
-                else{ cursor.set_palette(palette2);}
-            }else if(bn::keypad::right_pressed() && _x < width*4 - 1){
-                _x++;
-                cam.set_x(cam.x() + 8);
-                Fortress.init();
-                current_block = _x/8 + (_y*mapSize.x()/80)*6;
-                current_tile = tiles_arr[_x + _y*Fortress.map.x()];
-                if(bamod(_x/4, 2) == 0){ cursor.set_palette(palette1);}
-                else{ cursor.set_palette(palette2);}
-            }
-            
-            current_tile = tiles_arr[_x + _y*Fortress.map.x()];
+            tile_grid_move(_x, _y, width, height, mapSize.x(), current_block, current_tile, tiles_arr, cam, Fortress, cursor);
 
             // Show block values in logging tool
             #if LOGS_ENABLED
-                if(bn::keypad::start_pressed()){
-                    int start_x = (_x/8)*8, start_y = (_y/4)*4;
-                    BN_LOG("block: ", current_block.value());
-                    for(int y = start_y; y < start_y + 4; y++){
-                        bn::string_view line = "";
-                        for(int x = start_x; x < start_x + 4; x++){
-                            line = line + bn::to_string<32>(tiles_arr[x + y*Fortress.map.x()]) + ((1 + x - start_x) + 4*(y - start_y) != 16 ? ", " : "");
-                        }
-                        BN_LOG(line);
-                    }
-                }
+                if(bn::keypad::start_pressed()){ Log_block_data(tiles_arr, Fortress.map);}
             #endif
-        }else{  // Change tile
-            current_tile = tiles_arr[_x + _y*Fortress.map.x()];
-            if(bn::keypad::up_pressed()){
-                tiles_arr[_x + _y*Fortress.map.x()] = current_tile + 1;
-                tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = current_tile + 1 + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
-                Fortress.init();
-            }else if(bn::keypad::down_pressed() && current_tile - 1 >= 0){
-                tiles_arr[_x + _y*Fortress.map.x()] = current_tile - 1;
-                tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = current_tile - 1 + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
-                Fortress.init();
-            }
         }
+        // Change tile
+        else{
+            tile_change(_x, _y, current_tile, tiles_arr, Fortress);
+        }
+        
         // Hide block index
         if(bn::keypad::select_pressed()){
             for(bn::sprite_ptr sprite : numbers){
                 sprite.set_visible(!sprite.visible());
             }
         }// Select tile
-        else if(bn::keypad::a_pressed() && bamod(_x/4, 2) == 0){
+        else if(bn::keypad::a_pressed() && bamod(_x>>2, 2) == 0){
             selected = !selected;
             arrowDown.set_visible(!arrowDown.visible());
             arrowUp.set_visible(!arrowUp.visible());
         }else if(bn::keypad::l_pressed()){                          // Copy
             tile_copy = current_tile;
-        }else if(bn::keypad::r_pressed() && bamod(_x/4, 2) == 0){   // Paste
+        }else if(bn::keypad::r_pressed() && bamod(_x>>2, 2) == 0){   // Paste
             tiles_arr[_x + _y*Fortress.map.x()] = tile_copy;
             tiles_arr[_x + 7 - 2*(_x%4) + _y*Fortress.map.x()] = tile_copy + 127*(1 - 2*Fortress.map.horizontal_flip(_x + _y*Fortress.map.x()));
             Fortress.init();
@@ -228,40 +212,40 @@ void tile_scene(){
     
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
-    background.set_camera(cam);
-    Fortress.set_camera(cam);
 
-    // **** Number sprites ****
-    bn::vector<bn::sprite_ptr, 128> sprts;
-    int width = 12, height = 8;
-    for(int y = 0; y < height; y++){
-        for(int x = 0; x < width; x++){
-            if(bamod(x, 2) == 0){
-                int num = (x + y*width)/2;
-                if(num >= BLOCK_COUNT){break;}
-                bn::string_view text = bn::to_string<8>(num);
-                text_generator.generate(x*32, 4 + y*32, text, numbers);
-            }
-        }
-    }
-    for(bn::sprite_ptr sprite : numbers){
-        sprite.set_camera(cam);
-        sprts.push_back(sprite);
-    }
-    
     // ****** Other data ******
     int current_tile = 0, timer = 0;
     bool prev_toggle = false, toggle = false;
     int x_offset = -110, y_offset = -70;
+    int width = 12, height = 6;
 
-    text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
+    { // Configs
+        text_generator.set_camera(cam);
+        background.set_camera(cam);
+        Fortress.set_camera(cam);
 
-    jv::Global::initialize(&cam, &Fortress.map, nullptr, nullptr, nullptr);
-    jv::dev::GenerateDevLevel(Fortress.map);
+        // **** Number sprites ****
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                if(bamod(x, 2) == 0){
+                    int num = (x + y*width)/2;
+                    if(num >= BLOCK_TOTAL){ break;}
+                    bn::string_view text = bn::to_string<8>(num);
+                    text_generator.generate(x*32, 4 + y*32, text, numbers);
+                }
+            }
+        }
+        
+        text_generator.remove_camera();
+        text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
 
-    Fortress.init();
-    bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
-    bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+        jv::Global::initialize(&cam, &Fortress.map, nullptr, nullptr, nullptr);
+        jv::dev::GenerateDevLevel(Fortress.map);
+
+        Fortress.init();
+        bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+        bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
+    }
     
     while(true){
         jv::Global::update();

@@ -49,6 +49,7 @@ public:
     static void projectiles_set_visible(bool visible);
 
     static void scene_items_update();
+    static bool enemy_obstacle(int x, int y, const uint8_t direction);
     static void enemies_update(bool& Objective);
     
     // Getters

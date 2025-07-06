@@ -120,6 +120,52 @@ void Global::scene_items_update(){
         }
     }
 }
+
+bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
+    switch(direction){
+        case Actor::Direction::NORTH:{
+            bn::point p(x, y - 8);
+            for(int i = 0; i < _enemies->size(); i++){
+                if(_enemies->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        case Actor::Direction::SOUTH:{
+            bn::point p(x, y + 8);
+            for(int i = 0; i < _enemies->size(); i++){
+                if(_enemies->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        case Actor::Direction::WEST:{
+            bn::point p(x - 8, y);
+            for(int i = 0; i < _enemies->size(); i++){
+                if(_enemies->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        case Actor::Direction::EAST:{
+            bn::point p(x + 8, y);
+            for(int i = 0; i < _enemies->size(); i++){
+                if(_enemies->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        default:
+            BN_ASSERT(false, "Invalid direction", direction);
+            return false;
+            break;
+    }
+}
+
 void Global::enemies_update(bool& Objective){
     for(int i = 0; i < _enemies->size(); i++){
         _enemies->data()[i]->update();

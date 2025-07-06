@@ -12,20 +12,15 @@ namespace jv{
     switch(direction){
         case Direction::NORTH:
             return Global::Map().cell(x, y - 1) > 0 && Global::Map().cell(x, y - 1) < WTILES_COUNT;
-            break;
         case Direction::SOUTH:
             return Global::Map().cell(x, y + 1) > 0 && Global::Map().cell(x, y + 1) < WTILES_COUNT;
-            break;
         case Direction::WEST:
             return Global::Map().cell(x - 1, y) > 0 && Global::Map().cell(x - 1, y) < WTILES_COUNT;
-            break;
         case Direction::EAST:
             return Global::Map().cell(x + 1, y) > 0 && Global::Map().cell(x + 1, y) < WTILES_COUNT;
-            break;
         default:
             BN_ASSERT(false, "Invalid direction", direction);
             return false;
-            break;
     }
 }
 
@@ -47,20 +42,20 @@ void Player::move(bool noClip){
         int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
 
         // Move if dir not obstructed
-        if(bn::keypad::up_held() && (noClip || map_obstacle(x, y, NORTH))){
+        if(bn::keypad::up_held() && (noClip || (map_obstacle(x, y, NORTH) && Global::enemy_obstacle(int_x(), int_y(), NORTH)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
             bn::fixed target_y = this->y() - _stats.speed*diagonal;
             set_position(this->x(), target_y + 8, 8);
-        }else if(bn::keypad::down_held() && (noClip || map_obstacle(x, y, SOUTH))){
+        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(x, y, SOUTH) && Global::enemy_obstacle(int_x(), int_y(), SOUTH)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
             bn::fixed target_y = this->y() + _stats.speed*diagonal;
             set_position(this->x(), target_y + 8, 8);
         }
-        if(bn::keypad::left_held() && (noClip || map_obstacle(x, y, WEST))){
+        if(bn::keypad::left_held() && (noClip || (map_obstacle(x, y, WEST) && Global::enemy_obstacle(int_x(), int_y(), WEST)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
             bn::fixed target_x = this->x() - _stats.speed*diagonal;
             set_position(target_x, this->y() + 8, 8);
-        }else if(bn::keypad::right_held() && (noClip || map_obstacle(x, y, EAST))){
+        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(x, y, EAST) && Global::enemy_obstacle(int_x(), int_y(), EAST)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
             bn::fixed target_x = this->x() + _stats.speed*diagonal;
             set_position(target_x, this->y() + 8, 8);
@@ -92,80 +87,73 @@ void Player::update(bool noClip){
             attack();
         }
     }
-
-    // Camera
-    bn::fixed t = bn::fixed(0.13);
-    Global::Camera().set_position(jv::lerp(Global::Camera().x(), _hitbox.x(), t), jv::lerp(Global::Camera().y(), _hitbox.y() + 8, t));
 }
 
 // ************* BadCat *************
 void BadCat::move(){
-    // Decide direction at random
-    if(!is_attacking(40)){
-        bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());
-        int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+    bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());
+    int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+    
+    // Player within range
+    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 18)){
+        look_at(xyVector);
+        attack();
         
-        // Player within range
-        if(in_range(Global::Player().int_x(), Global::Player().int_y(), 18)){
-            look_at(xyVector);
-            attack();
-            
-            if(_idle_time <= 2*60){
-                _idle_time++;
-            }else{
-                _idle_time = 0;
-            }
-        }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46)){
-            look_at(xyVector);
-            if(_idle_time <= 2*60){
-                _idle_time++;
-            }
-            bn::fixed target_x = this->x();
-            bn::fixed target_y = this->y();
-            if((xyVector.x() > 0 && map_obstacle(x, y, EAST)) || (xyVector.x() < 0 && map_obstacle(x, y, WEST))){
-                target_x += xyVector.x()*_stats.speed;
-            }
-            if((xyVector.y() > 0 && map_obstacle(x, y, SOUTH)) || (xyVector.y() < 0 && map_obstacle(x, y, NORTH))){
-                target_y += xyVector.y()*_stats.speed;
-            }
-
-            set_position(target_x, target_y + SPRTYOFFSET, SPRTYOFFSET);
+        if(_idle_time <= 2*60){
+            _idle_time++;
+        }else{
+            _idle_time = 0;
+        }
+    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46)){
+        look_at(xyVector);
+        if(_idle_time <= 2*60){
+            _idle_time++;
+        }
+        bn::fixed target_x = this->x();
+        bn::fixed target_y = this->y();
+        if((xyVector.x() > 0 && map_obstacle(x, y, EAST)) || (xyVector.x() < 0 && map_obstacle(x, y, WEST))){
+            target_x += xyVector.x()*_stats.speed;
+        }
+        if((xyVector.y() > 0 && map_obstacle(x, y, SOUTH)) || (xyVector.y() < 0 && map_obstacle(x, y, NORTH))){
+            target_y += xyVector.y()*_stats.speed;
         }
 
-        // Random direction
-        else{
-            if(_idle_time == 0){
-                _dir = Global::Random().get_int(12);
-                _idle_time++;
-            }else if(_idle_time <= 1*60 + _dir*2){
-                _idle_time++;
-            }else{
-                _idle_time = 0;
-            }
-
-            // If direction is valid
-            if(_dir != Direction::NEUTRAL && _dir < 9){
-                // Move if dir not obstructed
-                if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && map_obstacle(x, y, NORTH)){          // UP
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                    set_position(this->x(), this->y() + SPRTYOFFSET - _stats.speed*diagonal, SPRTYOFFSET); 
-                }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, SOUTH)){  // DOWN
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x(), this->y() + SPRTYOFFSET + _stats.speed*diagonal, SPRTYOFFSET);
-                }
-                if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && map_obstacle(x, y, WEST)){  // LEFT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                    set_position(this->x() - _stats.speed*diagonal, this->y() + SPRTYOFFSET, SPRTYOFFSET);
-                }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, EAST)){ // RIGHT
-                    bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                    set_position(this->x() + _stats.speed*diagonal, this->y() + SPRTYOFFSET, SPRTYOFFSET);
-                }
-            }
-            
-        }
-        
-        if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::bad_cat.tiles_item());}
+        set_position(target_x, target_y + SPRTYOFFSET, SPRTYOFFSET);
     }
+
+    // Random direction
+    else{
+        if(_idle_time == 0){
+            _dir = Global::Random().get_int(12);
+            _idle_time++;
+        }else if(_idle_time <= 1*60 + _dir*2){
+            _idle_time++;
+        }else{
+            _idle_time = 0;
+        }
+
+        // If direction is valid
+        if(_dir != Direction::NEUTRAL && _dir < 9){
+            // Move if dir not obstructed
+            if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && map_obstacle(x, y, NORTH)){          // UP
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
+                set_position(this->x(), this->y() + SPRTYOFFSET - _stats.speed*diagonal, SPRTYOFFSET); 
+            }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, SOUTH)){  // DOWN
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
+                set_position(this->x(), this->y() + SPRTYOFFSET + _stats.speed*diagonal, SPRTYOFFSET);
+            }
+            if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && map_obstacle(x, y, WEST)){  // LEFT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
+                set_position(this->x() - _stats.speed*diagonal, this->y() + SPRTYOFFSET, SPRTYOFFSET);
+            }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, EAST)){ // RIGHT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
+                set_position(this->x() + _stats.speed*diagonal, this->y() + SPRTYOFFSET, SPRTYOFFSET);
+            }
+        }
+        
+    }
+    
+    if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::bad_cat.tiles_item());}
 }
 
 void BadCat::update(){
@@ -216,7 +204,7 @@ void BadCat::update(){
 
 // ************* PaleTongue *************
 void PaleTongue::move(){
-    // Decide direction at random
+    
     bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
@@ -330,7 +318,7 @@ void PaleTongue::update(){
 
 // ************* PaleFinger *************
 void PaleFinger::move(){
-    // Decide direction at random
+    
     bn::fixed_point xyVector = jv::normalize(Global::Player().position() - bn::point(this->int_x(), this->int_y() - 8));
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         

@@ -53,6 +53,7 @@ public:
     [[nodiscard]] int int_y() const{ return _rect.y();}
     [[nodiscard]] bn::fixed x() const{ return _sprite->x();}
     [[nodiscard]] bn::fixed y() const{ return _sprite->y();}
+    [[nodiscard]] bn::point int_position() const{ return _rect.position();}
     [[nodiscard]] bn::fixed_point position() const{ return _sprite->position();}
     [[nodiscard]] bn::rect& rect() { return _rect;}
     [[nodiscard]] bn::sprite_ptr& sprite() { return _sprite.value();}
