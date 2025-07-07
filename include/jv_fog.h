@@ -52,6 +52,11 @@ private:
         _y = y;
     }
 
+    void set_position(bn::point position){
+        _x = position.x();
+        _y = position.y();
+    }
+
     void set_boundaries(int w, int a);
 
     void reshape(bn::point position, int w, int a){
@@ -73,6 +78,8 @@ private:
     bn::regular_bg_ptr _fog_bg;
     bn::vector<bn::rect, 16> _rooms;
     bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
+
+    static constexpr int half_display_height = bn::display::height()>>1;
 };
 
 }

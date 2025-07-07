@@ -19,24 +19,23 @@ Fog::Fog(bn::camera_ptr cam):
 
 void Fog::update(){
     if(visible()){
-        bn::point player_position = Global::Player().int_position();
         bool flag = false;
-        for(int i = 0; i < _rooms.size(); i++){
-            if(_rooms[i].contains(player_position)){
-                if(i != current_room){
-                    reshape(_rooms[i]);
+        for(int r = 0; r < _rooms.size(); r++){
+            if(_rooms[r].contains(Global::Player().int_position())){
+                if(r != current_room){
+                    reshape(_rooms[r]);
                 }
-                current_room = i;
+                current_room = r;
                 flag = true;
                 break;
             }
         }
         if(!flag){
             if(current_room != -1){
-                reshape(player_position, 24, 24);
+                reshape(Global::Player().int_position(), 24, 24);
                 current_room = -1;
             }else{
-                set_position(player_position.x(), player_position.y());
+                set_position(Global::Player().int_position());
             }
         }
         
@@ -44,15 +43,17 @@ void Fog::update(){
         _internal_window.set_top(y_int - _height);
         _internal_window.set_bottom(y_int + _height);
 
+        int hdh_p_y = half_display_height + y_int;
+        
         uint8_t curve_line = 0;
         for(int index = 0; index < _height; ++index){
-            y_int = _y - Global::cam_pos().y();
-
             int qc_index = curve_line + 24 - _height;
             bn::fixed aux = (index > _height - 24)*(22*quarter_circle[qc_index]);
-            bn::pair<bn::fixed, bn::fixed> left_right(_x - Global::Camera().x() - (_width - aux), _x - Global::Camera().x() + (_width - aux));
-            int upper_index = (bn::display::height()>>1) + index + y_int;
-            int lower_index = (bn::display::height()>>1) - index - 1 + y_int;
+            bn::fixed w_minus_aux = _width - aux;
+
+            bn::pair<bn::fixed, bn::fixed> left_right(_x - Global::Camera().x() - w_minus_aux, _x - Global::Camera().x() + w_minus_aux);
+            int upper_index = hdh_p_y + index;
+            int lower_index = hdh_p_y - index - 1;
             if(upper_index >= 0 && upper_index < 160){ _horizontal_boundaries[upper_index] = left_right;}
             if(lower_index >= 0 && lower_index < 160){ _horizontal_boundaries[lower_index] = left_right;}
             curve_line += 1;

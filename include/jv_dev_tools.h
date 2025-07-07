@@ -31,22 +31,23 @@ void GenerateDevLevel(game_map& map){
     }
 }
 
-void Log_block_data(uint8_t* tiles_arr, game_map& map){
+void Log_block_data([[maybe_unused]] uint8_t* tiles_arr, [[maybe_unused]] game_map& map){
     for(int block_y = 0; block_y < 6; block_y++){
         for(int block_x = 0; block_x < 6; block_x++){
             if(block_x + block_y*6 >= BLOCK_TOTAL){ break;}
 
-            int start_x = block_x*8, start_y = block_y*4;
-
-            BN_LOG("//block ", block_x + block_y*6);
-            for(int y = start_y; y < start_y + 4; y++){
-                bn::string_view line = (y == start_y) ? "{" : "";
-                for(int x = start_x; x < start_x + 4; x++){
-                    line = line + bn::to_string<32>(tiles_arr[x + y*map.x()]) + ", ";
+            #if LOGS_ENABLED
+                int start_x = block_x*8, start_y = block_y*4;
+                BN_LOG("//block ", block_x + block_y*6);
+                for(int y = start_y; y < start_y + 4; y++){
+                    bn::string_view line = (y == start_y) ? "{" : "";
+                    for(int x = start_x; x < start_x + 4; x++){
+                        line = line + bn::to_string<32>(tiles_arr[x + y*map.x()]) + ", ";
+                    }
+                    line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
+                    BN_LOG(line);
                 }
-                line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
-                BN_LOG(line);
-            }
+            #endif
         }
     }
 }

@@ -178,15 +178,9 @@ void game_scene(bn::random& randomizer){
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     uint8_t zone_x = 4, zone_y = 4;
 
-    unsigned short cellCount = ((zone_x*7) - 1)*4*((zone_y*7) - 1)*4 + ((zone_y*7) - 1)*4*2;
-
-    uint8_t* tileData = new uint8_t[cellCount];
+    uint8_t* tileData = new uint8_t[((zone_x*7) - 1)*4*((zone_y*7) - 1)*4 + ((zone_y*7) - 1)*4*2];
     jv::tiled_bg Fortress(game_map(((zone_x*7) - 1)*4 + 2, (((zone_y*7) - 1)*4), tileData), 2);
     
-    // ****** Level data ******
-    int floor = 0, gameover_delay = 0;
-    bool next_level = false, game_over = false, Objective = true;
-
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
@@ -201,6 +195,11 @@ void game_scene(bn::random& randomizer){
     bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
+
+    // ****** Level data ******
+    int floor = 0, gameover_delay = 0;
+    bool next_level = false, game_over = false, Objective = true;
+    constexpr bn::fixed lerp_T(0.13);
 
     // ****** Debug data ******
     #if DEV_ENABLED
@@ -279,8 +278,8 @@ void game_scene(bn::random& randomizer){
                 cat.update();
             #endif
 
-            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), bn::fixed(0.13));
-            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, bn::fixed(0.13));
+            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), lerp_T);
+            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, lerp_T);
             cam.set_position(cam_x_target, cam_y_target);
             
             if(fog_ptr){ fog_ptr->update();}
