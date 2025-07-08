@@ -20,6 +20,7 @@ public:
     // Getters
     [[nodiscard]] int width() const { return map.x();}
     [[nodiscard]] int height() const { return map.y();}
+    [[nodiscard]] int size() const { return map.x()*map.y();}
     [[nodiscard]] bn::fixed_point position() const { return bg.position();}
 
     // Setters

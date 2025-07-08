@@ -11,6 +11,7 @@ void BlockFactory(const bn::point top_left, const uint8_t option, const bool blo
 }
 
 bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr){
+    bn::point target;
     switch(option){
         // Rooms
         case Empty:{
@@ -40,7 +41,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
         
@@ -89,7 +92,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
         
@@ -138,7 +143,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
         
@@ -175,7 +182,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
         
@@ -210,7 +219,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
         
@@ -261,7 +272,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
 
@@ -310,7 +323,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x()*7)*4 - 2, (y + top_left.y()*7)*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x()*7)*4 - 2);
+                    target.set_y((y + top_left.y()*7)*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
 
@@ -342,7 +357,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x())*4 - 2);
+                    target.set_y((y + top_left.y())*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
             return bn::point(0, 0);
@@ -365,7 +382,9 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
-                    BlockFactory(bn::point((x + top_left.x())*4 - 2, (y + top_left.y())*4 - 2), blockArr[index], flipArr[index]);
+                    target.set_x((x + top_left.x())*4 - 2);
+                    target.set_y((y + top_left.y())*4 - 2);
+                    BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
             return bn::point(0, 0);

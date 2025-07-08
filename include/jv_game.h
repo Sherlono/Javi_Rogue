@@ -55,13 +55,15 @@ int start_scene(bn::random& randomizer){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, -54);
     
-    int option = 0;
-
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
     bn::vector<bn::sprite_ptr, 45> menu_sprts;
-    int y_offset = 50;
-    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
+    bn::vector<bn::sprite_ptr, 83> explain_sprts;
+    
+    int option = 0;
+    int x_offset = -16, y_offset = 50;
 
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
+    
     {// Configs
         card.set_priority(0);
         cursor.set_bg_priority(1);
@@ -76,23 +78,22 @@ int start_scene(bn::random& randomizer){
         #else
             text_generator.generate(-100, y_offset + 8, "Credits", menu_sprts);
         #endif
+
+        y_offset = 40;
     }
 
-    bn::vector<bn::sprite_ptr, 83> explain_sprts;
-    bn::string_view explain_text[3][5] = {
-        {"", "A: Interact", "B: Attack", 
-        #if !DEV_ENABLED
-            }
-        #else
-            "SELECT: Debug menu"},
+    #if !DEV_ENABLED
+        bn::string_view explain_text[3][5] = {
+            {"", "A: Interact", "B: Attack"}
+        };
+    #else
+        bn::string_view explain_text[3][5] = {
+            {"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
             {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
             {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
-        #endif
-    };
+        };
+    #endif
 
-    int x_offset = -16;
-    y_offset = 40;
-    
     for(int i = 0; i < 5; i++){
         text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
     }
@@ -178,9 +179,9 @@ void game_scene(bn::random& randomizer){
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
     uint8_t zone_x = 4, zone_y = 4;
 
-    uint8_t* tileData = new uint8_t[((zone_x*7) - 1)*4*((zone_y*7) - 1)*4 + ((zone_y*7) - 1)*4*2];
-    jv::tiled_bg Fortress(game_map(((zone_x*7) - 1)*4 + 2, (((zone_y*7) - 1)*4), tileData), 2);
-    
+    uint8_t* tileData = new uint8_t[((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4];
+    jv::tiled_bg Fortress(game_map(((zone_x*7) - 1)*4, ((zone_y*7) - 1)*4, tileData), 2);
+
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
@@ -240,7 +241,7 @@ void game_scene(bn::random& randomizer){
     for(int y = 0; y < 3; y++){
         for(int x = 0; x < 3; x++){
             if(!(x == 1 && y == 1)){
-                v_balls.push_back(bn::sprite_items::ball.create_sprite(mainGameMap.x()*4*x, mainGameMap.y()*4*y));
+                v_balls.push_back(bn::sprite_items::ball.create_sprite(Fortress.map.x()*4*x, Fortress.map.y()*4*y));
                 v_balls[v_balls.size() - 1].set_bg_priority(0);
                 v_balls[v_balls.size() - 1].set_camera(cam);
             }
@@ -256,7 +257,7 @@ void game_scene(bn::random& randomizer){
         jv::Level::Generate(zone_x, zone_y, fog_ptr);
         jv::Level::Populate(stairs);
         jv::Global::update();
-
+        
         // Initialize level visuals
         Fortress.init();
         if(fog_ptr){ fog_ptr->update();}

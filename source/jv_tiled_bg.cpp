@@ -13,7 +13,7 @@ tiled_bg::tiled_bg(game_map m, const uint8_t priority):
     }
 
 void tiled_bg::update(){
-    int current_x = (Global::cam_pos().x() + 56)>>3  , current_y = (Global::cam_pos().y() + 48)>>3;
+    int current_x = (Global::cam_pos().x() + 60)>>3  , current_y = (Global::cam_pos().y() + 44)>>3;
     int cx_pthtw = current_x + 32       , cy_pthtw = current_y + 32;
 
     if(current_x > prev_x){  // If moved Right
@@ -83,7 +83,7 @@ void tiled_bg::init(){
     bg_m_ptr->reset();
 
     // Defining the MAP ARRAY bounds to redraw the map
-    int current_x = (Global::cam_pos().x())>>3    , current_y = (Global::cam_pos().y() + 47)>>3;
+    int current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
     int cx_pthtw = current_x + 32    , cy_pthtw = current_y + 32;
     // Redraw map bounds
     for(int y = current_y; y < cy_pthtw + 32; y++){
