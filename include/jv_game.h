@@ -209,14 +209,14 @@ void game_scene(bn::random& randomizer){
         bool Die = false;
         bool Clear = false;
         bool NoFog = false;
-        bn::vector<jv::menu_option, 7> options;
-        options.push_back(jv::menu_option(&cat.invulnerable, "Invuln."));
-        options.push_back(jv::menu_option(&FullHeal, "Fully heal"));
-        options.push_back(jv::menu_option(&Noclip, "Noclip"));
-        options.push_back(jv::menu_option(&next_level, "Next level"));
-        options.push_back(jv::menu_option(&Die, "Die"));
-        options.push_back(jv::menu_option(&Clear, "Clear"));
-        options.push_back(jv::menu_option(&NoFog, "No Fog"));
+        bn::array<jv::menu_option, 7> options(
+            {jv::menu_option(&cat.invulnerable, "Invuln."),
+            jv::menu_option(&FullHeal, "Fully heal"),
+            jv::menu_option(&Noclip, "Noclip"),
+            jv::menu_option(&next_level, "Next level"),
+            jv::menu_option(&Die, "Die"),
+            jv::menu_option(&Clear, "Clear"),
+            jv::menu_option(&NoFog, "No Fog"),});
     #endif
 
     {// Configs
@@ -262,7 +262,7 @@ void game_scene(bn::random& randomizer){
         Fortress.init();
         if(fog_ptr){ fog_ptr->update();}
         
-        jv::Interface::Log_resources();
+        //jv::Interface::Log_resources();
         
         // Fade in
         jv::Interface::fade(true);
@@ -287,13 +287,13 @@ void game_scene(bn::random& randomizer){
             
             if(cat.alive()){
                 next_level = stairs.climb();
-
                 Global::scene_items_update();
+
                 // Debug menu
                 #if DEV_ENABLED
                     if(bn::keypad::select_pressed()){
                         jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
-                        jv::Debug::Start(options);
+                        jv::Debug::Start(options.data(), options.size());
                         jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
                         
                         if(FullHeal){

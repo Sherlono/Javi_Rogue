@@ -1,6 +1,7 @@
 #ifndef JV_TILED_BG_H
 #define JV_TILED_BG_H
 
+#include "bn_point.h"
 #include "bn_unique_ptr.h"
 #include "bn_camera_ptr.h"
 
@@ -46,6 +47,53 @@ private:
     bn::unique_ptr<bg_map> bg_m_ptr;
     bn::regular_bg_ptr bg;
     bn::regular_bg_map_ptr bg_m;
+};
+
+class animated_prop{
+public:
+    virtual ~animated_prop() = default;
+    animated_prop(): _time(0) {}
+
+    virtual void update(game_map& map) = 0;
+protected:
+    uint8_t _time;
+};
+
+class torch : public animated_prop{
+/*######
+  ##╭╮##
+  ##┑┍##
+  ######*/
+public:
+    torch(int x, int y, game_map& map): animated_prop(), _top_left(x, y)
+    {
+        // Bottom half
+        map.set_cell(x, y+1, 97);
+        map.set_cell(x+1, y+1, 98);
+        // Top half
+        map.set_cell(x, y, 99);
+        map.set_cell(x+1, y, 100);
+    }
+
+    void update(game_map& map) override{
+        _time++;
+        if(_time < _wait_frames){
+            map.set_cell(_top_left.x(), _top_left.y(), 99);
+            map.set_cell(_top_left.x() + 1, _top_left.y(), 100);
+        }else if(_time < _wait_frames*2){
+            map.set_cell(_top_left.x(), _top_left.y(), 101);
+            map.set_cell(_top_left.x() + 1, _top_left.y(), 102);
+        }else if(_time < _wait_frames*3){
+            map.set_cell(_top_left.x(), _top_left.y(), 103);
+            map.set_cell(_top_left.x() + 1, _top_left.y(), 104);
+        }else{
+            _time = 0;
+        }
+    }
+    
+private:
+    static constexpr uint8_t _wait_frames = 4;
+    bn::point _top_left;
 };
 
 }

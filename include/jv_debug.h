@@ -2,6 +2,7 @@
 #define JV_DEBUG_H
 
 #include "bn_fixed.h"
+#include "bn_array.h"
 #include "bn_vector.h"
 #include "bn_string.h"
 #include "bn_keypad.h"
@@ -95,18 +96,18 @@ private:
 };
 
 namespace Debug{
-void debug_update(bn::ivector<jv::menu_option>& options, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
+void debug_update(jv::menu_option* options, uint8_t const options_size, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
     if(increase){ options[index].increase();
     }else{ options[index].decrease();}
 
     v_text.clear();
-    for(int i = 0; i < options.size(); i++){
+    for(int i = 0; i < options_size; i++){
         text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
         options[i].print(-50, -70 + 9*i, v_text, text_generator);
     }
 }
 
-void Start(bn::ivector<jv::menu_option>& options){
+void Start(jv::menu_option* options, uint8_t const options_size){
     static int index = 0;
     uint8_t hold = 0;
 
@@ -114,9 +115,9 @@ void Start(bn::ivector<jv::menu_option>& options){
     text_generator.set_bg_priority(0);
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, -70 + 9*index);
     cursor.set_bg_priority(0);
-    bn::vector<bn::sprite_ptr, 100> v_text;
+    bn::vector<bn::sprite_ptr, 32> v_text;
 
-    for(int i = 0; i < options.size(); i++){
+    for(int i = 0; i < options_size; i++){
         text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
         options[i].print(-50, -70 + 9*i, v_text, text_generator);
     }
@@ -125,7 +126,7 @@ void Start(bn::ivector<jv::menu_option>& options){
 
     while(!bn::keypad::select_pressed()){
         if(bn::keypad::down_pressed()){
-            if(index < options.size() - 1){
+            if(index < options_size - 1){
                 index++;
                 cursor.set_position(cursor.x(), cursor.y() + 9);
             }
@@ -136,19 +137,19 @@ void Start(bn::ivector<jv::menu_option>& options){
             }
         }
         
-        if(bn::keypad::a_pressed()){ debug_update(options, v_text, text_generator, index, true);}
-        else if(bn::keypad::b_pressed()){ debug_update(options, v_text, text_generator, index, false);}
+        if(bn::keypad::a_pressed()){ debug_update(options, options_size, v_text, text_generator, index, true);}
+        else if(bn::keypad::b_pressed()){ debug_update(options, options_size, v_text, text_generator, index, false);}
 
         if(bn::keypad::a_held() && !options[index].is_Bool()){
             hold++;
             if(hold > 6){
-                debug_update(options, v_text, text_generator, index, true);
+                debug_update(options, options_size, v_text, text_generator, index, true);
                 hold = 0;
             }
         }else if(bn::keypad::b_held() && !options[index].is_Bool()){
             hold++;
             if(hold > 6){
-                debug_update(options, v_text, text_generator, index, false);
+                debug_update(options, options_size, v_text, text_generator, index, false);
                 hold = 0;
             }
         }
@@ -162,7 +163,7 @@ void Start(bn::ivector<jv::menu_option>& options){
     
     // Print debug values
     /*#if LOGS_ENABLED
-        for(int i = 0; i < options.size(); i++){
+        for(int i = 0; i < options_size; i++){
             if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
             else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}
             else if(options[i].is_Bool()){ BN_LOG(options[i].text(), ": ", options[i].getBool());}

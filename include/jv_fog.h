@@ -76,7 +76,7 @@ private:
     bn::rect_window _internal_window;
     bn::rect_window_boundaries_hbe_ptr _horizontal_boundaries_hbe;
     bn::regular_bg_ptr _fog_bg;
-    bn::vector<bn::rect, 16> _rooms;
+    bn::vector<bn::rect, MAX_ROOMS> _rooms;
     bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
 
     static constexpr int half_display_height = bn::display::height()>>1;

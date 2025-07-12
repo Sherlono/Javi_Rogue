@@ -32,6 +32,13 @@ class tiled_bg;
 struct stairs;
 struct healthbar;
 
+namespace fadespeed{
+    constexpr uint8_t VERYFAST = 15;  // Quarter of a second fade
+    constexpr uint8_t FAST = 30;      // Half a second fade
+    constexpr uint8_t MEDIUM = 60;    // One second fade
+    constexpr uint8_t SLOW = 120;     // Two seconds fade
+}
+
 namespace Interface{
 inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}

@@ -8,16 +8,16 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED false      // Turns all BN_LOG call functionality on/off
+    #define LOGS_ENABLED true      // Turns all BN_LOG call functionality on/off
 #endif
 
 #ifndef DEV_ENABLED
-    #define DEV_ENABLED false       // Turns all dev exclusive functionality on/off
+    #define DEV_ENABLED true       // Turns all dev exclusive functionality on/off
 #endif
 
 namespace {
-    constexpr uint8_t FLOOR_COUNT = 8;                              // Number of Floor Blocks [0,21]
-    constexpr uint8_t WALL_COUNT = 30 - FLOOR_COUNT;                // Number of Wall Blocks [22,43]
+    constexpr uint8_t FLOOR_COUNT = 8;                              // Number of Floor Blocks
+    constexpr uint8_t WALL_COUNT = 31 - FLOOR_COUNT;                // Number of Wall Blocks
     constexpr uint8_t BLOCK_TOTAL = FLOOR_COUNT + WALL_COUNT + 1;   // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
@@ -30,15 +30,9 @@ namespace {
         {0.00087, 0.00348, 0.00784, 0.014, 0.022, 0.03175, 0.0435, 0.0572, 0.073, 0.091, 0.11122, 0.134,
          0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
+    constexpr int MAX_ROOMS = 16;
     constexpr int MAX_FRAMES = 8;
     constexpr int MAX_ENEMIES = 10;
-}
-
-namespace jv::fadespeed{
-    constexpr uint8_t VERYFAST = 15;  // Quarter of a second fade
-    constexpr uint8_t FAST = 30;      // Half a second fade
-    constexpr uint8_t MEDIUM = 60;    // One second fade
-    constexpr uint8_t SLOW = 120;     // Two seconds fade
 }
 
 namespace jv::frames{
@@ -209,7 +203,13 @@ namespace jv::blocks{
         {209, 208, 81, 82, 
         211, 210, 83, 84, 
         0, 0, 0, 0, 
-        0, 0, 0, 0}
+        0, 0, 0, 0},
+        //block 31
+        {207, 206, 79, 80, 
+        211, 210, 83, 84, 
+        209, 208, 81, 82, 
+        211, 210, 83, 84, }, 
+        
     };
 }
 

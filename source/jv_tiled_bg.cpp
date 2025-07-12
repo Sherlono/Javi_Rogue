@@ -20,10 +20,10 @@ void tiled_bg::update(){
         for(int y = current_y; y < cy_pthtw; y++){
             uint8_t aux_x = current_x + 24;
             uint8_t ymod = bamod(y, 32);
-            bool not_oob = (aux_x - 16 < map.x() && y - 15 > 0 && y - 16 < map.y());
+            bool oob = aux_x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y();
             bn::point grid_coord(bamod(aux_x, 32), ymod);
 
-            if(not_oob){
+            if(!oob){
                 int cell_index = aux_x - 16 + (y - 16)*map.x();
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }else{
@@ -34,10 +34,10 @@ void tiled_bg::update(){
         for(int y = current_y; y < cy_pthtw; y++){
             uint8_t aux_x = current_x + 25;
             uint8_t ymod = bamod(y, 32);
-            bool not_oob = (aux_x - 47 > 0 && y - 15 > 0 && y - 16 < map.y());
+            bool oob = aux_x - 47 <= 0 || y - 15 <= 0 || y - 16 >= map.y();
             bn::point grid_coord(bamod(aux_x, 32), ymod);
 
-            if(not_oob){
+            if(!oob){
                 int cell_index = aux_x - 48 + map.x() + (y - 17)*map.x();
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }else{
@@ -49,10 +49,10 @@ void tiled_bg::update(){
     if(current_y > prev_y){    // If moved Down
         for(int x = current_x; x < cx_pthtw; x++){
             uint8_t aux_y = current_y + 24;
-            bool not_oob = (x - 22 > 0 && x - 23 < map.x() && aux_y - 16 < map.y());
+            bool oob = aux_y - 16 >= map.y() || x - 22 <= 0 || x - 23 >= map.x();
             bn::point grid_coord(bamod(x - 7, 32), bamod(current_y + 24, 32));
 
-            if(not_oob){
+            if(!oob){
                 int cell_index = x - 23 + (aux_y - 16)*map.x();
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }else{
@@ -61,10 +61,10 @@ void tiled_bg::update(){
         }
     }else if(current_y < prev_y){   // If moved Up
         for(int x = current_x; x < cx_pthtw; x++){
-            bool not_oob = (x - 22 > 0 && x - 23 < map.x() && current_y - 15 > 0);
+            bool oob = current_y - 15 <= 0 || x - 22 <= 0 || x - 23 >= map.x();
             bn::point grid_coord(bamod(x - 7, 32), bamod(current_y, 32));
 
-            if(not_oob){
+            if(!oob){
                 int cell_index = x - 23 + (current_y - 16)*map.x();
                 bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
             }else{

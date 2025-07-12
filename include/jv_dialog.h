@@ -15,15 +15,15 @@ inline void init(const bn::string_view line1, const bn::string_view line2 = "", 
     dialog_window.set_visible(true);
     dialog_window.set_priority(0);
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    bn::vector<bn::sprite_ptr, 32> sprites1, sprites2, sprites3;
+    bn::vector<bn::sprite_ptr, 32> v_sprts[3];
     bn::string<64> text = "";
 
     for(char c : line1){
-        sprites1.clear();
+        v_sprts[0].clear();
         text = text + c;
-        text_generator.generate(-88, 42, text, sprites1);
-        for(int i = 0; i < sprites1.size(); i++){
-            sprites1[i].set_bg_priority(0);
+        text_generator.generate(-88, 42, text, v_sprts[0]);
+        for(int i = 0; i < v_sprts[0].size(); i++){
+            v_sprts[0][i].set_bg_priority(0);
         }
         bn::core::update();
     }
@@ -33,11 +33,11 @@ inline void init(const bn::string_view line1, const bn::string_view line2 = "", 
 
     text = "";
     for(char c : line2){
-        sprites2.clear();
+        v_sprts[1].clear();
         text = text + c;
-        text_generator.generate(-88, 52, text, sprites2);
-        for(int i = 0; i < sprites2.size(); i++){
-            sprites2[i].set_bg_priority(0);
+        text_generator.generate(-88, 52, text, v_sprts[1]);
+        for(int i = 0; i < v_sprts[1].size(); i++){
+            v_sprts[1][i].set_bg_priority(0);
         }
         bn::core::update();
     }
@@ -47,11 +47,11 @@ inline void init(const bn::string_view line1, const bn::string_view line2 = "", 
 
     text = "";
     for(char c : line3){
-        sprites3.clear();
+        v_sprts[2].clear();
         text = text + c;
-        text_generator.generate(-88, 62, text, sprites3);
-        for(int i = 0; i < sprites3.size(); i++){
-            sprites3[i].set_bg_priority(0);
+        text_generator.generate(-88, 62, text, v_sprts[2]);
+        for(int i = 0; i < v_sprts[2].size(); i++){
+            v_sprts[2][i].set_bg_priority(0);
         }
         bn::core::update();
     }
@@ -61,9 +61,9 @@ inline void init(const bn::string_view line1, const bn::string_view line2 = "", 
     }
 
     dialog_window.set_visible(false);
-    sprites1.clear();
-    sprites2.clear();
-    sprites3.clear();
+    v_sprts[0].clear();
+    v_sprts[1].clear();
+    v_sprts[2].clear();
 }
 }
 

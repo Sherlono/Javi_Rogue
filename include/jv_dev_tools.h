@@ -198,7 +198,7 @@ void blocks_scene(){
 
 void tile_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
-    bn::vector<bn::sprite_ptr, 3> tile_sprites;
+    bn::vector<bn::sprite_ptr, 1> tile_index_sprite;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Background
@@ -238,7 +238,7 @@ void tile_scene(){
         }
         
         text_generator.remove_camera();
-        text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
+        text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_index_sprite);
 
         jv::Global::initialize(&cam, &Fortress.map, nullptr, nullptr, nullptr);
         jv::dev::GenerateDevLevel(Fortress.map);
@@ -272,8 +272,8 @@ void tile_scene(){
             }
         }else if(bn::keypad::l_pressed() && current_tile > 0){
             current_tile--;
-            tile_sprites.clear();
-            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
+            tile_index_sprite.clear();
+            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_index_sprite);
             jv::dev::GenerateDevLevel(Fortress.map);
             for(int y = 0; y < Fortress.map.y(); y++){
                 for(int x = 0; x < Fortress.map.x(); x++){
@@ -285,8 +285,8 @@ void tile_scene(){
             Fortress.init();
         }else if(bn::keypad::r_pressed() && current_tile < 126){
             current_tile++;
-            tile_sprites.clear();
-            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_sprites);
+            tile_index_sprite.clear();
+            text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_index_sprite);
             jv::dev::GenerateDevLevel(Fortress.map);
             for(int y = 0; y < Fortress.map.y(); y++){
                 for(int x = 0; x < Fortress.map.x(); x++){
