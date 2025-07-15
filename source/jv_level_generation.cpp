@@ -1,7 +1,10 @@
 #include "jv_level_generation.h"
 
+#include "jv_global.h"
 #include "jv_actors.h"
-#include "jv_stairs.h"
+#include "jv_interface.h"
+#include "jv_map_classes.h"
+#include "jv_blocks_data.h"
 
 namespace jv::Level{
 enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
@@ -10,7 +13,7 @@ void BlockFactory(const bn::point top_left, const uint8_t option, const bool blo
     Global::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[option < BLOCK_TOTAL ? option : 0]), top_left, blockFlip);
 }
 
-bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr){
+bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_ptr){
     bn::point target;
     switch(option){
         // Rooms
@@ -396,7 +399,7 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_pt
     }
 }
 
-void Generate(int const z_x, int const z_y, Fog* fog_ptr){
+void Generate(int const z_x, int const z_y, iFog* fog_ptr){
     Global::Map().reset();
     bool* zData = new bool[z_x*z_y];
     Zone zone(z_x, z_y, zData);
@@ -414,14 +417,14 @@ void Generate(int const z_x, int const z_y, Fog* fog_ptr){
             // Valid room selection
             validRooms.clear();
             
-            if(emptyCount < 2){
+            /*if(emptyCount < 2){
                 bool Margin = !(x > 0 && x + 1 < zone._width && y > 0 && y + 1 < zone._height);
                 bool Corners = zone.cell(x+1, y+1) && zone.cell(x+1, y-1) && zone.cell(x-1, y+1) && zone.cell(x-1, y-1);
 
                 if(emptyCount == 0 || Margin || (!Margin && Corners)){
                     validRooms.push_back(Empty);
                 }
-            }
+            }*/
 
             validRooms.push_back(Small);
             if(y + 1 < zone._height){
@@ -526,6 +529,8 @@ void Populate(jv::stairs& stairs){
     for(int i = 0; i < MAX_ENEMIES - enemyCount[0] - enemyCount[1]; i++){
         Global::Enemies().push_back(new jv::PaleFinger(v_points[3+enemyCount[0]+enemyCount[1]+i], Global::Camera()));
     }
+    
+    jv::Global::update();
 }
 
 }

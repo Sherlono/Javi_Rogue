@@ -52,15 +52,15 @@ inline void Log_skipped_frames(){
             BN_LOG("Frames skipped: ", skipped);
             BN_LOG("******************");
         }
-        //BN_LOG("CPU usage: ", bn::core::last_cpu_usage());
+        BN_LOG("CPU usage: ", bn::core::last_cpu_usage());
     #endif
 }
 
 inline void Log_resources(){
     #if LOGS_ENABLED
         BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
+        BN_LOG("Used alloc ewram: ", bn::memory::used_alloc_ewram(), " Available alloc ewram: ", bn::memory::available_alloc_ewram());
         BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
-        bn::memory::log_alloc_ewram_status();
         //BN_LOG("Rom: ", bn::memory::used_rom());
     #endif
 }

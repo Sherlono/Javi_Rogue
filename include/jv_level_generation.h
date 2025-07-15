@@ -7,14 +7,12 @@
 #include "bn_assert.h"
 
 #include "jv_fog.h"
-#include "jv_global.h"
-#include "jv_interface.h"
-#include "jv_map_classes.h"
+#include "jv_stairs.h"
 
 namespace jv::Level{
     void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip);
-    bn::point InsertRoom(const bn::point top_left, const uint8_t option, Fog* fog_ptr = NULL);
-    void Generate(int const z_x, int const z_y, Fog* fog_ptr = NULL);
+    bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_ptr = nullptr);
+    void Generate(int const z_x, int const z_y, iFog* fog_ptr = nullptr);
     void Populate(jv::stairs& stairs);
 }
 #endif

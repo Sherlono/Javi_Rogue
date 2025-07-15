@@ -8,6 +8,7 @@
 #include "jv_global.h"
 #include "jv_tiled_bg.h"
 #include "jv_interface.h"
+#include "jv_blocks_data.h"
 
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
@@ -117,12 +118,13 @@ void blocks_scene(){
 
     // *** Level Generation ***
     uint8_t tiles_arr[cellCount*16];
-    jv::tiled_bg Fortress(game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr), 3);
+    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1, bn::bg_palette_items::fortress_palette, game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr));
     
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
     
     {// Configs
+        Fortress.set_priority(3);
         cursor.set_bg_priority(1);
         arrowDown.set_bg_priority(1);
         arrowDown.set_rotation_angle(90);
@@ -209,7 +211,7 @@ void tile_scene(){
 
     // *** Level Generation ***
     uint8_t tiles_arr[cellCount*16];
-    jv::tiled_bg Fortress(game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr), 3);
+    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1, bn::bg_palette_items::fortress_palette, game_map(mapSize.x()*4, mapSize.y()*4, tiles_arr));
     
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
@@ -221,6 +223,7 @@ void tile_scene(){
     int width = 12, height = 6;
 
     { // Configs
+        Fortress.set_priority(3);
         text_generator.set_camera(cam);
         background.set_camera(cam);
         Fortress.set_camera(cam);

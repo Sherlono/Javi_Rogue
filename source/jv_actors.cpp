@@ -89,6 +89,14 @@ void Player::update(bool noClip){
     }
 }
 
+// ************ Enemy ************
+/*[[nodiscard]] bool Enemy::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
+    uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
+    bool up = this->int_y() > Global::cam_pos().y() - y_offset, down = this->int_y() < Global::cam_pos().y() + y_offset;
+    bool left = this->int_x() > Global::cam_pos().x() - x_offset, right = this->int_x() < Global::cam_pos().x() + x_offset;
+    return left && right && up && down;
+}*/
+
 // ************* BadCat *************
 void BadCat::move(){
     bn::fixed_point xyVector = jv::normalize(Global::Player().position() - position());

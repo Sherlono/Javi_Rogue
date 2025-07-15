@@ -4,97 +4,105 @@
 #include "jv_map_classes.h"
 
 namespace jv{
-tiled_bg::tiled_bg(game_map m, const uint8_t priority):
-    map(m), prev_x(0), prev_y(0), bg_m_ptr(new bg_map()),
-    bg(bn::regular_bg_item(bn::regular_bg_tiles_items::fortress_tiles, bn::bg_palette_items::fortress_palette, bg_m_ptr->map_item).create_bg(0, 0)),
-    bg_m(bg.map())
-    {
-        bg.set_priority(priority);
-    }
+int tiled_bg::prev_x = 0, tiled_bg::prev_y = 0;
 
 void tiled_bg::update(){
     int current_x = (Global::cam_pos().x() + 60)>>3  , current_y = (Global::cam_pos().y() + 44)>>3;
-    int cx_pthtw = current_x + 32       , cy_pthtw = current_y + 32;
+    int cx_p_32 = current_x + 32    ,   cy_p_32 = current_y + 32;
+    uint8_t value;
+    bool flip;
+
+    bn::bg_tiles::set_allow_offset(false);
 
     if(current_x > prev_x){  // If moved Right
-        for(int y = current_y; y < cy_pthtw; y++){
-            uint8_t aux_x = current_x + 24;
-            uint8_t ymod = bamod(y, 32);
-            bool oob = aux_x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y();
-            bn::point grid_coord(bamod(aux_x, 32), ymod);
+        short aux_x = current_x + 24, x_m_16 = aux_x - 16;
+        for(int y = current_y; y < cy_p_32; y++){
+            short ymod = bamod(y, 32), y_m_16 = y - 16;
+            bool oob = x_m_16 >= map.x() || y_m_16 < 0 || y_m_16 >= map.y();
+            int cell_index = x_m_16 + y_m_16*map.x();
 
             if(!oob){
-                int cell_index = aux_x - 16 + (y - 16)*map.x();
-                bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                value = map[cell_index];
+                flip = map.horizontal_flip(cell_index);
             }else{
-                bg_m_ptr->set_cell(grid_coord, 0);
+                value = 0;
+                flip = false;
             }
+            bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
         }
     }else if(current_x < prev_x){    // If moved Left
-        for(int y = current_y; y < cy_pthtw; y++){
-            uint8_t aux_x = current_x + 25;
-            uint8_t ymod = bamod(y, 32);
-            bool oob = aux_x - 47 <= 0 || y - 15 <= 0 || y - 16 >= map.y();
-            bn::point grid_coord(bamod(aux_x, 32), ymod);
+        short aux_x = current_x + 25, x_m_48 = aux_x - 48;
+        for(int y = current_y; y < cy_p_32; y++){
+            short ymod = bamod(y, 32), y_m_16 = y - 16;
+            bool oob = x_m_48 < 0 || y_m_16 < 0 || y_m_16 >= map.y();
 
+            int cell_index = x_m_48 + map.x() + (y - 17)*map.x();
             if(!oob){
-                int cell_index = aux_x - 48 + map.x() + (y - 17)*map.x();
-                bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                value = map[cell_index];
+                flip = map.horizontal_flip(cell_index);
             }else{
-                bg_m_ptr->set_cell(grid_coord, 0);
+                value = 0;
+                flip = false;
             }
+            bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
         }
     }
     
     if(current_y > prev_y){    // If moved Down
-        for(int x = current_x; x < cx_pthtw; x++){
-            uint8_t aux_y = current_y + 24;
-            bool oob = aux_y - 16 >= map.y() || x - 22 <= 0 || x - 23 >= map.x();
-            bn::point grid_coord(bamod(x - 7, 32), bamod(current_y + 24, 32));
+        short aux_y = current_y + 24, y_m_16 = aux_y - 16;
+        for(int x = current_x; x < cx_p_32; x++){
+            short x_m_23 = x - 23;
+            bool oob = y_m_16 >= map.y() || x_m_23 < 0 || x_m_23 >= map.x();
 
+            int cell_index = x_m_23 + y_m_16*map.x();
             if(!oob){
-                int cell_index = x - 23 + (aux_y - 16)*map.x();
-                bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                value = map[cell_index];
+                flip = map.horizontal_flip(cell_index);
             }else{
-                bg_m_ptr->set_cell(grid_coord, 0);
+                value = 0;
+                flip = false;
             }
+            bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y + 24, 32), value, flip);
         }
     }else if(current_y < prev_y){   // If moved Up
-        for(int x = current_x; x < cx_pthtw; x++){
-            bool oob = current_y - 15 <= 0 || x - 22 <= 0 || x - 23 >= map.x();
-            bn::point grid_coord(bamod(x - 7, 32), bamod(current_y, 32));
+        short y_m_16 = current_y - 16;
+        for(int x = current_x; x < cx_p_32; x++){
+            short x_m_23 = x - 23;
+            bool oob = y_m_16 < 0 || x_m_23 < 0 || x_m_23 >= map.x();
 
+            int cell_index = x_m_23 + y_m_16*map.x();
             if(!oob){
-                int cell_index = x - 23 + (current_y - 16)*map.x();
-                bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+                value = map[cell_index];
+                flip = map.horizontal_flip(cell_index);
             }else{
-                bg_m_ptr->set_cell(grid_coord, 0);
+                value = 0;
+                flip = false;
             }
+            bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y, 32), value, flip);
         }
     }
+    bn::bg_tiles::set_allow_offset(true);
     
     prev_x = current_x;
     prev_y = current_y;
     
+    //_animation.update();
     bg_m.reload_cells_ref();
 }
 
 void tiled_bg::init(){
     bg_m_ptr->reset();
 
-    // Defining the MAP ARRAY bounds to redraw the map
     int current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
-    int cx_pthtw = current_x + 32    , cy_pthtw = current_y + 32;
-    // Redraw map bounds
-    for(int y = current_y; y < cy_pthtw + 32; y++){
-        for(int x = current_x; x < cx_pthtw; x++){
-            if(x > cx_pthtw || y > cy_pthtw || x - 15 <= 0 || x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y()){ continue;}
+    int cx_p_32 = current_x + 32    , cy_p_32 = current_y + 32;
+    
+    for(int y = current_y; y < cy_p_32; y++){
+        for(int x = current_x; x < cx_p_32; x++){
+            if(x > cx_p_32 || y > cy_p_32 || x - 15 <= 0 || x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y()){ continue;}
             int xmod = bamod(x, 32), ymod = bamod(y, 32);
 
-            bn::point grid_coord(xmod, ymod);
-
             int cell_index = x - 16 + (y - 16)*map.x();
-            bg_m_ptr->set_cell(grid_coord, map[cell_index], map.horizontal_flip(cell_index));
+            bg_m_ptr->set_cell(xmod, ymod, map[cell_index], map.horizontal_flip(cell_index));
         }
     }
     

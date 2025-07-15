@@ -48,9 +48,9 @@ public:
     static void items_set_visible(bool visible);
     static void projectiles_set_visible(bool visible);
 
-    static void scene_items_update();
+    BN_CODE_IWRAM static void scene_items_update();
     static bool enemy_obstacle(int x, int y, const uint8_t direction);
-    static void enemies_update(bool& Objective);
+    BN_CODE_IWRAM static void enemies_update(bool& Objective);
     
     // Getters
     [[nodiscard]] static bn::camera_ptr& Camera();

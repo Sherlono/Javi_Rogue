@@ -74,7 +74,7 @@ public:
 
 private:
     const uint8_t width, height;
-    uint8_t *_data;
+    uint8_t* _data;
 };
 
 // Tile data for tiled regular bgs
@@ -89,12 +89,17 @@ struct bg_map
 
     bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
 
-    void set_cell(bn::point position, uint16_t value, bool flip = false){
-        BN_ASSERT(position.x() >= 0, "Invalid x", position.x());
-        BN_ASSERT(position.y() >= 0, "Invalid y", position.y());
+    // Getters
+    int cell(int const x, int const y){ return cells[x + y*32];}
 
-        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(position.x(), position.y())];
+    // Setters
+    void set_cell(int const x, int const y, uint16_t value, bool flip = false){
+        BN_ASSERT(x >= 0, "Invalid x", x);
+        BN_ASSERT(y >= 0, "Invalid y", y);
+
+        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);
+
         if(current_cell_info.cell() != value){
             current_cell_info.set_tile_index(value);
             if(current_cell_info.horizontal_flip() != flip){ current_cell_info.set_horizontal_flip(flip);}
@@ -122,26 +127,7 @@ struct Zone{
             return data[x + (y*_width)];
         }
     }
-    bool marginal(int x, int y){
-        if(x < 0 || y < 0 || x >= _width || y >= _height){
-            return true;
-        }
-        return false;
-    }
-
-    void get_empty_neighbours(int cell_x, int cell_y, bn::vector<bn::point, 8> neighbours){
-        int start_x = bn::max(cell_x-1, 0), start_y = bn::max(cell_y-1, 0);
-        int end_x = bn::min(cell_x+1, int(_width)), end_y = bn::min(cell_y+1, int(_height));
-
-        for(int y = start_y; y < end_y; y++){
-            for(int x = start_x; x < end_x; x++){
-                if(!(x == start_x+1 && y == start_y+1) && !cell(x, y)){
-                    neighbours.push_back(bn::point(x, y));
-                }
-            }
-        }
-    }
-
+    
     int size() const { return _width*_height;}
     void reset(){
         bn::memory::clear(size(), data[0]);

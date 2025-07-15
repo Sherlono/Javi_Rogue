@@ -7,8 +7,8 @@ namespace jv{
 [[nodiscard]] bool Item::on_screen() const {
     const uint8_t halfWidth = 8, halfHeight = 8;
     constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-    bool up = y() > jv::Global::Camera().y() - y_offset, down = y() < jv::Global::Camera().y() + y_offset;
-    bool left = x() > jv::Global::Camera().x() - x_offset, right = x() < jv::Global::Camera().x() + x_offset;
+    bool up = y() > jv::Global::cam_pos().y() - y_offset, down = y() < jv::Global::cam_pos().y() + y_offset;
+    bool left = x() > jv::Global::cam_pos().x() - x_offset, right = x() < jv::Global::cam_pos().x() + x_offset;
     return left && right && up && down;
 }
 

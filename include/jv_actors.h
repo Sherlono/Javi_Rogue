@@ -537,8 +537,7 @@ public:
     NPC(bn::point position, bn::camera_ptr cam):
         Actor(bn::rect(position.x(), position.y() + 8, 20, 20))
         {
-            bool isOnScreen = on_screen(cam);
-            if(isOnScreen){
+            if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::cow);
                 builder.set_position(position.x(), position.y() - 8);
                 builder.set_camera(cam);

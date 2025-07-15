@@ -8,17 +8,14 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED true      // Turns all BN_LOG call functionality on/off
+    #define LOGS_ENABLED false      // Turns all BN_LOG call functionality on/off
 #endif
 
 #ifndef DEV_ENABLED
-    #define DEV_ENABLED true       // Turns all dev exclusive functionality on/off
+    #define DEV_ENABLED false       // Turns all dev exclusive functionality on/off
 #endif
 
 namespace {
-    constexpr uint8_t FLOOR_COUNT = 8;                              // Number of Floor Blocks
-    constexpr uint8_t WALL_COUNT = 31 - FLOOR_COUNT;                // Number of Wall Blocks
-    constexpr uint8_t BLOCK_TOTAL = FLOOR_COUNT + WALL_COUNT + 1;   // Total Blocks
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_TOTAL = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
@@ -30,9 +27,8 @@ namespace {
         {0.00087, 0.00348, 0.00784, 0.014, 0.022, 0.03175, 0.0435, 0.0572, 0.073, 0.091, 0.11122, 0.134,
          0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
-    constexpr int MAX_ROOMS = 16;
     constexpr int MAX_FRAMES = 8;
-    constexpr int MAX_ENEMIES = 10;
+    constexpr int MAX_ENEMIES = 30;
 }
 
 namespace jv::frames{
@@ -45,172 +41,6 @@ namespace jv::frames{
     
     constexpr uint16_t idle[4] = {18, 19, 18, 20};  // Idle down
     constexpr uint16_t hurt[4] = {22, 23, 22, 23};  // Hurt down
-}
-
-namespace jv::blocks{
-    constexpr uint8_t data[BLOCK_TOTAL][16] = {
-        //block 0
-        {0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0}, 
-        //block 1
-        {1, 1, 2, 1, 
-        31, 30, 31, 31, 
-        1, 1, 2, 1, 
-        31, 30, 31, 31}, 
-        //block 2
-        {5, 6, 7, 8, 
-        31, 30, 31, 31, 
-        128, 128, 128, 129, 
-        31, 30, 31, 31}, 
-        //block 3
-        {8, 1, 2, 1, 
-        31, 30, 31, 31, 
-        1, 1, 2, 1, 
-        31, 30, 31, 31}, 
-        //block 4
-        {5, 6, 7, 8, 
-        31, 30, 31, 31, 
-        9, 10, 3, 4, 
-        32, 33, 26, 27}, 
-        //block 5
-        {1, 1, 2, 1, 
-        31, 30, 31, 31, 
-        9, 10, 3, 4, 
-        32, 33, 26, 27}, 
-        //block 6
-        {1, 1, 2, 1, 
-        28, 29, 31, 31, 
-        14, 15, 3, 4, 
-        75, 75, 36, 37}, 
-        //block 7
-        {14, 15, 3, 4, 
-        75, 75, 36, 37, 
-        89, 90, 75, 75, 
-        0, 0, 89, 90}, 
-        //block 8
-        {73, 74, 16, 17, 
-        38, 39, 24, 25, 
-        11, 12, 2, 1, 
-        31, 30, 31, 31}, 
-        //block 9
-        {50, 51, 178, 177, 
-        48, 49, 176, 175, 
-        50, 51, 178, 177, 
-        52, 53, 87, 88}, 
-        //block 10
-        {46, 47, 174, 173, 
-        48, 49, 176, 175, 
-        50, 51, 178, 177, 
-        48, 49, 176, 175}, 
-        //block 11
-        {69, 70, 63, 64, 
-        65, 66, 71, 72, 
-        73, 74, 16, 17, 
-        38, 39, 24, 25}, 
-        //block 12
-        {0, 0, 54, 80, 
-        57, 58, 59, 60, 
-        61, 62, 63, 64, 
-        65, 66, 67, 68}, 
-        //block 13
-        {0, 0, 54, 56, 
-        57, 58, 59, 60, 
-        61, 62, 63, 64, 
-        65, 66, 67, 68}, 
-        //block 14
-        {50, 51, 178, 177, 
-        48, 49, 176, 175, 
-        50, 51, 178, 177, 
-        48, 49, 176, 175}, 
-        //block 15
-        {0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        46, 47, 174, 173, 
-        48, 49, 176, 175}, 
-        //block 16
-        {61, 62, 63, 64, 
-        65, 66, 67, 68, 
-        69, 70, 63, 64, 
-        65, 66, 71, 72}, 
-        //block 17
-        {0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 54, 80, 
-        57, 58, 59, 60}, 
-        //block 18
-        {0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 54, 56, 
-        57, 58, 59, 60}, 
-        //block 19
-        {0, 0, 79, 80, 
-        0, 0, 81, 82, 
-        0, 0, 83, 84, 
-        0, 0, 81, 82}, 
-        //block 20
-        {0, 0, 81, 82, 
-        0, 0, 83, 84, 
-        0, 0, 81, 82, 
-        0, 0, 83, 84}, 
-        //block 21
-        {0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 79, 80, 
-        0, 0, 83, 84}, 
-        //block 22
-        {0, 0, 81, 82, 
-        0, 0, 85, 86, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0}, 
-        //block 23
-        {209, 208, 0, 0, 
-        211, 210, 0, 0, 
-        46, 47, 174, 173, 
-        48, 49, 176, 175}, 
-        //block 24
-        {209, 208, 81, 82, 
-        211, 210, 83, 84, 
-        46, 47, 174, 173, 
-        48, 49, 176, 175}, 
-        //block 25
-        {75, 75, 75, 75, 
-        75, 75, 75, 75, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0}, 
-        //block 26
-        {89, 90, 75, 75, 
-        0, 0, 89, 90, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0}, 
-        //block 27
-        {75, 75, 77, 82, 
-        75, 75, 78, 84, 
-        0, 0, 81, 82, 
-        0, 0, 83, 84}, 
-        //block 28
-        {209, 208, 81, 82, 
-        211, 210, 83, 84, 
-        209, 208, 81, 82, 
-        211, 210, 83, 84}, 
-        //block 29
-        {1, 1, 2, 1, 
-        31, 30, 31, 31, 
-        46, 47, 174, 173, 
-        48, 49, 176, 175}, 
-        //block 30
-        {209, 208, 81, 82, 
-        211, 210, 83, 84, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0},
-        //block 31
-        {207, 206, 79, 80, 
-        211, 210, 83, 84, 
-        209, 208, 81, 82, 
-        211, 210, 83, 84, }, 
-        
-    };
 }
 
 #endif

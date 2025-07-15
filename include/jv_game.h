@@ -23,8 +23,8 @@
 #include "jv_healthbar.h"
 #include "jv_interface.h"
 #include "jv_level_generation.h"
+#include "jv_tiled_bg_animate_actions.h"
 
-//#include "bn_sprite_items_ball.h"
 #include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_intro1.h"
 #include "bn_regular_bg_items_intro_card.h"
@@ -177,18 +177,26 @@ void game_scene(bn::random& randomizer){
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-    uint8_t zone_x = 4, zone_y = 4;
+    const uint8_t zone_x = 6, zone_y = 6;
+    constexpr uint8_t zoneSize = zone_x*zone_y;
+    int tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
+    
+    uint8_t* tileData = new uint8_t[tileDatasize];
+    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1, bn::bg_palette_items::fortress_palette, game_map(((zone_x*7) - 1)*4, ((zone_y*7) - 1)*4, tileData));
 
-    uint8_t* tileData = new uint8_t[((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4];
-    jv::tiled_bg Fortress(game_map(((zone_x*7) - 1)*4, ((zone_y*7) - 1)*4, tileData), 2);
+    bn::regular_bg_tiles_item tiles_items[3] = 
+        {bn::regular_bg_tiles_items::fortress_tiles1,
+         bn::regular_bg_tiles_items::fortress_tiles2,
+         bn::regular_bg_tiles_items::fortress_tiles3};
+    jv::tiled_bg_animate_action<4> fort_animation = jv::create_tiled_bg_animate_action_forever(Fortress.background(), 15, tiles_items, 0, 1, 0, 2);
 
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
     jv::stairs stairs(0, 0, cam);
-    jv::Fog* fog_ptr = nullptr;
-    jv::Fog fog(cam);
+    jv::Fog<zoneSize>* fog_ptr = nullptr;
+    jv::Fog<zoneSize> fog;
 
     bn::vector<jv::NPC, 1> v_npcs;
     bn::vector<jv::Enemy*, MAX_ENEMIES> v_enemies;
@@ -200,7 +208,7 @@ void game_scene(bn::random& randomizer){
     // ****** Level data ******
     int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, Objective = true;
-    constexpr bn::fixed lerp_T(0.13);
+    constexpr bn::fixed cam_lerp_t(0.13);
 
     // ****** Debug data ******
     #if DEV_ENABLED
@@ -224,7 +232,6 @@ void game_scene(bn::random& randomizer){
         bn::blending::set_transparency_alpha(0.8);
 
         text_generator.set_bg_priority(0);
-        background.set_priority(3);
         background.set_camera(cam);
         Fortress.set_camera(cam);
         fog_ptr = &fog;
@@ -235,19 +242,6 @@ void game_scene(bn::random& randomizer){
         text_generator.generate(64, -70, "Floor", txt_sprts);
     }
 
-    /*bn::sprite_ptr ball = bn::sprite_items::ball.create_sprite(0, 0);
-    ball.set_bg_priority(0);
-    bn::vector<bn::sprite_ptr, 8> v_balls;
-    for(int y = 0; y < 3; y++){
-        for(int x = 0; x < 3; x++){
-            if(!(x == 1 && y == 1)){
-                v_balls.push_back(bn::sprite_items::ball.create_sprite(Fortress.map.x()*4*x, Fortress.map.y()*4*y));
-                v_balls[v_balls.size() - 1].set_bg_priority(0);
-                v_balls[v_balls.size() - 1].set_camera(cam);
-            }
-        }
-    }*/
-    
     while(!game_over){
         text_generator.generate(94, -70, bn::to_string<3>(floor), txt_sprts);
         next_level = false;
@@ -256,13 +250,12 @@ void game_scene(bn::random& randomizer){
         // Level generation
         jv::Level::Generate(zone_x, zone_y, fog_ptr);
         jv::Level::Populate(stairs);
-        jv::Global::update();
         
         // Initialize level visuals
         Fortress.init();
         if(fog_ptr){ fog_ptr->update();}
         
-        //jv::Interface::Log_resources();
+        jv::Interface::Log_resources();
         
         // Fade in
         jv::Interface::fade(true);
@@ -270,6 +263,7 @@ void game_scene(bn::random& randomizer){
         while(!next_level){
             jv::Global::update();
             Fortress.update();
+            fort_animation.update();
             Objective = true;
 
             // Player update
@@ -278,9 +272,8 @@ void game_scene(bn::random& randomizer){
             #else 
                 cat.update();
             #endif
-
-            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), lerp_T);
-            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, lerp_T);
+            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), cam_lerp_t);
+            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, cam_lerp_t);
             cam.set_position(cam_x_target, cam_y_target);
             
             if(fog_ptr){ fog_ptr->update();}
@@ -363,6 +356,7 @@ void game_scene(bn::random& randomizer){
     bn::sprites::set_blending_bottom_enabled(true);
     delete[] tileData;
 }
+
 }
 
 #endif
