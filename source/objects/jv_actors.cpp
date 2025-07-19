@@ -3,6 +3,7 @@
 #include "jv_math.h"
 #include "jv_dialog.h"
 #include "jv_stairs.h"
+#include "jv_tiled_bg.h"
 #include "jv_projectile.h"
 #include "jv_map_classes.h"
 
@@ -445,7 +446,7 @@ void PaleFinger::update(){
 }
 
 // ************** NPC **************
-void NPC::update(jv::stairs& stairs, bool objective){
+void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
     if(on_screen(Global::Camera())){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
@@ -473,6 +474,7 @@ void NPC::update(jv::stairs& stairs, bool objective){
                     jv::Dialog::init("Thanks for getting rid of the evil", "creatures! The stairs are open now!");
                     if(!stairs.isOpen){
                         stairs.set_open(true);
+                        bg.init();
                     }
                 }
                 Global::Player().set_interact_token(false);

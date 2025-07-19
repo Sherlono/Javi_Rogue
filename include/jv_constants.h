@@ -8,11 +8,11 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED false      // Turns all BN_LOG call functionality on/off
+    #define LOGS_ENABLED false   // Turns all BN_LOG call functionality on/off
 #endif
 
 #ifndef DEV_ENABLED
-    #define DEV_ENABLED false       // Turns all dev exclusive functionality on/off
+    #define DEV_ENABLED false    // Turns all dev exclusive functionality on/off
 #endif
 
 namespace {
@@ -28,7 +28,7 @@ namespace {
          0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
     constexpr int MAX_FRAMES = 8;
-    constexpr int MAX_ENEMIES = 30;
+    constexpr int MAX_ENEMIES = 15;
 }
 
 namespace jv::frames{

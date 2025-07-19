@@ -29,7 +29,6 @@ class Zone;
 namespace jv{
 class Player;
 class tiled_bg;
-struct stairs;
 struct healthbar;
 
 namespace fadespeed{
@@ -67,7 +66,7 @@ inline void Log_resources(){
 
 void Log_zone_layout(Zone& z);
 
-void set_hide_all(jv::healthbar& healthbar, jv::stairs& stairs, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide);
+void set_hide_all(jv::healthbar& healthbar, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide);
 
 [[nodiscard]] inline bn::point pop_point(bn::point* points, int& size, const int index){
     BN_ASSERT(size > 0, "Invalid size: ", size);

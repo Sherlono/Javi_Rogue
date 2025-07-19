@@ -30,6 +30,7 @@ class game_map;
 
 namespace jv{
 struct stairs;
+class tiled_bg;
 
 class Actor{
 public:
@@ -561,7 +562,7 @@ public:
     // Setters
 
     // Functionality
-    void update(jv::stairs& stairs, bool objective);
+    void update(jv::stairs& stairs, tiled_bg& bg, bool objective);
     
 private:
 

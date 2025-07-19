@@ -3,7 +3,6 @@
 #include "jv_actors.h"
 #include "jv_healthbar.h"
 #include "jv_tiled_bg.h"
-#include "jv_stairs.h"
 #include "jv_projectile.h"
 #include "jv_map_classes.h"
 
@@ -21,8 +20,7 @@ void Log_zone_layout([[maybe_unused]] Zone& zone){
     #endif
 }
 
-void set_hide_all(jv::healthbar& healthbar, jv::stairs& stairs, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide){
-    stairs.set_visible(!hide);
+void set_hide_all(jv::healthbar& healthbar, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide){
     healthbar.set_visible(!hide);
     background.set_visible(!hide);
     Fortress.set_visible(!hide);

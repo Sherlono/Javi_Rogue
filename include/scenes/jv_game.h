@@ -177,7 +177,7 @@ void game_scene(bn::random& randomizer){
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-    const uint8_t zone_x = 6, zone_y = 6;
+    const uint8_t zone_x = 2, zone_y = 2;
     constexpr uint8_t zoneSize = zone_x*zone_y;
     int tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
     
@@ -194,7 +194,7 @@ void game_scene(bn::random& randomizer){
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
-    jv::stairs stairs(0, 0, cam);
+    jv::stairs stairs;
     jv::Fog<zoneSize>* fog_ptr = nullptr;
     jv::Fog<zoneSize> fog;
 
@@ -285,9 +285,9 @@ void game_scene(bn::random& randomizer){
                 // Debug menu
                 #if DEV_ENABLED
                     if(bn::keypad::select_pressed()){
-                        jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, true);
+                        jv::Interface::set_hide_all(healthbar, background, Fortress, txt_sprts, true);
                         jv::Debug::Start(options.data(), options.size());
-                        jv::Interface::set_hide_all(healthbar, stairs, background, Fortress, txt_sprts, false);
+                        jv::Interface::set_hide_all(healthbar, background, Fortress, txt_sprts, false);
                         
                         if(FullHeal){
                             cat.heal(cat.get_maxhp());
@@ -326,7 +326,7 @@ void game_scene(bn::random& randomizer){
             }
 
             jv::Global::enemies_update(Objective);
-            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Objective);}
+            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Fortress, Objective);}
             
             healthbar.update();
 
