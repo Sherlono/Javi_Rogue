@@ -7,6 +7,7 @@
 #include "bn_sprites.h"
 #include "bn_music_items.h"
 #include "bn_bg_palettes.h"
+#include "bn_music_actions.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 #include "bn_sprite_palette_actions.h"
@@ -173,11 +174,11 @@ void game_scene(bn::random& randomizer){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Music
-    bn::music_items::cyberrid.play(0.1);
+    bn::music_items::cyberrid.play(0.2);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-    const uint8_t zone_x = 2, zone_y = 2;
+    const uint8_t zone_x = 5, zone_y = 5;
     constexpr uint8_t zoneSize = zone_x*zone_y;
     int tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
     
@@ -354,6 +355,7 @@ void game_scene(bn::random& randomizer){
     
     jv::Global::reset();
     bn::sprites::set_blending_bottom_enabled(true);
+    bn::music::stop();
     delete[] tileData;
 }
 

@@ -7,6 +7,7 @@
 #include "bn_random.h"
 #include "bn_keypad.h"
 #include "bn_optional.h"
+#include "bn_sound_items.h"
 #include "bn_sprite_builder.h"
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
@@ -233,11 +234,13 @@ public:
             else{ _hp -= damage/_stats.defense;}
 
             if(_hp <= 0){
+                bn::sound_items::death.play(0.5);
                 _state = State::DEAD;
                 _sprite->set_horizontal_flip(false);
                 _sprite->set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(24));
                 _hitbox.set_position(_rect.position());
             }else{
+                //bn::sound_items::death.play(0.5);
                 _sprite->set_horizontal_flip(_dir == Direction::WEST);
                 _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::good_cat.tiles_item(), frames::hurt);
             }
@@ -256,6 +259,7 @@ private:
     
     void attack(){
         if(!is_attacking() && _state != State::HURTING){
+            bn::sound_items::swipe.play(0.5);
             _attack_cooldown = 20;
             set_animation(frames::Attack, bn::sprite_items::good_cat.tiles_item());
         }

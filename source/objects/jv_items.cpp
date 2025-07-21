@@ -1,5 +1,7 @@
 #include "jv_items.h"
 
+#include "bn_sound_items.h"
+
 #include "jv_actors.h"
 
 namespace jv{
@@ -51,6 +53,7 @@ Key::Key(int x, int y): Item(x, y)
 }
 
 void Key::get_item() {
+    bn::sound_items::cure.play(0.5);
     jv::Global::Player().playerInventory.gain_item(Item::IDs::KEY);
     _gotten = true;
 }
@@ -66,6 +69,7 @@ Potion::Potion(int x, int y): Item(x, y)
 }
 
 void Potion::get_item() {
+    bn::sound_items::cure.play(0.5);
     jv::Global::Player().heal(1);
     _gotten = true;
 }

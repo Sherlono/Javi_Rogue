@@ -2,12 +2,6 @@
 #define JV_STAIRS
 
 #include "bn_rect.h"
-#include "bn_keypad.h"
-#include "bn_optional.h"
-#include "bn_sprite_ptr.h"
-#include "bn_sprite_tiles_ptr.h"
-#include "bn_camera_ptr.h"
-
 
 namespace jv{
 class Player;

@@ -10,6 +10,7 @@
 #include "bn_memory.h"
 #include "bn_sprite_ptr.h"
 #include "bn_bg_palettes.h"
+#include "bn_music_actions.h"
 #include "bn_regular_bg_ptr.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
@@ -95,13 +96,22 @@ inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIU
             bn::core::update();
         }
     }else{
+        bn::fixed volume, volume_decrement;
+        if(bn::music::playing()){
+            volume_decrement = bn::music::volume()/speed;
+        }
         progress = 0.0;
         bn::fixed min;
+
         for(int i = 0; progress <= 1; i++){
             progress = bn::fixed(i)/speed;
             min = bn::min(progress, bn::fixed(1));
             bn::sprite_palettes::set_fade(black, min);
             bn::bg_palettes::set_fade(black, min);
+            if(bn::music::playing()){
+                volume = bn::music::volume();
+                bn::music::set_volume(bn::max(volume - volume_decrement, bn::fixed(0)));
+            }
             bn::core::update();
         }
     }

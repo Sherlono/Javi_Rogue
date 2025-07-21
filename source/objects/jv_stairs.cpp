@@ -1,6 +1,7 @@
 #include "jv_stairs.h"
 
 #include "bn_point.h"
+#include "bn_keypad.h"
 
 #include "jv_actors.h"
 #include "jv_map_classes.h"
