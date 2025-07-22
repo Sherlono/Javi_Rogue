@@ -8,11 +8,11 @@
  */
 
 #ifndef LOGS_ENABLED
-    #define LOGS_ENABLED false   // Turns all BN_LOG call functionality on/off
+    #define LOGS_ENABLED true   // Turns all BN_LOG call functionality on/off
 #endif
 
 #ifndef DEV_ENABLED
-    #define DEV_ENABLED false    // Turns all dev exclusive functionality on/off
+    #define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
 #endif
 
 namespace {

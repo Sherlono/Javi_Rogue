@@ -386,7 +386,7 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
                     target.set_x((x + top_left.x())*4 - 2);
-                    target.set_y((y + top_left.y())*4 - 2);
+                    target.set_y((y + top_left.y())*4 - 4);
                     BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
@@ -481,15 +481,15 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
             if(!zone.cell(x, y) || !Global::Map().cell((7 + x*7)*4 + 1, (2 + y*7)*4) || Global::Map().cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
             InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
-            if(Global::Map().cell(22 + x*28, 20 + y*28) == 82){
+            if(Global::Map().cell(22 + x*28, 18 + y*28) == 82){
                 uint8_t cornerFix[4] = {77, 82,
-                                        78, 84};
-                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(22 + x*28, 18 + y*28), true);
+                                        78, 84,};
+                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(22 + x*28, 16 + y*28), true);
             }
-            if(Global::Map().cell(29 + x*28, 20 + y*28) == 82){
+            if(Global::Map().cell(29 + x*28, 18 + y*28) == 82){
                 uint8_t cornerFix[4] = {77, 82,
-                                        78, 84};
-                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(28 + x*28, 18 + y*28));
+                                        78, 84,};
+                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(28 + x*28, 16 + y*28));
             }
         }
     }
