@@ -23,6 +23,15 @@ class Enemy;
 class NPC;
 class Projectile;
 
+using NPCs_vector_ptr_t = bn::ivector<jv::NPC>*;
+using enemies_vector_ptr_t = bn::ivector<jv::Enemy*>*;
+using items_vector_ptr_t = bn::ivector<jv::Item*>*;
+using projectiles_vector_ptr_t = bn::ivector<jv::Projectile*>*;
+using NPCs_vector_ref_t = bn::ivector<jv::NPC>&;
+using enemies_vector_ref_t = bn::ivector<jv::Enemy*>&;
+using items_vector_ref_t = bn::ivector<jv::Item*>&;
+using projectiles_vector_ref_t = bn::ivector<jv::Projectile*>&;
+
 struct Global{
 public:
     Global() = delete;
@@ -48,19 +57,19 @@ public:
     static void items_set_visible(bool visible);
     static void projectiles_set_visible(bool visible);
 
-    BN_CODE_IWRAM static void scene_items_update();
+    static void scene_items_update();
     static bool enemy_obstacle(int x, int y, const uint8_t direction);
-    BN_CODE_IWRAM static void enemies_update(bool& Objective);
+    static void enemies_update(bool& Objective);
     
     // Getters
     [[nodiscard]] static bn::camera_ptr& Camera();
     [[nodiscard]] static jv::Player& Player();
     [[nodiscard]] static game_map& Map();
     [[nodiscard]] static bn::random& Random();
-    [[nodiscard]] static bn::ivector<jv::NPC>& NPCs();
-    [[nodiscard]] static bn::ivector<jv::Enemy*>& Enemies();
-    [[nodiscard]] static bn::ivector<jv::Item*>& Scene_Items();
-    [[nodiscard]] static bn::ivector<jv::Projectile*>& Projectiles();
+    [[nodiscard]] static NPCs_vector_ref_t NPCs();
+    [[nodiscard]] static enemies_vector_ref_t Enemies();
+    [[nodiscard]] static items_vector_ref_t Scene_Items();
+    [[nodiscard]] static projectiles_vector_ref_t Projectiles();
     [[nodiscard]] static bn::point cam_pos();
 
 private:
@@ -68,10 +77,10 @@ private:
     static game_map* _map;
     static jv::Player* _player;
     static bn::random* _randomizer;
-    inline static bn::ivector<jv::NPC>* _npcs;
-    inline static bn::ivector<jv::Enemy*>* _enemies;
-    inline static bn::ivector<jv::Item*>* _scene_items;
-    inline static bn::ivector<jv::Projectile*>* _projectiles;
+    inline static NPCs_vector_ptr_t _npcs;
+    inline static enemies_vector_ptr_t _enemies;
+    inline static items_vector_ptr_t _scene_items;
+    inline static projectiles_vector_ptr_t _projectiles;
     static bn::point cam_position;
 };
 

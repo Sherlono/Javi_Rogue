@@ -47,7 +47,7 @@ namespace jv::animation{
     constexpr bn::array<uint16_t, 4> Attack_do = {0, 9, 10, 11};      // Walk/Attack down
     
     constexpr bn::array<uint16_t, 4> idle = {18, 19, 18, 20};  // Idle down
-    constexpr bn::array<uint16_t, 4> hurt = {22, 23, 22, 23};  // Hurt down
+    constexpr bn::array<uint16_t, 5> hurt = {21, 22, 21, 22, 22};  // Hurt down
 }
 
 #endif

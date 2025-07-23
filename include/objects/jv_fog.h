@@ -113,7 +113,7 @@ public:
         ++_size;
     }
 
-    BN_CODE_IWRAM void update();
+    void update();
 
 protected:
     void _assign(const iFog& other)

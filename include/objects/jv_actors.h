@@ -84,6 +84,7 @@ public:
     }
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
+    // For actions with direction
     void set_animation(const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
         animation_type frames;
         if(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST){        // UP
@@ -103,7 +104,7 @@ public:
             frames = animation_type(animation::idle);
         }
 
-        if(option == animation::Walk){
+        if(option != animation::Attack){
             _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames);
         }else{
             _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames);
@@ -444,13 +445,13 @@ public:
     void update() override;
     
     void got_hit(int damage){
-        _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
         if(hp <= 0){
             _state = State::DEAD;
         }else{
+            _state = State::HURTING;
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
             _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::hurt);
         }
@@ -517,13 +518,13 @@ public:
     void update() override;
     
     void got_hit(int damage){
-        _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
         if(hp <= 0){
             _state = State::DEAD;
         }else{
+            _state = State::HURTING;
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
             _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::hurt);
         }

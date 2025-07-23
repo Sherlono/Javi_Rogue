@@ -44,6 +44,12 @@
 #endif
 
 namespace jv::game{
+using dynamic_cells_t = uint8_t*;
+using NPCs_vector_t = bn::vector<jv::NPC, 1>;
+using enemies_vector_t = bn::vector<jv::Enemy*, MAX_ENEMIES>;
+using items_vector_t = bn::vector<jv::Item*, MAX_ENEMIES>;
+using projectiles_vector_t = bn::vector<jv::Projectile*, MAX_ENEMIES>;
+
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
     
@@ -178,14 +184,15 @@ void game_scene(bn::random& randomizer){
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
+
     const uint8_t zone_x = 5, zone_y = 5;
     constexpr uint8_t zoneSize = zone_x*zone_y;
-    int tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
+    uint16_t tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
     
-    uint8_t* tileData = new uint8_t[tileDatasize];
+    dynamic_cells_t tileData = new uint8_t[tileDatasize];
     jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1, bn::bg_palette_items::fortress_palette, game_map(((zone_x*7) - 1)*4, ((zone_y*7) - 1)*4, tileData));
 
-    bn::regular_bg_tiles_item tiles_items[3] = 
+    bn::regular_bg_tiles_item tiles_items[3] =
         {bn::regular_bg_tiles_items::fortress_tiles1,
          bn::regular_bg_tiles_items::fortress_tiles2,
          bn::regular_bg_tiles_items::fortress_tiles3};
@@ -199,17 +206,17 @@ void game_scene(bn::random& randomizer){
     jv::Fog<zoneSize>* fog_ptr = nullptr;
     jv::Fog<zoneSize> fog;
 
-    bn::vector<jv::NPC, 1> v_npcs;
-    bn::vector<jv::Enemy*, MAX_ENEMIES> v_enemies;
-    bn::vector<jv::Item*, MAX_ENEMIES> v_scene_items;
-    bn::vector<jv::Projectile*, MAX_ENEMIES> v_projectiles;
+    NPCs_vector_t v_npcs;
+    enemies_vector_t v_enemies;
+    items_vector_t v_scene_items;
+    projectiles_vector_t v_projectiles;
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
 
     // ****** Level data ******
     int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, Objective = true;
-    constexpr bn::fixed cam_lerp_t(0.13);
+    constexpr bn::fixed cam_lerp(0.13);
 
     // ****** Debug data ******
     #if DEV_ENABLED
@@ -258,7 +265,6 @@ void game_scene(bn::random& randomizer){
         
         jv::Interface::Log_resources();
         
-        // Fade in
         jv::Interface::fade(FADE_IN, fadespeed::MEDIUM);
 
         while(!next_level){
@@ -273,8 +279,8 @@ void game_scene(bn::random& randomizer){
             #else 
                 cat.update();
             #endif
-            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), cam_lerp_t);
-            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, cam_lerp_t);
+            bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), cam_lerp);
+            bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, cam_lerp);
             cam.set_position(cam_x_target, cam_y_target);
             
             if(fog_ptr){ fog_ptr->update();}
@@ -338,12 +344,9 @@ void game_scene(bn::random& randomizer){
 
         floor--;
         
-        // Fade out
-        {
-            bool fade_music = !cat.alive();
-            int fade_speed = cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
-            jv::Interface::fade(FADE_OUT, fade_speed, fade_music);
-        }
+        const bool FADE_MUSIC = !cat.alive();
+        int fade_speed = cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
+        jv::Interface::fade(FADE_OUT, fade_speed, FADE_MUSIC);
         
         // Reset Stuff
         jv::Global::clear_enemies();

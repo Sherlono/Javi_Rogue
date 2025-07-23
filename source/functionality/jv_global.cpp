@@ -12,7 +12,7 @@ Player* Global::_player = nullptr;
 bn::random* Global::_randomizer = nullptr;
 bn::point Global::cam_position;
 
-void Global::initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, bn::ivector<Projectile*>* projectiles){
+void Global::initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, projectiles_vector_ptr_t projectiles){
     _camera = camera;
     _player = player;
     _map = map;
@@ -20,7 +20,7 @@ void Global::initialize(bn::camera_ptr* camera, game_map* map, jv::Player* playe
     _projectiles = projectiles;
 }
 
-void Global::extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies, bn::ivector<jv::Item*>* items){
+void Global::extra_data_init(NPCs_vector_ptr_t npcs, enemies_vector_ptr_t enemies, items_vector_ptr_t items){
     _npcs = npcs;
     _enemies = enemies;
     _scene_items = items;
@@ -199,19 +199,19 @@ void Global::enemies_update(bool& Objective){
     BN_ASSERT(_randomizer != nullptr, "Randomizer not found");
     return *_randomizer;
 }
-[[nodiscard]] bn::ivector<jv::NPC>& Global::NPCs(){
+[[nodiscard]] NPCs_vector_ref_t Global::NPCs(){
     BN_ASSERT(_npcs != nullptr, "NPCs not found");
     return *_npcs;
 }
-[[nodiscard]] bn::ivector<jv::Enemy*>& Global::Enemies(){
+[[nodiscard]] enemies_vector_ref_t Global::Enemies(){
     BN_ASSERT(_enemies != nullptr, "Enemies not found");
     return *_enemies;
 }
-[[nodiscard]] bn::ivector<jv::Item*>& Global::Scene_Items(){
+[[nodiscard]] items_vector_ref_t Global::Scene_Items(){
     BN_ASSERT(_scene_items != nullptr, "Scene Items not found");
     return *_scene_items;
 }
-[[nodiscard]] bn::ivector<jv::Projectile*>& Global::Projectiles(){
+[[nodiscard]] projectiles_vector_ref_t Global::Projectiles(){
     BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
     return *_projectiles;
 }

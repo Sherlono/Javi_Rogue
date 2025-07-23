@@ -50,15 +50,15 @@ public:
     void set_blending_enabled(bool isBlend){ bg.set_blending_enabled(isBlend);}
 
     // Functionality
-    BN_CODE_IWRAM void update();
+    void update();
     void init();
 
     game_map map;
 protected:
-    static int prev_x, prev_y;
     bn::unique_ptr<bg_map> bg_m_ptr;
     bn::regular_bg_ptr bg;
     bn::regular_bg_map_ptr bg_m;
+    static int prev_x, prev_y;
 };
 
 }

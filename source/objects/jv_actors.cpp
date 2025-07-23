@@ -176,9 +176,8 @@ void BadCat::update(){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
-                        set_animation(0, bn::sprite_items::bad_cat.tiles_item());
                     }
-                    else{ set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());}
+                    set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
                 }
             }else if(!is_attacking(40)){
                 move();
@@ -274,9 +273,8 @@ void PaleTongue::update(){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
-                        set_animation(0, bn::sprite_items::pale_tongue.tiles_item(), 8);
                     }
-                    else{ set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);}
+                    set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
                 move();
@@ -383,8 +381,8 @@ void PaleFinger::update(){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
-                        set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                     }
+                    set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
                 move();
