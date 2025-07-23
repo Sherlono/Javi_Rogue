@@ -47,9 +47,9 @@ namespace jv::game{
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
     
-    jv::Interface::fade(true);
+    jv::Interface::fade(FADE_IN, fadespeed::MEDIUM);
     for(int i = 0; i < 180; i++){ bn::core::update();}
-    jv::Interface::fade(false);
+    jv::Interface::fade(FADE_OUT, fadespeed::MEDIUM);
 }
 
 int start_scene(bn::random& randomizer){
@@ -259,7 +259,7 @@ void game_scene(bn::random& randomizer){
         jv::Interface::Log_resources();
         
         // Fade in
-        jv::Interface::fade(true);
+        jv::Interface::fade(FADE_IN, fadespeed::MEDIUM);
 
         while(!next_level){
             jv::Global::update();
@@ -339,8 +339,12 @@ void game_scene(bn::random& randomizer){
         floor--;
         
         // Fade out
-        jv::Interface::fade(false, cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW);
-
+        {
+            bool fade_music = !cat.alive();
+            int fade_speed = cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
+            jv::Interface::fade(FADE_OUT, fade_speed, fade_music);
+        }
+        
         // Reset Stuff
         jv::Global::clear_enemies();
         jv::Global::clear_scene_items();

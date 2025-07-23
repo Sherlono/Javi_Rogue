@@ -2,7 +2,6 @@
 #define JV_fog_bg_H
 
 #include "bn_rect.h"
-#include "bn_vector.h"
 #include "bn_assert.h"
 #include "bn_utility.h"
 #include "bn_display.h"
@@ -26,6 +25,8 @@
 namespace jv{
 
 class iFog{
+    using h_bounds_type = bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()>;
+    
 public:
     ~iFog() noexcept = default;
 
@@ -154,7 +155,7 @@ protected:
     bn::rect_window _internal_window;
     bn::rect_window_boundaries_hbe_ptr _horizontal_boundaries_hbe;
     bn::regular_bg_ptr _fog_bg;
-    bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()> _horizontal_boundaries;
+    h_bounds_type _horizontal_boundaries;
     
     static constexpr int half_display_height = bn::display::height()>>1;
 };

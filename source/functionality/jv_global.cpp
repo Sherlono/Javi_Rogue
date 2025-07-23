@@ -130,7 +130,7 @@ bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
                     return false;
                 }
             }
-            return true;
+            break;
         }
         case Actor::Direction::SOUTH:{
             bn::point p(x, y + 8);
@@ -139,7 +139,7 @@ bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
                     return false;
                 }
             }
-            return true;
+            break;
         }
         case Actor::Direction::WEST:{
             bn::point p(x - 8, y);
@@ -148,7 +148,7 @@ bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
                     return false;
                 }
             }
-            return true;
+            break;
         }
         case Actor::Direction::EAST:{
             bn::point p(x + 8, y);
@@ -157,13 +157,13 @@ bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
                     return false;
                 }
             }
-            return true;
+            break;
         }
         default:
             BN_ASSERT(false, "Invalid direction", direction);
-            return false;
             break;
     }
+    return true;
 }
 
 void Global::enemies_update(bool& Objective){

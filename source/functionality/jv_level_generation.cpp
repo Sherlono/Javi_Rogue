@@ -9,17 +9,17 @@
 namespace jv::Level{
 enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
+using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
+
 void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
-    Global::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[option < BLOCK_TOTAL ? option : 0]), top_left, blockFlip);
+    int index = (option < BLOCK_TOTAL) ? option : 0;
+    Global::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[index]), top_left, blockFlip);
 }
 
 bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_ptr){
     bn::point target;
     switch(option){
         // Rooms
-        case Empty:{
-            return bn::point(0, 0);
-        }
         case Small:{
             const uint8_t width = 7, height = 7;
             constexpr uint16_t size = width*height;
@@ -365,7 +365,7 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
                     BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
-            return bn::point(0, 0);
+            break;
         }
         case H_Corr:{
             const uint8_t width = 4, height = 4;
@@ -390,13 +390,14 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
                     BlockFactory(target, blockArr[index], flipArr[index]);
                 }
             }
-            return bn::point(0, 0);
+            break;
         }
         default:{
             BN_ASSERT(false, "Invalid room option.", option);
-            return bn::point(0, 0);
+            break;
         }
     }
+    return bn::point(0, 0);
 }
 
 void Generate(int const z_x, int const z_y, iFog* fog_ptr){
@@ -405,7 +406,7 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
     Zone zone(z_x, z_y, zData);
     if(fog_ptr){ fog_ptr->reset();}
 
-    bn::vector<uint8_t, ROOM_PREFAB_COUNT> validRooms;
+    rooms_type validRooms;
     bn::point top_left(0, 0);
     uint8_t emptyCount = 0;
     
@@ -468,8 +469,9 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
     // Vertical corridors
     for(int y = 0; y < zone._height - 1; y++){
         for(int x = 0; x < zone._width; x++){
+            int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !Global::Map().cell((2 + x*7)*4, (7 + y*7)*4 + 1) || Global::Map().cell((2 + x*7)*4, (6 + y*7)*4 + 1)){ continue;}
+            if(!zone.cell(x, y) || !Global::Map().cell(next_cell_x, next_cell_y) || Global::Map().cell(next_cell_x, halfway_cell_y)){ continue;}
             InsertRoom(bn::point(2 + x*7, 5 + y*7), V_Corr);
         }
     }
@@ -477,8 +479,9 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
     // Horizontal corridors
     for(int y = 0; y < zone._height; y++){
         for(int x = 0; x < zone._width - 1; x++){
+            int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
             // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-            if(!zone.cell(x, y) || !Global::Map().cell((7 + x*7)*4 + 1, (2 + y*7)*4) || Global::Map().cell((6 + x*7)*4 + 1, (2 + y*7)*4)){ continue;}
+            if(!zone.cell(x, y) || !Global::Map().cell(next_cell_x, next_cell_y) || Global::Map().cell(halfway_cell_x, next_cell_y)){ continue;}
             InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
             if(Global::Map().cell(22 + x*28, 18 + y*28) == 82){

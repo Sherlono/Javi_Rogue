@@ -3,6 +3,7 @@
 
 #include "bn_core.h"
 #include "bn_rect.h"
+#include "bn_array.h"
 #include "bn_assert.h"
 #include "bn_random.h"
 #include "bn_keypad.h"
@@ -33,6 +34,8 @@ namespace jv{
 struct stairs;
 class tiled_bg;
 
+using animation_type = bn::span<const uint16_t>;
+
 class Actor{
 public:
     virtual ~Actor() = default;
@@ -59,7 +62,7 @@ public:
     [[nodiscard]] bn::fixed_point position() const{ return _sprite->position();}
     [[nodiscard]] bn::rect& rect() { return _rect;}
     [[nodiscard]] bn::sprite_ptr& sprite() { return _sprite.value();}
-    [[nodiscard]] bn::sprite_animate_action<MAX_FRAMES>& animation() { return _animation.value();}
+    [[nodiscard]] bn::sprite_animate_action<animation::MAX_FRAMES>& animation() { return _animation.value();}
     [[nodiscard]] bool in_range(int x, int y, const int r){
         return  (x - int_x())*(x - int_x()) + (y - int_y())*(y - int_y()) <= r*r;
     }
@@ -82,37 +85,28 @@ public:
     void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
     void set_animation(const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
+        animation_type frames;
         if(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST){        // UP
             _sprite->set_horizontal_flip(false);
-            if(option == frames::Attack){
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames::WalkAttack_up[frames::Attack]);
-            }else{
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames::WalkAttack_up[option]);
-            }
+            frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_up) : animation_type(animation::Attack_up);
         }else if(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST){  // DOWN
             _sprite->set_horizontal_flip(false);
-            if(option == frames::Attack){
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames::WalkAttack_do[frames::Attack]);
-            }else{
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames::WalkAttack_do[option]);
-            }
+            frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_do) : animation_type(animation::Attack_do);
         }else if(_dir == Direction::WEST){                            // LEFT
             _sprite->set_horizontal_flip(true);
-            if(option == frames::Attack){
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames::WalkAttack_ho[frames::Attack]);
-            }else{
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames::WalkAttack_ho[option]);
-            }
+            frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_ho) : animation_type(animation::Attack_ho);
         }else if(_dir == Direction::EAST){                            // RIGHT
             _sprite->set_horizontal_flip(false);
-            if(option == frames::Attack){
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames::WalkAttack_ho[frames::Attack]);
-            }else{
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames::WalkAttack_ho[option]);
-            }
+            frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_ho) : animation_type(animation::Attack_ho);
         }else{
             _sprite->set_horizontal_flip(false);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames::idle);
+            frames = animation_type(animation::idle);
+        }
+
+        if(option == animation::Walk){
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), wait_frames, tiles, frames);
+        }else{
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), wait_frames, tiles, frames);
         }
     }
 
@@ -145,7 +139,7 @@ public:
 
     void walking_update(const bn::sprite_tiles_item& tiles){
         if(_prev_dir != _dir){
-            set_animation(frames::Walk, tiles);
+            set_animation(animation::Walk, tiles);
         }
         _prev_dir = _dir;
     }
@@ -161,7 +155,7 @@ protected:
     uint8_t _prev_dir, _dir;
     bn::rect _rect;
     bn::optional<bn::sprite_ptr> _sprite;
-    bn::optional<bn::sprite_animate_action<MAX_FRAMES>> _animation;
+    bn::optional<bn::sprite_animate_action<animation::MAX_FRAMES>> _animation;
 };
 
 class Player: public Actor{
@@ -187,7 +181,7 @@ public:
             builder.set_bg_priority(1);
             
             _sprite = builder.release_build();
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::good_cat.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::good_cat.tiles_item(), animation::idle);
         }
     
     // Getters
@@ -214,7 +208,7 @@ public:
         _prev_dir = Direction::NEUTRAL;
         _dir = Direction::SOUTH;
         _hitbox.set_position(this->int_x(), this->int_y());
-        set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
+        set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
         _animation->update();
     }
 
@@ -242,7 +236,7 @@ public:
             }else{
                 //bn::sound_items::death.play(0.5);
                 _sprite->set_horizontal_flip(_dir == Direction::WEST);
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::good_cat.tiles_item(), frames::hurt);
+                _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
             }
         }
     }
@@ -261,7 +255,7 @@ private:
         if(!is_attacking() && _state != State::HURTING){
             bn::sound_items::swipe.play(0.5);
             _attack_cooldown = 20;
-            set_animation(frames::Attack, bn::sprite_items::good_cat.tiles_item());
+            set_animation(animation::Attack, bn::sprite_items::good_cat.tiles_item());
         }
     }
     
@@ -273,7 +267,7 @@ private:
             if(_attack_cooldown == 1){ _state = State::ATTACKING;}
         }
         if(attack_ended()){
-            set_animation(frames::Walk, bn::sprite_items::good_cat.tiles_item());
+            set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
         }
     }
     
@@ -316,6 +310,27 @@ public:
     // Functionality
     virtual void update() = 0;
 
+    void displace(int x, int y, const int sprite_offset, const bn::fixed speed){
+        // If direction is valid
+        if(_dir != Direction::NEUTRAL && _dir < 9){
+            // Move if dir not obstructed
+            if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && map_obstacle(x, y, NORTH)){          // UP
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
+                set_position(this->x(), this->y() + sprite_offset - speed*diagonal, sprite_offset); 
+            }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, SOUTH)){  // DOWN
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
+                set_position(this->x(), this->y() + sprite_offset + speed*diagonal, sprite_offset);
+            }
+            if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && map_obstacle(x, y, WEST)){  // LEFT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
+                set_position(this->x() - speed*diagonal, this->y() + sprite_offset, sprite_offset);
+            }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, EAST)){ // RIGHT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
+                set_position(this->x() + speed*diagonal, this->y() + sprite_offset, sprite_offset);
+            }
+        }
+    }
+    
 protected:
     short hp;
     uint8_t _state;
@@ -340,7 +355,7 @@ public:
                 
                 _sprite = builder.release_build();
                 
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::bad_cat.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+                _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), 4, bn::sprite_items::bad_cat.tiles_item(), animation::idle);
             }
         }
     
@@ -356,15 +371,15 @@ public:
     void update() override;
     
     void got_hit(int damage){
-        _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
         hp -= damage/_stats.defense;
         if(hp <= 0){
             _state = State::DEAD;
         }else{
+            _state = State::HURTING;
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::bad_cat.tiles_item(), frames::hurt);
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::bad_cat.tiles_item(), animation::hurt);
         }
     }
     
@@ -374,7 +389,7 @@ private:
     void attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 60;
-            set_animation(frames::Attack, bn::sprite_items::bad_cat.tiles_item());
+            set_animation(animation::Attack, bn::sprite_items::bad_cat.tiles_item());
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
                                  this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
@@ -388,7 +403,7 @@ private:
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
         if(attack_ended(40)){
-            set_animation(frames::Walk, bn::sprite_items::bad_cat.tiles_item());
+            set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
         }
     }
     
@@ -413,7 +428,7 @@ public:
                 
                 _sprite = builder.release_build();
                 
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::pale_tongue.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+                _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::idle);
             }
         }
     
@@ -437,7 +452,7 @@ public:
             _state = State::DEAD;
         }else{
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_tongue.tiles_item(), frames::hurt);
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::hurt);
         }
     }
     
@@ -447,7 +462,7 @@ private:
     void attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 75;
-            set_animation(frames::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
+            set_animation(animation::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
             _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
                                  this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
@@ -461,7 +476,7 @@ private:
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
         if(attack_ended(40)){
-            set_animation(frames::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
+            set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
         }
     }
     
@@ -486,7 +501,7 @@ public:
                 
                 _sprite = builder.release_build();
                 
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), frames::WalkAttack_do[frames::Walk]);
+                _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::idle);
             }
         }
     
@@ -510,7 +525,7 @@ public:
             _state = State::DEAD;
         }else{
             _sprite->set_horizontal_flip(_dir == Direction::WEST);
-            _animation = bn::sprite_animate_action<MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), frames::hurt);
+            _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(_sprite.value(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::hurt);
         }
     }
     
@@ -527,7 +542,7 @@ private:
             if(_attack_cooldown == 40){ _state = State::ATTACKING;}
         }
         if(attack_ended(40)){
-            set_animation(frames::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
+            set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
         }
     }
     
@@ -550,7 +565,7 @@ public:
                 
                 _sprite = builder.release_build();
                 constexpr uint16_t arr[4] = {0, 1, 2, 3};
-                _animation = bn::sprite_animate_action<MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::cow.tiles_item(), arr);
+                _animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(_sprite.value(), 8, bn::sprite_items::cow.tiles_item(), arr);
             }
         }
     

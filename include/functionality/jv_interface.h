@@ -81,7 +81,7 @@ void set_hide_all(jv::healthbar& healthbar, bn::regular_bg_ptr& background, jv::
 
 void random_coords(bn::ivector<bn::point>& points_out);
 
-inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIUM){
+inline void fade(const bool fadeIn, const unsigned char speed, const bool fademusic = false){
     bn::fixed progress;
     bn::color black = bn::colors::black;
 
@@ -97,7 +97,7 @@ inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIU
         }
     }else{
         bn::fixed volume, volume_decrement;
-        if(bn::music::playing()){
+        if(fademusic && bn::music::playing()){
             volume_decrement = bn::music::volume()/speed;
         }
         progress = 0.0;
@@ -108,7 +108,7 @@ inline void fade(const bool fadeIn, const unsigned char speed = fadespeed::MEDIU
             min = bn::min(progress, bn::fixed(1));
             bn::sprite_palettes::set_fade(black, min);
             bn::bg_palettes::set_fade(black, min);
-            if(bn::music::playing()){
+            if(fademusic && bn::music::playing()){
                 volume = bn::music::volume();
                 bn::music::set_volume(bn::max(volume - volume_decrement, bn::fixed(0)));
             }

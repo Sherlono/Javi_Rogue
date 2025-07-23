@@ -15,6 +15,11 @@
     #define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
 #endif
 
+#ifndef FADE_IN
+    #define FADE_IN true
+    #define FADE_OUT false
+#endif
+
 namespace {
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
@@ -27,20 +32,22 @@ namespace {
         {0.00087, 0.00348, 0.00784, 0.014, 0.022, 0.03175, 0.0435, 0.0572, 0.073, 0.091, 0.11122, 0.134,
          0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
-    constexpr int MAX_FRAMES = 8;
     constexpr int MAX_ENEMIES = 15;
 }
 
-namespace jv::frames{
-    constexpr uint8_t Walk = 0;
-    constexpr uint8_t Attack = 1;
+namespace jv::animation{
+    constexpr int MAX_FRAMES = 8;
+    enum Id {Walk, Attack};
     
-    constexpr uint16_t WalkAttack_up[2][4] = {{6, 7, 6, 8}, {6, 15, 16, 17}};      // Walk/Attack up
-    constexpr uint16_t WalkAttack_ho[2][4] = {{3, 4, 3, 5}, {3, 12, 13, 14}};      // Walk/Attack horizontal
-    constexpr uint16_t WalkAttack_do[2][4] = {{0, 1, 0, 2}, {0, 9, 10, 11} };      // Walk/Attack down
+    constexpr bn::array<uint16_t, 4> Walk_up = {6, 7, 6, 8};
+    constexpr bn::array<uint16_t, 4> Walk_ho = {3, 4, 3, 5};
+    constexpr bn::array<uint16_t, 4> Walk_do = {0, 1, 0, 2};
+    constexpr bn::array<uint16_t, 4> Attack_up = {6, 15, 16, 17};      // Walk/Attack up
+    constexpr bn::array<uint16_t, 4> Attack_ho = {3, 12, 13, 14};      // Walk/Attack horizontal
+    constexpr bn::array<uint16_t, 4> Attack_do = {0, 9, 10, 11};      // Walk/Attack down
     
-    constexpr uint16_t idle[4] = {18, 19, 18, 20};  // Idle down
-    constexpr uint16_t hurt[4] = {22, 23, 22, 23};  // Hurt down
+    constexpr bn::array<uint16_t, 4> idle = {18, 19, 18, 20};  // Idle down
+    constexpr bn::array<uint16_t, 4> hurt = {22, 23, 22, 23};  // Hurt down
 }
 
 #endif

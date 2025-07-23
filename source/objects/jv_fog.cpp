@@ -26,11 +26,11 @@ void iFog::update(){
             }
         }
         
-        int y_int = _y - Global::cam_pos().y();
+        const int y_int = _y - Global::cam_pos().y();
         _internal_window.set_top(y_int - _height);
         _internal_window.set_bottom(y_int + _height);
 
-        int hdh_p_y = half_display_height + y_int;
+        const int hdh_plus_y = half_display_height + y_int;
         
         uint8_t curve_line = 0;
         for(int index = 0; index < _height; ++index){
@@ -40,7 +40,7 @@ void iFog::update(){
             bn::fixed w_m_aux = _width - aux;
 
             bn::pair<bn::fixed, bn::fixed> left_right(x_m_camx - w_m_aux, x_m_camx + w_m_aux);
-            int upper_index = hdh_p_y + index   ,   lower_index = hdh_p_y - index - 1;
+            int upper_index = hdh_plus_y + index   ,   lower_index = hdh_plus_y - index - 1;
             if(upper_index >= 0 && upper_index < 160){ _horizontal_boundaries[upper_index] = left_right;}
             if(lower_index >= 0 && lower_index < 160){ _horizontal_boundaries[lower_index] = left_right;}
             curve_line += 1;
