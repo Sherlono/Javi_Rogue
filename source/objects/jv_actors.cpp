@@ -95,7 +95,7 @@ void Player::update(bool noClip){
 
         // Combat
         if(bn::keypad::b_pressed()){
-            attack();
+            start_attack();
         }
     }
 }
@@ -114,16 +114,16 @@ void BadCat::move(){
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
     
     // Player within range
-    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 18)){
+    if(in_range(Global::Player().int_position(), 18)){
         look_at(player_direction);
-        attack();
+        start_attack();
         
         if(_idle_time <= 2*60){
             _idle_time++;
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46)){
+    }else if(in_range(Global::Player().int_position(), 46)){
         look_at(player_direction);
         if(_idle_time <= 2*60){
             _idle_time++;
@@ -190,7 +190,7 @@ void BadCat::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && get_hitbox().intersects(Global::Player().rect());
+                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().int_position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
@@ -210,23 +210,23 @@ void PaleTongue::move(){
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
     // Player within range
-    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 20)){
+    if(in_range(Global::Player().int_position(), 20)){
         look_at(player_direction);
-        attack();
+        start_attack();
         
         if(_idle_time <= 2*60){
             _idle_time++;
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 46) && !is_attacking(40)){
+    }else if(in_range(Global::Player().int_position(), 46) && !is_attacking(40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = this->x();
-        bn::fixed target_y = this->y();
+        bn::fixed target_x = this->x(), target_y = this->y();
+        
         if((player_direction.x() > 0 && map_obstacle(x, y, EAST)) || (player_direction.x() < 0 && map_obstacle(x, y, WEST))){
             target_x += player_direction.x()*_stats.speed;
         }
@@ -287,7 +287,7 @@ void PaleTongue::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && get_hitbox().intersects(Global::Player().rect());
+                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().int_position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
@@ -306,7 +306,7 @@ void PaleFinger::move(){
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
     // Player within range
-    if(in_range(Global::Player().int_x(), Global::Player().int_y(), 40)){
+    if(in_range(Global::Player().int_position(), 40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
@@ -323,11 +323,11 @@ void PaleFinger::move(){
 
         set_position(target_x, target_y + SPRTYOFFSET, SPRTYOFFSET);
 
-    }else if(in_range(Global::Player().int_x(), Global::Player().int_y(), 70)){
+    }else if(in_range(Global::Player().int_position(), 70)){
         look_at(player_direction);
         
         if(_idle_time == 0){
-            attack();
+            start_attack();
             _idle_time++;
         }else if(_idle_time <= 2*60){
             _idle_time++;
@@ -354,7 +354,7 @@ void PaleFinger::move(){
     if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::pale_finger.tiles_item());}
 }
 
-void PaleFinger::attack(){
+void PaleFinger::start_attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
         set_animation(animation::Id::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);

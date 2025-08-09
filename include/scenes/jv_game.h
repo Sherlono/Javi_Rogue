@@ -201,7 +201,7 @@ void game_scene(bn::random& randomizer){
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::Player cat(bn::point(0, 0), cam);
-    jv::healthbar healthbar(cat.get_maxhp_ptr(), cat.get_hp_ptr());
+    jv::healthbar healthbar;
     jv::stairs stairs;
     jv::Fog<zoneSize>* fog_ptr = nullptr;
     jv::Fog<zoneSize> fog;
@@ -246,7 +246,8 @@ void game_scene(bn::random& randomizer){
 
         jv::Global::initialize(&cam, &Fortress.map, &cat, &randomizer, &v_projectiles);
         jv::Global::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
-
+        
+        healthbar.init();
         text_generator.generate(64, -70, "Floor", txt_sprts);
     }
 

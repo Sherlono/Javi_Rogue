@@ -64,7 +64,12 @@ public:
     [[nodiscard]] bn::sprite_ptr& sprite() { return _sprite.value();}
     [[nodiscard]] bn::sprite_animate_action<animation::MAX_FRAMES>& animation() { return _animation.value();}
     [[nodiscard]] bool in_range(int x, int y, const int r){
-        return  (x - int_x())*(x - int_x()) + (y - int_y())*(y - int_y()) <= r*r;
+        int delta_x = x - int_x(), delta_y = y - int_y();
+        return  delta_x*delta_x + delta_y*delta_y <= r*r;
+    }
+    [[nodiscard]] bool in_range(bn::point position, const int r){
+        int delta_x = position.x() - int_x(), delta_y = position.y() - int_y();
+        return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
     [[nodiscard]] bool map_obstacle(int x, int y, const uint8_t direction);
 
@@ -77,12 +82,9 @@ public:
         _sprite->set_position(point.x(), point.y() - y_offset);
         _rect.set_position(point.x().integer(), point.y().integer());
     }
-    void set_camera(bn::camera_ptr& cam){ _sprite->set_camera(cam);}
-    void remove_camera(){ _sprite->remove_camera();}
     void set_visible(bool visible){
         if(_sprite.has_value()){ _sprite->set_visible(visible);};
     }
-    void set_blending_enabled(bool isBlend){ _sprite->set_blending_enabled(isBlend);}
 
     // For actions with direction
     void set_animation(const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
@@ -232,7 +234,7 @@ public:
                 bn::sound_items::death.play(0.5);
                 _state = State::DEAD;
                 _sprite->set_horizontal_flip(false);
-                _sprite->set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(24));
+                _sprite->set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(23));
                 _hitbox.set_position(_rect.position());
             }else{
                 //bn::sound_items::death.play(0.5);
@@ -252,7 +254,7 @@ public:
 private:
     void move(bool noClip = false);
     
-    void attack(){
+    void start_attack(){
         if(!is_attacking() && _state != State::HURTING){
             bn::sound_items::swipe.play(0.5);
             _attack_cooldown = 20;
@@ -287,7 +289,6 @@ public:
     Enemy(bn::point position):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         _state(State::NORMAL),
-        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
         _idle_time(0) {}
@@ -296,7 +297,6 @@ public:
     [[nodiscard]] bool alive() const { return _state != State::DEAD;}
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] short get_hp() const { return hp;}
-    [[nodiscard]] bn::rect& get_hitbox() { return _hitbox;}
     [[nodiscard]] bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
         uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
         bool up = this->int_y() > cam.y() - y_offset, down = this->int_y() < cam.y() + y_offset;
@@ -335,7 +335,6 @@ public:
 protected:
     short hp;
     uint8_t _state;
-    bn::rect _hitbox;
     int8_t _prev_attack_cooldown, _attack_cooldown;
     uint8_t _idle_time;
 };
@@ -387,12 +386,10 @@ public:
 private:
     void move();
     
-    void attack(){
+    void start_attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 60;
             set_animation(animation::Attack, bn::sprite_items::bad_cat.tiles_item());
-            _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
-                                 this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
     }
     
@@ -460,12 +457,10 @@ public:
 private:
     void move();
     
-    void attack(){
+    void start_attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 75;
             set_animation(animation::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
-            _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
-                                 this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
         }
     }
     
@@ -533,7 +528,7 @@ public:
 private:
     void move();
     
-    void attack();
+    void start_attack();
 
     void attack_update(){
         _prev_attack_cooldown = _attack_cooldown;

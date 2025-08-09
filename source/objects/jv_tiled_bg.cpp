@@ -6,6 +6,32 @@
 namespace jv{
 int tiled_bg::prev_x = 0, tiled_bg::prev_y = 0;
 
+void tiled_bg::init(){
+    bg_m_ptr->reset();
+
+    const int current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
+    const int cx_plus_32 = current_x + 32    , cy_plus_32 = current_y + 32;
+    uint8_t value;
+    bool flip;
+    
+    for(int y = current_y; y < cy_plus_32; y++){
+        for(int x = current_x; x < cx_plus_32; x++){
+            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y()){ continue;}
+            const int xmod = bamod(x, 32), ymod = bamod(y, 32);
+            const int cell_index = x - 16 + (y - 16)*map.x();
+
+            value = map[cell_index];
+            flip = map.horizontal_flip(cell_index);
+            
+            bg_m_ptr->set_cell(xmod, ymod, value, flip);
+        }
+    }
+    
+    prev_x = current_x;
+    prev_y = current_y;
+    update();
+}
+
 void tiled_bg::update(){
     const int current_x = (Global::cam_pos().x() + 60)>>3   ,   current_y = (Global::cam_pos().y() + 44)>>3;
     const int cx_plus_32 = current_x + 32   ,   cy_plus_32 = current_y + 32;
@@ -86,29 +112,7 @@ void tiled_bg::update(){
     prev_x = current_x;
     prev_y = current_y;
     
-    //_animation.update();
     bg_m.reload_cells_ref();
-}
-
-void tiled_bg::init(){
-    bg_m_ptr->reset();
-
-    const int current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
-    const int cx_plus_32 = current_x + 32    , cy_plus_32 = current_y + 32;
-    
-    for(int y = current_y; y < cy_plus_32; y++){
-        for(int x = current_x; x < cx_plus_32; x++){
-            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= map.x() || y - 15 <= 0 || y - 16 >= map.y()){ continue;}
-            const int xmod = bamod(x, 32), ymod = bamod(y, 32);
-
-            const int cell_index = x - 16 + (y - 16)*map.x();
-            bg_m_ptr->set_cell(xmod, ymod, map[cell_index], map.horizontal_flip(cell_index));
-        }
-    }
-    
-    prev_x = current_x;
-    prev_y = current_y;
-    update();
 }
 
 }

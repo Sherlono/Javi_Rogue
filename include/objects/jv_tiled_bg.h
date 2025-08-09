@@ -25,8 +25,7 @@ public:
         map(m), bg_m_ptr(new bg_map()),
         bg(bn::regular_bg_item(tiles_item, palette_item, bg_m_ptr->map_item).create_bg(0, 0)),
         bg_m(bg.map())
-        {
-        }
+        {}
 
     // Getters
     [[nodiscard]] int width() const { return map.x();}
@@ -47,7 +46,6 @@ public:
         bg.set_priority(priority);
     }
     void set_visible(bool visible){ bg.set_visible(visible);}
-    void set_blending_enabled(bool isBlend){ bg.set_blending_enabled(isBlend);}
 
     // Functionality
     void update();
