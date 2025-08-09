@@ -2,11 +2,10 @@
 #define JV_GAME_H
 
 #include "bn_vector.h"
-#include "bn_memory.h"
 #include "bn_colors.h"
 #include "bn_sprites.h"
-#include "bn_music_items.h"
 #include "bn_bg_palettes.h"
+#include "bn_music_items.h"
 #include "bn_music_actions.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
@@ -19,7 +18,6 @@
 #include "jv_actors.h"
 #include "jv_stairs.h"
 #include "jv_global.h"
-#include "jv_credits.h"
 #include "jv_tiled_bg.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
@@ -31,7 +29,6 @@
 #include "bn_regular_bg_items_intro_card.h"
 #include "bn_regular_bg_items_intro_card_bg.h"
 
-#include "bn_sprite_items_ball.h"
 #include "bn_sprite_items_cursor.h"
 
 #if LOGS_ENABLED
@@ -185,7 +182,7 @@ void game_scene(bn::random& randomizer){
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
 
-    const uint8_t zone_x = 5, zone_y = 5;
+    const uint8_t zone_x = 2, zone_y = 2;
     constexpr uint8_t zoneSize = zone_x*zone_y;
     uint16_t tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
     
@@ -200,11 +197,11 @@ void game_scene(bn::random& randomizer){
 
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
-    jv::Player cat(bn::point(0, 0), cam);
     jv::healthbar healthbar;
-    jv::stairs stairs;
     jv::Fog<zoneSize>* fog_ptr = nullptr;
     jv::Fog<zoneSize> fog;
+    jv::Player cat(bn::point(0, 0), cam);
+    jv::stairs stairs;
 
     NPCs_vector_t v_npcs;
     enemies_vector_t v_enemies;
@@ -349,7 +346,7 @@ void game_scene(bn::random& randomizer){
         int fade_speed = cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
         jv::Interface::fade(FADE_OUT, fade_speed, FADE_MUSIC);
         
-        // Reset Stuff
+        // Flush and reset objects
         jv::Global::clear_enemies();
         jv::Global::clear_scene_items();
         jv::Global::clear_projectiles();
@@ -357,8 +354,6 @@ void game_scene(bn::random& randomizer){
         stairs.set_open(false);
         if(fog_ptr){ fog_ptr->reset();}
         txt_sprts.erase(txt_sprts.begin() + 1);
-
-        bn::core::update();
     }
     
     jv::Global::reset();

@@ -34,10 +34,6 @@ void Global::reset(){
     _npcs = nullptr;
     _enemies = nullptr;
     _scene_items = nullptr;
-    for(int i = 0; i < _projectiles->size(); i++){
-        delete _projectiles->data()[i];
-    }
-    _projectiles->clear();
     _projectiles = nullptr;
 }
 
