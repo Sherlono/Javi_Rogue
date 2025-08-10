@@ -9,6 +9,7 @@
 #include "bn_music_actions.h"
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
+#include "bn_sprite_text_generator.h"
 #include "bn_sprite_palette_actions.h"
 #include "common_variable_8x8_sprite_font.h"
 
@@ -18,6 +19,7 @@
 #include "jv_actors.h"
 #include "jv_stairs.h"
 #include "jv_global.h"
+#include "bn_string.h"
 #include "jv_tiled_bg.h"
 #include "jv_healthbar.h"
 #include "jv_interface.h"
@@ -33,7 +35,6 @@
 
 #if LOGS_ENABLED
     #include "bn_log.h"
-    #include "bn_string.h"
     static_assert(LOGS_ENABLED, "Log is not enabled");
 #endif
 #if DEV_ENABLED
@@ -41,12 +42,6 @@
 #endif
 
 namespace jv::game{
-using dynamic_cells_t = uint8_t*;
-using NPCs_vector_t = bn::vector<jv::NPC, 1>;
-using enemies_vector_t = bn::vector<jv::Enemy*, MAX_ENEMIES>;
-using items_vector_t = bn::vector<jv::Item*, MAX_ENEMIES>;
-using projectiles_vector_t = bn::vector<jv::Projectile*, MAX_ENEMIES>;
-
 void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
     
@@ -165,19 +160,19 @@ int start_scene(bn::random& randomizer){
         if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
-
-    bn::sprite_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
-    bn::bg_palettes::set_fade(bn::colors::black, bn::fixed(0.0));
     
     return option;
 }
 
 void game_scene(bn::random& randomizer){
+    using dynamic_cells_t = uint8_t*;
+    using NPCs_vector_t = bn::vector<jv::NPC, 1>;
+    using enemies_vector_t = bn::vector<jv::Enemy*, MAX_ENEMIES>;
+    using items_vector_t = bn::vector<jv::Item*, MAX_ENEMIES>;
+    using projectiles_vector_t = bn::vector<jv::Projectile*, MAX_ENEMIES>;
+
     // Text generator
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-
-    // Music
-    bn::music_items::cyberrid.play(0.2);
 
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
@@ -209,6 +204,7 @@ void game_scene(bn::random& randomizer){
     projectiles_vector_t v_projectiles;
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
+
     #if DEV_ENABLED
         bn::vector<bn::sprite_ptr, 3> cpu_sprts;
     #endif
@@ -237,17 +233,20 @@ void game_scene(bn::random& randomizer){
             
         text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
         cpu_sprts[0].set_bg_priority(0);
-        text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
     #endif
 
     {// Configs
-        bn::sprites::set_blending_bottom_enabled(false);
-        bn::blending::set_transparency_alpha(0.8);
+        bn::music_items::cyberrid.play(0.2);
 
         text_generator.set_bg_priority(0);
         background.set_camera(cam);
         Fortress.set_camera(cam);
         fog_ptr = &fog;
+
+        if(fog_ptr != nullptr){
+            bn::sprites::set_blending_bottom_enabled(false);
+            bn::blending::set_transparency_alpha(0.8);
+        }
 
         jv::Global::initialize(&cam, &Fortress.map, &cat, &randomizer, &v_projectiles);
         jv::Global::extra_data_init(&v_npcs, &v_enemies, &v_scene_items);
@@ -273,6 +272,15 @@ void game_scene(bn::random& randomizer){
         
         jv::Interface::Log_resources();
         
+        #if DEV_ENABLED
+            while(cpu_sprts.size() > 1){
+                cpu_sprts.erase(cpu_sprts.end() - 1);
+            }
+            text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
+            bn::core::update();
+            jv::Interface::Log_skipped_frames();
+        #endif
+
         jv::Interface::fade(FADE_IN, fadespeed::MEDIUM);
 
         while(!next_level){

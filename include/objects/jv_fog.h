@@ -12,21 +12,17 @@
 #include "bn_rect_window_actions.h"
 #include "bn_rect_window_boundaries_hbe_ptr.h"
 
-#include "jv_constants.h"
-
 #include "bn_regular_bg_items_darkness.h"
-
-#if LOGS_ENABLED
-    #include "bn_log.h"
-    #include "bn_string.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
-#endif
 
 namespace jv{
 
 class iFog{
-    using h_bounds_type = bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()>;
-    
+using h_bounds_type = bn::array<bn::pair<bn::fixed, bn::fixed>, bn::display::height()>;
+
+static constexpr bn::fixed quarter_circle[24] =
+    {0.00087, 0.00348, 0.00784, 0.014, 0.022, 0.03175, 0.0435, 0.0572, 0.073, 0.091, 0.11122, 0.134,
+        0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
+
 public:
     ~iFog() noexcept = default;
 

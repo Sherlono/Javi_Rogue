@@ -44,17 +44,17 @@ void random_coords(bn::ivector<bn::point>& points_out){
         // Finding coordinates with floor in them
         for(int y = 2; y < height; y++){
             for(int x = 1; x < width; x++){
-                bool w_check = true; // Walkable check
-                tileIndex[0] = x*4 - 1 + (y*4 - 1)*Global::Map().x();
-                tileIndex[1] = x*4 + 2 + (y*4 - 1)*Global::Map().x();
-                tileIndex[2] = x*4 - 1 + (y*4 + 2)*Global::Map().x();
-                tileIndex[3] = x*4 + 2 + (y*4 + 2)*Global::Map().x();
+                bool walkable_check = true;
+                tileIndex[0] = x*4 - 1 + (y*4 - 1)*Global::Map().x();   // 0 X X 1
+                tileIndex[1] = x*4 + 2 + (y*4 - 1)*Global::Map().x();   // X # X X
+                tileIndex[2] = x*4 - 1 + (y*4 + 2)*Global::Map().x();   // X X X X
+                tileIndex[3] = x*4 + 2 + (y*4 + 2)*Global::Map().x();   // 2 X X 3
 
                 for(int i = 0; i < 4; i++){
-                    w_check = w_check && (Global::Map()[tileIndex[i]] > 0 && Global::Map()[tileIndex[i]] < WTILES_COUNT);
+                    walkable_check = walkable_check && (Global::Map()[tileIndex[i]] > 0 && Global::Map()[tileIndex[i]] < WTILES_COUNT);
                 }
                 
-                if(w_check){
+                if(walkable_check){
                     // Simple dinamically growing array code. Double size when capped
                     pointCount++;
                     if(valid_points == nullptr){
