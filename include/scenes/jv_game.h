@@ -182,12 +182,12 @@ void game_scene(bn::random& randomizer){
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
 
-    const uint8_t zone_x = 2, zone_y = 2;
-    constexpr uint8_t zoneSize = zone_x*zone_y;
-    uint16_t tileDatasize = ((zone_x*7) - 1)*4 * ((zone_y*7) - 1)*4;
+    constexpr uint16_t tileDatasize = ((MAX_ROOM_ROWS*7) - 1)*4 * ((MAX_ROOM_COLUMNS*7) - 1)*4;
     
     dynamic_cells_t tileData = new uint8_t[tileDatasize];
-    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1, bn::bg_palette_items::fortress_palette, game_map(((zone_x*7) - 1)*4, ((zone_y*7) - 1)*4, tileData));
+    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1,
+                          bn::bg_palette_items::fortress_palette,
+                          game_map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4, tileData));
 
     bn::regular_bg_tiles_item tiles_items[3] =
         {bn::regular_bg_tiles_items::fortress_tiles1,
@@ -198,8 +198,8 @@ void game_scene(bn::random& randomizer){
     // ** Universal entities **
     bn::camera_ptr cam = bn::camera_ptr::create(0, 0);
     jv::healthbar healthbar;
-    jv::Fog<zoneSize>* fog_ptr = nullptr;
-    jv::Fog<zoneSize> fog;
+    jv::Fog<MAX_ROOMS>* fog_ptr = nullptr;
+    jv::Fog<MAX_ROOMS> fog;
     jv::Player cat(bn::point(0, 0), cam);
     jv::stairs stairs;
 
@@ -209,8 +209,12 @@ void game_scene(bn::random& randomizer){
     projectiles_vector_t v_projectiles;
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
+    #if DEV_ENABLED
+        bn::vector<bn::sprite_ptr, 3> cpu_sprts;
+    #endif
 
     // ****** Level data ******
+    uint8_t zone_x, zone_y;
     int floor = 0, gameover_delay = 0;
     bool next_level = false, game_over = false, Objective = true;
     constexpr bn::fixed cam_lerp(0.13);
@@ -230,6 +234,10 @@ void game_scene(bn::random& randomizer){
             jv::menu_option(&Die, "Die"),
             jv::menu_option(&Clear, "Clear"),
             jv::menu_option(&NoFog, "No Fog"),});
+            
+        text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
+        cpu_sprts[0].set_bg_priority(0);
+        text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
     #endif
 
     {// Configs
@@ -254,6 +262,8 @@ void game_scene(bn::random& randomizer){
         gameover_delay = 0;
 
         // Level generation
+        zone_x = 2 + randomizer.get_int(4);
+        zone_y = 2 + randomizer.get_int(4);
         jv::Level::Generate(zone_x, zone_y, fog_ptr);
         jv::Level::Populate(stairs);
         
@@ -291,8 +301,10 @@ void game_scene(bn::random& randomizer){
                 #if DEV_ENABLED
                     if(bn::keypad::select_pressed()){
                         jv::Interface::set_hide_all(healthbar, background, Fortress, txt_sprts, true);
+                        for(bn::sprite_ptr& sprite : cpu_sprts){ sprite.set_visible(false);}
                         jv::Debug::Start(options.data(), options.size());
                         jv::Interface::set_hide_all(healthbar, background, Fortress, txt_sprts, false);
+                        for(bn::sprite_ptr& sprite : cpu_sprts){ sprite.set_visible(true);}
                         
                         if(FullHeal){
                             cat.heal(cat.get_maxhp());
@@ -337,6 +349,13 @@ void game_scene(bn::random& randomizer){
 
             jv::Interface::Log_skipped_frames();
             jv::Interface::resetcombo();
+            
+            #if DEV_ENABLED
+                while(cpu_sprts.size() > 1){
+                    cpu_sprts.erase(cpu_sprts.end() - 1);
+                }
+                text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
+            #endif
             bn::core::update();
         }
 
@@ -354,6 +373,11 @@ void game_scene(bn::random& randomizer){
         stairs.set_open(false);
         if(fog_ptr){ fog_ptr->reset();}
         txt_sprts.erase(txt_sprts.begin() + 1);
+        #if DEV_ENABLED
+            while(cpu_sprts.size() > 1){
+                cpu_sprts.erase(cpu_sprts.end() - 1);
+            }
+        #endif
     }
     
     jv::Global::reset();

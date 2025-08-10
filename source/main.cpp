@@ -13,6 +13,7 @@ int main()
 {
     bn::core::init();
     bn::random randomizer;
+    
     #if !DEV_ENABLED
         jv::game::intro_scene();
     #endif

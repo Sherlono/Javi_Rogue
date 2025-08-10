@@ -7,18 +7,11 @@
  * Block: 4x4 tile array
  */
 
-#ifndef LOGS_ENABLED
-    #define LOGS_ENABLED true   // Turns all BN_LOG call functionality on/off
-#endif
+#define LOGS_ENABLED true   // Turns all BN_LOG call functionality on/off
+#define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
 
-#ifndef DEV_ENABLED
-    #define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
-#endif
-
-#ifndef FADE_IN
-    #define FADE_IN true
-    #define FADE_OUT false
-#endif
+#define FADE_IN true
+#define FADE_OUT false
 
 namespace {
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
@@ -33,6 +26,9 @@ namespace {
          0.16, 0.18777, 0.22, 0.25464, 0.3, 0.33856, 0.39, 0.44723, 0.51588, 0.6, 0.71435, 1.0};
 
     constexpr int MAX_ENEMIES = 15;
+    constexpr int MAX_ROOM_ROWS = 6;
+    constexpr int MAX_ROOM_COLUMNS = 6;
+    constexpr int MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
 }
 
 namespace jv::animation{
