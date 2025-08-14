@@ -1,7 +1,11 @@
 #include "jv_level_generation.h"
 
+#include "bn_assert.h"
+
 #include "jv_global.h"
+#include "jv_fog.h"
 #include "jv_actors.h"
+#include "jv_stairs.h"
 #include "jv_interface.h"
 #include "jv_map_classes.h"
 #include "jv_blocks_data.h"
@@ -11,13 +15,77 @@ enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Co
 
 using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
 
+[[nodiscard]] bn::point pop_point(bn::point* points, int& size, const int index){
+    BN_ASSERT(size > 0, "Invalid size: ", size);
+    BN_ASSERT(index < size, "Invalid index: ", index);
+    bn::point out = bn::point(points[index].x(), points[index].y());
+
+    points[index] = points[size-1];
+    size = size - 1;
+    return out;
+}
+
+void random_coords(bn::ivector<bn::point>& points_out){
+    bn::point* valid_points = nullptr;
+    int pointCount = 0;
+
+    int current_size = 0;
+    int width = (Global::Map().width() - 2)>>2, height = (Global::Map().height() - 3)>>2;
+    int tileIndex[2][2] = {{0, 0}, {0, 0}};
+
+    // Finding coordinates with floor in them
+    for(int y = 2; y < height; y++){
+        for(int x = 1; x < width; x++){
+            bool walkable_check = true;
+            tileIndex[0][0] = x*4 - 1;
+            tileIndex[1][0] = x*4 + 2;
+            tileIndex[0][1] = y*4 - 1;
+            tileIndex[1][1] = y*4 + 2;
+
+            for(int i = 0; i < 4; i++){
+                uint8_t value = Global::Map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
+                walkable_check = walkable_check && (value > 0 && value < WTILES_COUNT);
+            }
+            
+            if(walkable_check){
+                // Simple dinamically growing array code. Double size when capped
+                pointCount++;
+                if(valid_points == nullptr){
+                    valid_points = new bn::point[1];
+                    valid_points[0] = bn::point(32*x, 32*y);
+                    current_size = 1;
+                }else if(pointCount >= current_size){
+                    current_size = current_size*2;
+                    bn::point* temp = new bn::point[current_size];
+                    for(int i = 0; i < pointCount - 1; i++){
+                        temp[i] = valid_points[i];
+                    }
+                    temp[pointCount - 1] = bn::point(32*x, 32*y);
+
+                    delete[] valid_points;
+                    valid_points = temp;
+                }else{
+                    valid_points[pointCount - 1] = bn::point(32*x, 32*y);
+                }
+            }
+        }
+    }
+
+    // Storing random valid coordinates
+    for(int i = 0; i < points_out.max_size(); i++){
+        int pointIndex = Global::Random().get_int(0, pointCount);
+        points_out.push_back(pop_point(valid_points, pointCount, pointIndex));
+    }
+    delete[] valid_points;
+}
+
 void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
-    int index = (option < BLOCK_TOTAL) ? option : 0;
-    Global::Map().insert_map(game_map(4, 4, (uint8_t*)blocks::data[index]), top_left, blockFlip);
+    const int index = (option < BLOCK_TOTAL) ? option : 0;
+    Global::Map().insert_map(GameMap(4, 4, (uint8_t*)blocks::data[index]), top_left, blockFlip);
 }
 
 bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_ptr){
-    bn::point target;
+    bn::point target;   // Target Map cell to insert block
     switch(option){
         // Rooms
         case Small:{
@@ -293,35 +361,35 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
             constexpr uint16_t size = width*height;
 
             uint8_t blockArr[size] = {
-                     0,18,15,15,15,15,18, 0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9, 9,16,31,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 2, 8,28, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1,24, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 5, 2, 5, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,20,
-                    22, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6,22,
-                     0,26,25,25,25,25,25,25,25,25,25,25,26, 0 };
+                     0,18,15,15,15,15,15,15,36,15,15,15,18, 0,
+                    19,16, 9, 9, 9, 9, 9, 9,28, 9, 9, 9,16,19,
+                    20, 8, 2, 2, 2, 2, 2, 2,28, 2, 2, 2, 8,20,
+                    20, 1, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1,28, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1,28, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1,24, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1, 9, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1, 2, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1, 1, 1, 1, 1, 1,20,
+                    20, 1, 1, 1, 1,28, 1, 1, 1, 1, 1, 1, 1,20,
+                    22, 6, 5, 5, 5,28, 5, 5, 5, 5, 5, 5, 6,22,
+                     0,26,25,25,25, 0,25,25,25,25,25,25,26, 0 };
             bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
             
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
@@ -347,23 +415,26 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
             uint8_t blockArr[size] = {
                      0, 1, 0,
                     27, 1,27,
-                    23, 1,23,
-                     9, 1, 9,
-                     0, 1, 0 };
-            bool flipArr[size] = {
-                    0, 0, 1,
-                    0, 0, 1,
-                    1, 0, 0,
-                    0, 0, 0,
-                    0, 0, 1 };
-            
+                     0, 1, 0,
+                     0, 1, 0,
+                     0, 1, 0,};
+
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
                     target.set_x((x + top_left.x())*4 - 2);
                     target.set_y((y + top_left.y())*4 - 2);
-                    BlockFactory(target, blockArr[index], flipArr[index]);
+                    BlockFactory(target, blockArr[index], index == 5);
                 }
+            }
+            
+            for(int x = 0; x < 2; x++){
+                uint8_t aux_blockArr[4] = {
+                        81,82,
+                        83,84,};
+                target.set_x(top_left.x()*4 + 6*(x == 1));
+                target.set_y((2 + top_left.y())*4 - 2);
+                Global::Map().insert_map(GameMap(2, 2, aux_blockArr), target, (x == 1));
             }
             break;
         }
@@ -376,18 +447,13 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
                     0, 9, 9, 0,
                     0, 4, 4, 0,
                     0,25,25, 0 };
-            bool flipArr[size] = {
-                    0, 0, 0, 0,
-                    0, 0, 0, 0,
-                    0, 0, 0, 0,
-                    0, 0, 0, 0 };
-            
+
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
                     int index = x + y*width;
                     target.set_x((x + top_left.x())*4 - 2);
                     target.set_y((y + top_left.y())*4 - 4);
-                    BlockFactory(target, blockArr[index], flipArr[index]);
+                    BlockFactory(target, blockArr[index], false);
                 }
             }
             break;
@@ -400,10 +466,10 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
     return bn::point(0, 0);
 }
 
-void Generate(int const z_x, int const z_y, iFog* fog_ptr){
+void Generate(int const zone_x, int const zone_y, iFog* fog_ptr){
     Global::Map().reset();
-    bool* zData = new bool[z_x*z_y];
-    Zone zone(z_x, z_y, zData);
+    bool* zData = new bool[zone_x*zone_y];
+    Zone zone(zone_x, zone_y, zData);
     if(fog_ptr){ fog_ptr->reset();}
 
     rooms_type validRooms;
@@ -440,10 +506,10 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
                     validRooms.push_back(Wide2);
                 }
             }
-            /*if(x+y == 0 || ((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1))){
-                validRooms.push_back(Big1);
+            if(x+y == 0 || ((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1))){
+                //validRooms.push_back(Big1);
                 validRooms.push_back(Big2);
-            }*/
+            }
 
             uint8_t selectedRoom = validRooms[Global::Random().get_int(0, validRooms.size())];
             if(selectedRoom == Empty){
@@ -487,12 +553,12 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
             if(Global::Map().cell(22 + x*28, 18 + y*28) == 82){
                 uint8_t cornerFix[4] = {77, 82,
                                         78, 84,};
-                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(22 + x*28, 16 + y*28), true);
+                Global::Map().insert_map(GameMap(2, 2, cornerFix), bn::point(22 + x*28, 16 + y*28), true);
             }
             if(Global::Map().cell(29 + x*28, 18 + y*28) == 82){
                 uint8_t cornerFix[4] = {77, 82,
                                         78, 84,};
-                Global::Map().insert_map(game_map(2, 2, cornerFix), bn::point(28 + x*28, 16 + y*28));
+                Global::Map().insert_map(GameMap(2, 2, cornerFix), bn::point(28 + x*28, 16 + y*28));
             }
         }
     }
@@ -504,7 +570,7 @@ void Generate(int const z_x, int const z_y, iFog* fog_ptr){
 void Populate(jv::stairs& stairs){
     const uint8_t pointsSize = 3 + MAX_ENEMIES; // positions for Player, npc, stairs and enemies
     bn::vector<bn::point, pointsSize> v_points;
-    jv::Interface::random_coords(v_points);
+    random_coords(v_points);
     
     Global::Player().set_position(v_points[0]);
     Global::Player().reset();

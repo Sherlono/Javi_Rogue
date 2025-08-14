@@ -46,7 +46,7 @@ void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_fr
 }
 
 // ************ Player ************
-void Player::move(bool noClip){
+void Player::_move(bool noClip){
     if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
 
@@ -79,23 +79,30 @@ void Player::move(bool noClip){
 }
 
 void Player::update(bool noClip){
+    #ifdef DEV_ENABLED
+        if(bn::keypad::l_pressed()){
+            int value = jv::Global::Map().cell(this->int_x()>>3, (this->int_y()+4)>>3);
+            BN_LOG("x: ", this->int_x()>>3, " y: ", (this->int_y()+4)>>3, " Value: ", value);
+        }
+    #endif
+    
     if(alive()){
         _interact_token = true;
         
-        attack_update();
+        _attack_update();
         if(get_state() == State::HURTING){
             if(_animation->done()){
                 set_state(State::NORMAL);
                 set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else if(!is_attacking()){
-            move(noClip);
+            _move(noClip);
         }
         if(!_animation->done()){ _animation->update();}
 
         // Combat
         if(bn::keypad::b_pressed()){
-            start_attack();
+            _start_attack();
         }
     }
 }
@@ -109,14 +116,14 @@ void Player::update(bool noClip){
 }*/
 
 // ************* BadCat *************
-void BadCat::move(){
+void BadCat::_move(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
     
     // Player within range
     if(in_range(Global::Player().int_position(), 18)){
         look_at(player_direction);
-        start_attack();
+        _start_attack();
         
         if(_idle_time <= 2*60){
             _idle_time++;
@@ -168,7 +175,7 @@ void BadCat::update(){
         else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
-            attack_update();
+            _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
@@ -180,7 +187,7 @@ void BadCat::update(){
                     set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
                 }
             }else if(!is_attacking(40)){
-                move();
+                _move();
             }
             if(!_animation->done()){ _animation->update();}
             
@@ -204,7 +211,7 @@ void BadCat::update(){
 }
 
 // ************* PaleTongue *************
-void PaleTongue::move(){
+void PaleTongue::_move(){
     
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
@@ -212,7 +219,7 @@ void PaleTongue::move(){
     // Player within range
     if(in_range(Global::Player().int_position(), 20)){
         look_at(player_direction);
-        start_attack();
+        _start_attack();
         
         if(_idle_time <= 2*60){
             _idle_time++;
@@ -265,7 +272,7 @@ void PaleTongue::update(){
         else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
-            attack_update();
+            _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
@@ -277,7 +284,7 @@ void PaleTongue::update(){
                     set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
-                move();
+                _move();
             }
             if(!_animation->done()){ _animation->update();}
             
@@ -301,7 +308,7 @@ void PaleTongue::update(){
 }
 
 // ************* PaleFinger *************
-void PaleFinger::move(){
+void PaleFinger::_move(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - bn::point(this->int_x(), this->int_y() - 8));
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
@@ -327,7 +334,7 @@ void PaleFinger::move(){
         look_at(player_direction);
         
         if(_idle_time == 0){
-            start_attack();
+            _start_attack();
             _idle_time++;
         }else if(_idle_time <= 2*60){
             _idle_time++;
@@ -354,7 +361,7 @@ void PaleFinger::move(){
     if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::pale_finger.tiles_item());}
 }
 
-void PaleFinger::start_attack(){
+void PaleFinger::_start_attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
         set_animation(animation::Id::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
@@ -373,7 +380,7 @@ void PaleFinger::update(){
         else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
 
         if(alive()){
-            attack_update();
+            _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
@@ -385,7 +392,7 @@ void PaleFinger::update(){
                     set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
-                move();
+                _move();
             }
             if(!_animation->done()){ _animation->update();}
             

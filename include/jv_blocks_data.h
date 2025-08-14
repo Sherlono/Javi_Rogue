@@ -3,8 +3,8 @@
 
 namespace {
     constexpr uint8_t FLOOR_COUNT = 8;                              // Number of Floor Blocks
-    constexpr uint8_t WALL_COUNT = 31 + 22 - FLOOR_COUNT;                // Number of Wall Blocks
-    constexpr uint8_t BLOCK_TOTAL = FLOOR_COUNT + WALL_COUNT + 1;   // Total Blocks
+    constexpr uint8_t WALL_COUNT = 31 - FLOOR_COUNT;                // Number of Wall Blocks
+    constexpr uint8_t BLOCK_TOTAL = 37;   // Total Blocks
 }
 
 namespace jv::blocks{
@@ -189,6 +189,11 @@ namespace jv::blocks{
         48, 94, 221, 175, 
         50, 95, 222, 177, 
         48, 96, 223, 175, }, 
+        //block 36
+        {0, 0, 0, 0, 
+        0, 0, 0, 0, 
+        209, 208, 81, 82, 
+        211, 210, 83, 84, },
     };
 }
 

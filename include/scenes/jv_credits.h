@@ -5,11 +5,6 @@
 #include "bn_string.h"
 #include "bn_sprite_text_generator.h"
 
-#if LOGS_ENABLED
-    #include "bn_log.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
-#endif
-
 #ifndef SECTION_TOTAL
     #define SECTION_TOTAL 11
     #define MAX_SECTION_SIZE 10

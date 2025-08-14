@@ -16,21 +16,21 @@
 #include "bn_regular_bg_tiles_items_fortress_tiles2.h"
 #include "bn_regular_bg_tiles_items_fortress_tiles3.h"
 
-class game_map;
+class GameMap;
 
 namespace jv{
 class tiled_bg{
 public:
-    tiled_bg(const bn::regular_bg_tiles_item& tiles_item, const bn::bg_palette_item& palette_item, game_map m):
+    tiled_bg(const bn::regular_bg_tiles_item& tiles_item, const bn::bg_palette_item& palette_item, GameMap m):
         map(m), bg_m_ptr(new bg_map()),
         bg(bn::regular_bg_item(tiles_item, palette_item, bg_m_ptr->map_item).create_bg(0, 0)),
         bg_m(bg.map())
         {}
 
     // Getters
-    [[nodiscard]] int width() const { return map.x();}
-    [[nodiscard]] int height() const { return map.y();}
-    [[nodiscard]] int size() const { return map.x()*map.y();}
+    [[nodiscard]] int width() const { return map.width();}
+    [[nodiscard]] int height() const { return map.height();}
+    [[nodiscard]] int size() const { return map.width()*map.height();}
     [[nodiscard]] bn::fixed_point position() const { return bg.position();}
     [[nodiscard]] bn::regular_bg_ptr& background() { return bg;}
     [[nodiscard]] bool visible() { return bg.visible();}
@@ -51,7 +51,7 @@ public:
     void update();
     void init();
 
-    game_map map;
+    GameMap map;
 protected:
     bn::unique_ptr<bg_map> bg_m_ptr;
     bn::regular_bg_ptr bg;

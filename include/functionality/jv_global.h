@@ -5,16 +5,10 @@
 #include "bn_assert.h"
 #include "bn_vector.h"
 #include "bn_camera_ptr.h"
-#include "bn_fixed_point.h"
 
 #include "jv_constants.h"
 
-#if LOGS_ENABLED
-    #include "bn_log.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
-#endif
-
-class game_map;
+class GameMap;
 
 namespace jv{
 class Item;
@@ -38,7 +32,7 @@ public:
     Global(const Global&) = delete;
     Global operator=(Global const& other) = delete;
 
-    static void initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, bn::ivector<jv::Projectile*>* projectiles);
+    static void initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player, bn::random* randomizer, bn::ivector<jv::Projectile*>* projectiles);
 
     static void extra_data_init(bn::ivector<jv::NPC>* npcs, bn::ivector<jv::Enemy*>* enemies, bn::ivector<jv::Item*>* items);
 
@@ -51,6 +45,11 @@ public:
     static void clear_enemies();
     static void clear_scene_items();
     static void clear_projectiles();
+    static void clear_objects(){
+        clear_enemies();
+        clear_scene_items();
+        clear_projectiles();
+    }
 
     static void npcs_set_visible(bool visible);
     static void enemies_set_visible(bool visible);
@@ -64,7 +63,7 @@ public:
     // Getters
     [[nodiscard]] static bn::camera_ptr& Camera();
     [[nodiscard]] static jv::Player& Player();
-    [[nodiscard]] static game_map& Map();
+    [[nodiscard]] static GameMap& Map();
     [[nodiscard]] static bn::random& Random();
     [[nodiscard]] static NPCs_vector_ref_t NPCs();
     [[nodiscard]] static enemies_vector_ref_t Enemies();
@@ -74,7 +73,7 @@ public:
 
 private:
     static bn::camera_ptr* _camera;
-    static game_map* _map;
+    static GameMap* _map;
     static jv::Player* _player;
     static bn::random* _randomizer;
     inline static NPCs_vector_ptr_t _npcs;

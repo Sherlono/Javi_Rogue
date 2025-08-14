@@ -9,7 +9,7 @@
 #include "bn_regular_bg_tiles_ptr.h"
 #include "bn_regular_bg_tiles_item.h"
 
-class game_map;
+class GameMap;
 
 namespace jv{
 

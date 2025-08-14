@@ -1,5 +1,7 @@
 #include "jv_global.h"
 
+#include "bn_point.h"
+
 #include "jv_items.h"
 #include "jv_actors.h"
 #include "jv_projectile.h"
@@ -7,12 +9,12 @@
 
 namespace jv{
 bn::camera_ptr* Global::_camera = nullptr;
-game_map* Global::_map = nullptr;
+GameMap* Global::_map = nullptr;
 Player* Global::_player = nullptr;
 bn::random* Global::_randomizer = nullptr;
 bn::point Global::cam_position;
 
-void Global::initialize(bn::camera_ptr* camera, game_map* map, jv::Player* player, bn::random* randomizer, projectiles_vector_ptr_t projectiles){
+void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player, bn::random* randomizer, projectiles_vector_ptr_t projectiles){
     _camera = camera;
     _player = player;
     _map = map;
@@ -187,7 +189,7 @@ void Global::enemies_update(bool& Objective){
     BN_ASSERT(_player != nullptr, "Player not found");
     return *_player;
 }
-[[nodiscard]] game_map& Global::Map(){
+[[nodiscard]] GameMap& Global::Map(){
     BN_ASSERT(_map != nullptr, "Map not found");
     return *_map;
 }

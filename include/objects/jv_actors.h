@@ -22,13 +22,13 @@
 #include "bn_sprite_items_pale_tongue.h"
 #include "bn_sprite_items_pale_finger.h"
 
-#if LOGS_ENABLED
+#if DEV_ENABLED
     #include "bn_log.h"
     #include "bn_string.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
+    static_assert(DEV_ENABLED, "Log is not enabled");
 #endif
 
-class game_map;
+class GameMap;
 
 namespace jv{
 struct stairs;
@@ -252,9 +252,9 @@ public:
     Inventory playerInventory;
 
 private:
-    void move(bool noClip = false);
+    void _move(bool noClip = false);
     
-    void start_attack(){
+    void _start_attack(){
         if(!is_attacking() && _state != State::HURTING){
             bn::sound_items::swipe.play(0.5);
             _attack_cooldown = 20;
@@ -262,7 +262,7 @@ private:
         }
     }
     
-    void attack_update(){
+    void _attack_update(){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown){ _attack_cooldown--;}
         if(_state != State::HURTING){
@@ -384,16 +384,16 @@ public:
     }
     
 private:
-    void move();
+    void _move();
     
-    void start_attack(){
+    void _start_attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 60;
             set_animation(animation::Attack, bn::sprite_items::bad_cat.tiles_item());
         }
     }
     
-    void attack_update(){
+    void _attack_update(){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown){ _attack_cooldown--;}
         if(_state != State::HURTING){
@@ -455,16 +455,16 @@ public:
     }
     
 private:
-    void move();
+    void _move();
     
-    void start_attack(){
+    void _start_attack(){
         if(!_attack_cooldown){
             _attack_cooldown = 75;
             set_animation(animation::Attack, bn::sprite_items::pale_tongue.tiles_item(), 8);
         }
     }
     
-    void attack_update(){
+    void _attack_update(){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown){ _attack_cooldown--;}
         if(_state != State::HURTING){
@@ -526,11 +526,11 @@ public:
     }
     
 private:
-    void move();
+    void _move();
     
-    void start_attack();
+    void _start_attack();
 
-    void attack_update(){
+    void _attack_update(){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown){ _attack_cooldown--;}
         if(_state != State::HURTING){

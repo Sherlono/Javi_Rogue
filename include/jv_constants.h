@@ -5,7 +5,6 @@
  * Tile: 8x8 pixel background tile  *
  * Block: 4x4 tile array            */
 
-#define LOGS_ENABLED true   // Turns all BN_LOG call functionality on/off
 #define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
 
 #define FADE_IN true

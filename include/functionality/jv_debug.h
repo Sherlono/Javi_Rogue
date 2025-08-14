@@ -19,9 +19,9 @@
 
 #include "bn_sprite_items_cursor.h"
 
-#if LOGS_ENABLED
+#if DEV_ENABLED
     #include "bn_log.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
+    static_assert(DEV_ENABLED, "Log is not enabled");
 #endif
 
 namespace jv{
@@ -162,7 +162,7 @@ void Start(jv::menu_option* options, uint8_t const options_size){
     }
     
     // Print debug values
-    /*#if LOGS_ENABLED
+    /*#if DEV_ENABLED
         for(int i = 0; i < options_size; i++){
             if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
             else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}

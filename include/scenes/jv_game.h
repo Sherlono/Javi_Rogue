@@ -33,10 +33,10 @@
 
 #include "bn_sprite_items_cursor.h"
 
-#if LOGS_ENABLED
+/*#if DEV_ENABLED
     #include "bn_log.h"
-    static_assert(LOGS_ENABLED, "Log is not enabled");
-#endif
+    static_assert(DEV_ENABLED, "Log is not enabled");
+#endif*/
 #if DEV_ENABLED
     #include "jv_debug.h"
 #endif
@@ -81,15 +81,15 @@ int start_scene(bn::random& randomizer){
         y_offset = 40;
     }
 
-    #if !DEV_ENABLED
-        bn::string_view explain_text[3][5] = {
-            {"", "A: Interact", "B: Attack"}
-        };
-    #else
+    #if DEV_ENABLED
         bn::string_view explain_text[3][5] = {
             {"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
             {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
             {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
+        };
+    #else
+        bn::string_view explain_text[3][5] = {
+            {"", "A: Interact", "B: Attack"}
         };
     #endif
 
@@ -182,7 +182,7 @@ void game_scene(bn::random& randomizer){
     dynamic_cells_t tileData = new uint8_t[tileDatasize];
     jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1,
                           bn::bg_palette_items::fortress_palette,
-                          game_map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4, tileData));
+                          GameMap(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4, tileData));
 
     bn::regular_bg_tiles_item tiles_items[3] =
         {bn::regular_bg_tiles_items::fortress_tiles1,
@@ -204,11 +204,7 @@ void game_scene(bn::random& randomizer){
     projectiles_vector_t v_projectiles;
 
     bn::vector<bn::sprite_ptr, 2> txt_sprts;
-
-    #if DEV_ENABLED
-        bn::vector<bn::sprite_ptr, 3> cpu_sprts;
-    #endif
-
+    
     // ****** Level data ******
     uint8_t zone_x, zone_y;
     int floor = 0, gameover_delay = 0;
@@ -217,8 +213,9 @@ void game_scene(bn::random& randomizer){
 
     // ****** Debug data ******
     #if DEV_ENABLED
-        bool Noclip = false;
+        cat.invulnerable = true;
         bool FullHeal = false;
+        bool Noclip = false;
         bool Die = false;
         bool Clear = false;
         bool NoFog = false;
@@ -231,6 +228,7 @@ void game_scene(bn::random& randomizer){
             jv::menu_option(&Clear, "Clear"),
             jv::menu_option(&NoFog, "No Fog"),});
             
+        bn::vector<bn::sprite_ptr, 3> cpu_sprts;
         text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
         cpu_sprts[0].set_bg_priority(0);
     #endif
@@ -263,6 +261,8 @@ void game_scene(bn::random& randomizer){
         // Level generation
         zone_x = 2 + randomizer.get_int(4);
         zone_y = 2 + randomizer.get_int(4);
+        /*zone_x = 2;
+        zone_y = 4;*/
         jv::Level::Generate(zone_x, zone_y, fog_ptr);
         jv::Level::Populate(stairs);
         
@@ -270,9 +270,8 @@ void game_scene(bn::random& randomizer){
         Fortress.init();
         if(fog_ptr){ fog_ptr->update();}
         
-        jv::Interface::Log_resources();
-        
         #if DEV_ENABLED
+            jv::Interface::Log_resources();
             while(cpu_sprts.size() > 1){
                 cpu_sprts.erase(cpu_sprts.end() - 1);
             }
@@ -295,6 +294,7 @@ void game_scene(bn::random& randomizer){
             #else 
                 cat.update();
             #endif
+            
             bn::fixed cam_x_target = lerp(Global::Camera().x(), Global::Player().get_hitbox().x(), cam_lerp);
             bn::fixed cam_y_target = lerp(Global::Camera().y(), Global::Player().get_hitbox().y() + 4, cam_lerp);
             cam.set_position(cam_x_target, cam_y_target);
@@ -351,19 +351,19 @@ void game_scene(bn::random& randomizer){
             }
 
             jv::Global::enemies_update(Objective);
-            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Fortress, Objective);}
-            
             healthbar.update();
-
-            jv::Interface::Log_skipped_frames();
-            jv::Interface::resetcombo();
             
+            for(int i = 0; i < v_npcs.size(); i++){ v_npcs[i].update(stairs, Fortress, Objective);}
+
             #if DEV_ENABLED
                 while(cpu_sprts.size() > 1){
                     cpu_sprts.erase(cpu_sprts.end() - 1);
                 }
                 text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
+                jv::Interface::Log_skipped_frames();
             #endif
+
+            jv::Interface::resetcombo();
             bn::core::update();
         }
 
@@ -374,13 +374,12 @@ void game_scene(bn::random& randomizer){
         jv::Interface::fade(FADE_OUT, fade_speed, FADE_MUSIC);
         
         // Flush and reset objects
-        jv::Global::clear_enemies();
-        jv::Global::clear_scene_items();
-        jv::Global::clear_projectiles();
+        jv::Global::clear_objects();
         v_npcs.clear();
         stairs.set_open(false);
         if(fog_ptr){ fog_ptr->reset();}
         txt_sprts.erase(txt_sprts.begin() + 1);
+
         #if DEV_ENABLED
             while(cpu_sprts.size() > 1){
                 cpu_sprts.erase(cpu_sprts.end() - 1);
