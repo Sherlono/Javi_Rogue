@@ -17,7 +17,7 @@
 class GameMap{
 public:
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
-    GameMap(uint8_t x, uint8_t y, uint8_t* blocks): _width(x), _height(y), _data(blocks){}
+    GameMap(uint8_t x, uint8_t y): _width(x), _height(y), _data(std::make_unique<uint8_t[]>(x*y)){}
 
     // Getters
     [[nodiscard]] uint8_t width() const {return _width;}
@@ -44,22 +44,22 @@ public:
         }
     }
 
-    void insert_map(const GameMap room, const bn::point top_left, const bool fliped = false){
+    void insert_data(int map_x, int map_y, uint8_t* map, const bn::point top_left, const bool fliped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
-        int x_end = x_begin + room._width   ,   y_end = y_begin + room._height;
+        int x_end = x_begin + map_x   ,   y_end = y_begin + map_y;
 
         for(int y = y_begin; y < y_end; y++){
             int room_index, map_index;
             for(int x = x_begin; x < x_end; x++){
                 if(!fliped){
-                    room_index = (x - x_begin) + (y - y_begin) * room._width;
+                    room_index = (x - x_begin) + (y - y_begin) * map_x;
                 }else{
-                    room_index = -(x + 1 - x_end) + (y - y_begin) * room._width;
+                    room_index = -(x + 1 - x_end) + (y - y_begin) * map_x;
                 }
-                if(!room._data[room_index]){ continue;}
+                if(!map[room_index]){ continue;}
                 map_index = x + y * this->_width;
-                this->_data[map_index] = room._data[room_index];
-                this->set_horizontal_flip(map_index, fliped ? !room.horizontal_flip(room_index) : room.horizontal_flip(room_index));
+                this->_data[map_index] = map[room_index];
+                this->set_horizontal_flip(map_index, fliped ? !(map[room_index] >= 127) : (map[room_index] >= 127));
             }
         }
     }
@@ -70,7 +70,7 @@ public:
 
 private:
     const uint8_t _width, _height;
-    uint8_t* _data;
+    std::unique_ptr<uint8_t[]> _data;
 };
 
 // Tile data for tiled regular bgs

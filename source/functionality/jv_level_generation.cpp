@@ -81,7 +81,7 @@ void random_coords(bn::ivector<bn::point>& points_out){
 
 void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
     const int index = (option < BLOCK_TOTAL) ? option : 0;
-    Global::Map().insert_map(GameMap(4, 4, (uint8_t*)blocks::data[index]), top_left, blockFlip);
+    Global::Map().insert_data(4, 4, (uint8_t*)blocks::data[index], top_left, blockFlip);
 }
 
 bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_ptr){
@@ -427,14 +427,14 @@ bn::point InsertRoom(const bn::point top_left, const uint8_t option, iFog* fog_p
                     BlockFactory(target, blockArr[index], index == 5);
                 }
             }
-            
+        
+            uint8_t aux_blockArr[4] = {
+                    81,82,
+                    83,84,};
             for(int x = 0; x < 2; x++){
-                uint8_t aux_blockArr[4] = {
-                        81,82,
-                        83,84,};
                 target.set_x(top_left.x()*4 + 6*(x == 1));
                 target.set_y((2 + top_left.y())*4 - 2);
-                Global::Map().insert_map(GameMap(2, 2, aux_blockArr), target, (x == 1));
+                Global::Map().insert_data(2, 2, aux_blockArr, target, (x == 1));
             }
             break;
         }
@@ -543,6 +543,10 @@ void Generate(int const zone_x, int const zone_y, iFog* fog_ptr){
     }
     
     // Horizontal corridors
+    uint8_t cornerFix[4] =
+            {77, 82,
+            78, 84,};
+
     for(int y = 0; y < zone._height; y++){
         for(int x = 0; x < zone._width - 1; x++){
             int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
@@ -551,14 +555,10 @@ void Generate(int const zone_x, int const zone_y, iFog* fog_ptr){
             InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
             if(Global::Map().cell(22 + x*28, 18 + y*28) == 82){
-                uint8_t cornerFix[4] = {77, 82,
-                                        78, 84,};
-                Global::Map().insert_map(GameMap(2, 2, cornerFix), bn::point(22 + x*28, 16 + y*28), true);
+                Global::Map().insert_data(2, 2, cornerFix, bn::point(22 + x*28, 16 + y*28), true);
             }
             if(Global::Map().cell(29 + x*28, 18 + y*28) == 82){
-                uint8_t cornerFix[4] = {77, 82,
-                                        78, 84,};
-                Global::Map().insert_map(GameMap(2, 2, cornerFix), bn::point(28 + x*28, 16 + y*28));
+                Global::Map().insert_data(2, 2, cornerFix, bn::point(28 + x*28, 16 + y*28));
             }
         }
     }

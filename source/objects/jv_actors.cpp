@@ -7,6 +7,10 @@
 #include "jv_projectile.h"
 #include "jv_map_classes.h"
 
+#ifdef DEV_ENABLED
+    #include "bn_log.h"
+#endif
+
 namespace jv{
 // ************ Actor ************
 [[nodiscard]] bool Actor::map_obstacle(const int x, const int y, const uint8_t direction){

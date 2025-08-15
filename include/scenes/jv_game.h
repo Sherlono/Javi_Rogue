@@ -59,9 +59,9 @@ int start_scene(bn::random& randomizer){
     bn::vector<bn::sprite_ptr, 83> explain_sprts;
     
     int option = 0;
-    int x_offset = -16, y_offset = 50;
+    int x_offset = -32, y_offset = 46;
 
-    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-34, y_offset);
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-44, y_offset);
     
     {// Configs
         card.set_priority(0);
@@ -70,12 +70,17 @@ int start_scene(bn::random& randomizer){
 
         text_generator.set_bg_priority(0);
         text_generator.generate(-96, y_offset - 16, "Select scene", menu_sprts);
-        text_generator.generate(-100, y_offset,     "Start game", menu_sprts);
+        text_generator.generate(-110, y_offset,     "Start game", menu_sprts);
+        
         #if DEV_ENABLED
-            text_generator.generate(-100, y_offset + 8, "Block test", menu_sprts);
-            text_generator.generate(-100, y_offset + 16,"Tile test", menu_sprts);
+            text_generator.generate(64, -70, "Dev. Mode", menu_sprts);
+            text_generator.generate(-110, y_offset + 8, "Block test", menu_sprts);
+            text_generator.generate(-110, y_offset + 16,"Tile test", menu_sprts);
         #else
-            text_generator.generate(-100, y_offset + 8, "Credits", menu_sprts);
+            bn::string<16> line = "V ";
+            line.append(Version);
+            text_generator.generate(74, -70, line, menu_sprts);
+            text_generator.generate(-110, y_offset + 8, "Credits", menu_sprts);
         #endif
 
         y_offset = 40;
@@ -83,7 +88,7 @@ int start_scene(bn::random& randomizer){
 
     #if DEV_ENABLED
         bn::string_view explain_text[3][5] = {
-            {"", "A: Interact", "B: Attack", "SELECT: Debug menu"},
+            {"", "A: Interact", "B: Attack", "L: Log tile", "SELECT: Debug menu"},
             {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
             {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
         };
@@ -165,7 +170,6 @@ int start_scene(bn::random& randomizer){
 }
 
 void game_scene(bn::random& randomizer){
-    using dynamic_cells_t = uint8_t*;
     using NPCs_vector_t = bn::vector<jv::NPC, 1>;
     using enemies_vector_t = bn::vector<jv::Enemy*, MAX_ENEMIES>;
     using items_vector_t = bn::vector<jv::Item*, MAX_ENEMIES>;
@@ -177,12 +181,11 @@ void game_scene(bn::random& randomizer){
     // *** Level Background ***
     bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
 
-    constexpr uint16_t tileDatasize = ((MAX_ROOM_ROWS*7) - 1)*4 * ((MAX_ROOM_COLUMNS*7) - 1)*4;
+    GameMap fortress_map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4);
     
-    dynamic_cells_t tileData = new uint8_t[tileDatasize];
     jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles1,
                           bn::bg_palette_items::fortress_palette,
-                          GameMap(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4, tileData));
+                          fortress_map);
 
     bn::regular_bg_tiles_item tiles_items[3] =
         {bn::regular_bg_tiles_items::fortress_tiles1,
@@ -390,7 +393,6 @@ void game_scene(bn::random& randomizer){
     jv::Global::reset();
     bn::sprites::set_blending_bottom_enabled(true);
     bn::music::stop();
-    delete[] tileData;
 }
 
 }

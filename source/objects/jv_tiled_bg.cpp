@@ -4,10 +4,10 @@
 #include "jv_map_classes.h"
 
 namespace jv{
-int tiled_bg::prev_x = 0, tiled_bg::prev_y = 0;
+int tiled_bg::_prev_x = 0, tiled_bg::_prev_y = 0;
 
 void tiled_bg::init(){
-    bg_m_ptr->reset();
+    _bg_m_ptr->reset();
 
     const int current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
     const int cx_plus_32 = current_x + 32    , cy_plus_32 = current_y + 32;
@@ -24,12 +24,12 @@ void tiled_bg::init(){
             value = map.cell(cell_x, cell_y);
             flip = map.horizontal_flip(cell_x + cell_y*map.width());
             
-            bg_m_ptr->set_cell(xmod, ymod, value, flip);
+            _bg_m_ptr->set_cell(xmod, ymod, value, flip);
         }
     }
     
-    prev_x = current_x;
-    prev_y = current_y;
+    _prev_x = current_x;
+    _prev_y = current_y;
     update();
 }
 
@@ -41,7 +41,7 @@ void tiled_bg::update(){
 
     bn::bg_tiles::set_allow_offset(false);
 
-    if(current_x > prev_x){  // If moved Right
+    if(current_x > _prev_x){  // If moved Right
         const short aux_x = current_x + 24, x_minus_16 = aux_x - 16;
         for(int y = current_y; y < cy_plus_32; y++){
             const short ymod = bamod(y, 32), y_minus_16 = y - 16;
@@ -55,9 +55,9 @@ void tiled_bg::update(){
                 value = 0;
                 flip = false;
             }
-            bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
+            _bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
         }
-    }else if(current_x < prev_x){    // If moved Left
+    }else if(current_x < _prev_x){    // If moved Left
         const short aux_x = current_x + 25, x_minus_48 = aux_x - 48;
         for(int y = current_y; y < cy_plus_32; y++){
             const short ymod = bamod(y, 32), y_minus_16 = y - 16;
@@ -71,11 +71,11 @@ void tiled_bg::update(){
                 value = 0;
                 flip = false;
             }
-            bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
+            _bg_m_ptr->set_cell(bamod(aux_x, 32), ymod, value, flip);
         }
     }
     
-    if(current_y > prev_y){    // If moved Down
+    if(current_y > _prev_y){    // If moved Down
         const short aux_y = current_y + 24, y_minus_16 = aux_y - 16;
         for(int x = current_x; x < cx_plus_32; x++){
             const short x_minus_23 = x - 23;
@@ -89,9 +89,9 @@ void tiled_bg::update(){
                 value = 0;
                 flip = false;
             }
-            bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y + 24, 32), value, flip);
+            _bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y + 24, 32), value, flip);
         }
-    }else if(current_y < prev_y){   // If moved Up
+    }else if(current_y < _prev_y){   // If moved Up
         const short y_minus_16 = current_y - 16;
         for(int x = current_x; x < cx_plus_32; x++){
             const short x_minus_23 = x - 23;
@@ -105,15 +105,15 @@ void tiled_bg::update(){
                 value = 0;
                 flip = false;
             }
-            bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y, 32), value, flip);
+            _bg_m_ptr->set_cell(bamod(x - 7, 32), bamod(current_y, 32), value, flip);
         }
     }
     bn::bg_tiles::set_allow_offset(true);
     
-    prev_x = current_x;
-    prev_y = current_y;
+    _prev_x = current_x;
+    _prev_y = current_y;
     
-    bg_m.reload_cells_ref();
+    _bg_m.reload_cells_ref();
 }
 
 }
