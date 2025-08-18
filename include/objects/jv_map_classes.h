@@ -17,11 +17,11 @@
 class GameMap{
 public:
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
-    GameMap(uint8_t x, uint8_t y): _width(x), _height(y), _data(std::make_unique<uint8_t[]>(x*y)){}
+    GameMap(uint16_t x, uint16_t y): _width(x), _height(y), _data(std::make_unique<uint8_t[]>(x*y)){}
 
     // Getters
-    [[nodiscard]] uint8_t width() const {return _width;}
-    [[nodiscard]] uint8_t height() const {return _height;}
+    [[nodiscard]] uint16_t width() const {return _width;}
+    [[nodiscard]] uint16_t height() const {return _height;}
     [[nodiscard]] int size() const {return _width*_height;}
     [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >= 127;}
     [[nodiscard]] uint8_t cell(int x, int y) const {
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    const uint8_t _width, _height;
+    const uint16_t _width, _height;
     std::unique_ptr<uint8_t[]> _data;
 };
 

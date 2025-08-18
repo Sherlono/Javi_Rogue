@@ -50,27 +50,72 @@ void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_fr
 }
 
 // ************ Player ************
-void Player::_move(bool noClip){
+bool Player::_enemy_obstacle(int x, int y, const uint8_t direction){
+    switch(direction){
+        case Actor::Direction::NORTH:{
+            bn::point p(x, y - 8);
+            for(int i = 0; i < _enemies_ref->size(); i++){
+                if(_enemies_ref->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            break;
+        }
+        case Actor::Direction::SOUTH:{
+            bn::point p(x, y + 8);
+            for(int i = 0; i < _enemies_ref->size(); i++){
+                if(_enemies_ref->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            break;
+        }
+        case Actor::Direction::WEST:{
+            bn::point p(x - 8, y);
+            for(int i = 0; i < _enemies_ref->size(); i++){
+                if(_enemies_ref->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            break;
+        }
+        case Actor::Direction::EAST:{
+            bn::point p(x + 8, y);
+            for(int i = 0; i < _enemies_ref->size(); i++){
+                if(_enemies_ref->data()[i]->rect().contains(p)){
+                    return false;
+                }
+            }
+            break;
+        }
+        default:
+            BN_ASSERT(false, "Invalid direction", direction);
+            break;
+    }
+    return true;
+}
+
+void Player::_movement(bool noClip){
     if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
 
         int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
 
         // Move if dir not obstructed
-        if(bn::keypad::up_held() && (noClip || (map_obstacle(x, y, NORTH) && Global::enemy_obstacle(int_x(), int_y(), NORTH)))){
+        if(bn::keypad::up_held() && (noClip || (map_obstacle(x, y, NORTH) && _enemy_obstacle(int_x(), int_y(), NORTH)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
             bn::fixed target_y = this->y() - _stats.speed*diagonal;
             set_position(this->x(), target_y + 8, 8);
-        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(x, y, SOUTH) && Global::enemy_obstacle(int_x(), int_y(), SOUTH)))){
+        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(x, y, SOUTH) && _enemy_obstacle(int_x(), int_y(), SOUTH)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
             bn::fixed target_y = this->y() + _stats.speed*diagonal;
             set_position(this->x(), target_y + 8, 8);
         }
-        if(bn::keypad::left_held() && (noClip || (map_obstacle(x, y, WEST) && Global::enemy_obstacle(int_x(), int_y(), WEST)))){
+        if(bn::keypad::left_held() && (noClip || (map_obstacle(x, y, WEST) && _enemy_obstacle(int_x(), int_y(), WEST)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
             bn::fixed target_x = this->x() - _stats.speed*diagonal;
             set_position(target_x, this->y() + 8, 8);
-        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(x, y, EAST) && Global::enemy_obstacle(int_x(), int_y(), EAST)))){
+        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(x, y, EAST) && _enemy_obstacle(int_x(), int_y(), EAST)))){
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
             bn::fixed target_x = this->x() + _stats.speed*diagonal;
             set_position(target_x, this->y() + 8, 8);
@@ -79,7 +124,12 @@ void Player::_move(bool noClip){
                             this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
     }
 
-    if(_state == State::NORMAL){ walking_update(bn::sprite_items::good_cat.tiles_item());}
+    if(_state == State::NORMAL){
+        if(_prev_dir != _dir){
+            set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
+        }
+        _prev_dir = _dir;
+    }
 }
 
 void Player::update(bool noClip){
@@ -100,7 +150,7 @@ void Player::update(bool noClip){
                 set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else if(!is_attacking()){
-            _move(noClip);
+            _movement(noClip);
         }
         if(!_animation->done()){ _animation->update();}
 
@@ -120,7 +170,7 @@ void Player::update(bool noClip){
 }*/
 
 // ************* BadCat *************
-void BadCat::_move(){
+void BadCat::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
     
@@ -165,7 +215,12 @@ void BadCat::_move(){
         displace(x, y, SPRTYOFFSET, _stats.speed);
     }
     
-    if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::bad_cat.tiles_item());}
+    if(_state == State::NORMAL && !is_attacking(40)){
+        if(_prev_dir != _dir){
+            set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
+        }
+        _prev_dir = _dir;
+    }
 }
 
 void BadCat::update(){
@@ -191,7 +246,7 @@ void BadCat::update(){
                     set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
                 }
             }else if(!is_attacking(40)){
-                _move();
+                _movement();
             }
             if(!_animation->done()){ _animation->update();}
             
@@ -215,7 +270,7 @@ void BadCat::update(){
 }
 
 // ************* PaleTongue *************
-void PaleTongue::_move(){
+void PaleTongue::_movement(){
     
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
@@ -262,7 +317,12 @@ void PaleTongue::_move(){
         displace(x, y, SPRTYOFFSET, _stats.speed);
     }
     
-    if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::pale_tongue.tiles_item());}
+    if(_state == State::NORMAL && !is_attacking(40)){
+        if(_prev_dir != _dir){
+            set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item());
+        }
+        _prev_dir = _dir;
+    }
 }
 
 void PaleTongue::update(){
@@ -288,7 +348,7 @@ void PaleTongue::update(){
                     set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
-                _move();
+                _movement();
             }
             if(!_animation->done()){ _animation->update();}
             
@@ -312,7 +372,7 @@ void PaleTongue::update(){
 }
 
 // ************* PaleFinger *************
-void PaleFinger::_move(){
+void PaleFinger::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - bn::point(this->int_x(), this->int_y() - 8));
     int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
         
@@ -362,7 +422,12 @@ void PaleFinger::_move(){
         displace(x, y, SPRTYOFFSET, _stats.speed);
     }
     
-    if(_state == State::NORMAL && !is_attacking(40)){ walking_update(bn::sprite_items::pale_finger.tiles_item());}
+    if(_state == State::NORMAL && !is_attacking(40)){
+        if(_prev_dir != _dir){
+            set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item());
+        }
+        _prev_dir = _dir;
+    }
 }
 
 void PaleFinger::_start_attack(){
@@ -396,7 +461,7 @@ void PaleFinger::update(){
                     set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
-                _move();
+                _movement();
             }
             if(!_animation->done()){ _animation->update();}
             

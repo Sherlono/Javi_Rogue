@@ -22,35 +22,16 @@ void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player
     _projectiles = projectiles;
 }
 
-void Global::extra_data_init(NPCs_vector_ptr_t npcs, enemies_vector_ptr_t enemies, items_vector_ptr_t items){
-    _npcs = npcs;
-    _enemies = enemies;
-    _scene_items = items;
-}
-
 void Global::reset(){
     _camera = nullptr;
     _player = nullptr;
     _map = nullptr;
-    _randomizer = nullptr;
-    _npcs = nullptr;
-    _enemies = nullptr;
-    _scene_items = nullptr;
     _projectiles = nullptr;
 }
 
 void Global::update(){
     if(_camera != nullptr){
         cam_position = bn::point(_camera->position().x().integer(), _camera->position().y().integer());
-    }
-
-    if(_projectiles != nullptr){
-        for(int i = 0; i < _projectiles->size(); i++){
-            if(_projectiles->data()[i]->update()){
-                delete _projectiles->data()[i];
-                _projectiles->erase(_projectiles->begin() + i);
-            }
-        }
     }
 }
 
@@ -64,120 +45,6 @@ void Global::create_projectile(int x, int y, uint8_t option){
         default:
             BN_ASSERT(false, "Invalid Projectile id");
             break;
-    }
-}
-
-void Global::clear_enemies(){
-    BN_ASSERT(_enemies != nullptr, "Enemies not found");
-    for(int i = 0; i < _enemies->size(); i++){
-        delete _enemies->data()[i];
-    }
-    _enemies->clear();
-}
-
-void Global::clear_scene_items(){
-    BN_ASSERT(_scene_items != nullptr, "Items not found");
-    for(int i = 0; i < _scene_items->size(); i++){
-        delete _scene_items->data()[i];
-    }
-    _scene_items->clear();
-}
-
-void Global::clear_projectiles(){
-    BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
-    for(int i = 0; i < _projectiles->size(); i++){
-        delete _projectiles->data()[i];
-    }
-    _projectiles->clear();
-}
-
-void Global::npcs_set_visible(bool visible){
-    BN_ASSERT(_npcs != nullptr, "NPCs not found");
-    for(int i = 0; i < _npcs->size(); i++){ _npcs->data()[i].set_visible(visible);}
-}
-void Global::enemies_set_visible(bool visible){
-    BN_ASSERT(_enemies != nullptr, "Enemies not found");
-    for(int i = 0; i < _enemies->size(); i++){ _enemies->data()[i]->set_visible(visible);}
-}
-void Global::items_set_visible(bool visible){
-    BN_ASSERT(_scene_items != nullptr, "Items not found");
-    for(int i = 0; i < _scene_items->size(); i++){ _scene_items->data()[i]->set_visible(visible);}
-}
-void Global::projectiles_set_visible(bool visible){
-    BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
-    for(int i = 0; i < _projectiles->size(); i++){ _projectiles->data()[i]->set_visible(visible);}
-}
-
-void Global::scene_items_update(){
-    for(int i = 0; i < _scene_items->size(); i++){
-        if(!_scene_items->data()[i]->gotten()){
-            _scene_items->data()[i]->update();
-        }else{
-            delete _scene_items->data()[i];
-            _scene_items->erase(_scene_items->begin() + i);
-        }
-    }
-}
-
-bool Global::enemy_obstacle(int x, int y, const uint8_t direction){
-    switch(direction){
-        case Actor::Direction::NORTH:{
-            bn::point p(x, y - 8);
-            for(int i = 0; i < _enemies->size(); i++){
-                if(_enemies->data()[i]->rect().contains(p)){
-                    return false;
-                }
-            }
-            break;
-        }
-        case Actor::Direction::SOUTH:{
-            bn::point p(x, y + 8);
-            for(int i = 0; i < _enemies->size(); i++){
-                if(_enemies->data()[i]->rect().contains(p)){
-                    return false;
-                }
-            }
-            break;
-        }
-        case Actor::Direction::WEST:{
-            bn::point p(x - 8, y);
-            for(int i = 0; i < _enemies->size(); i++){
-                if(_enemies->data()[i]->rect().contains(p)){
-                    return false;
-                }
-            }
-            break;
-        }
-        case Actor::Direction::EAST:{
-            bn::point p(x + 8, y);
-            for(int i = 0; i < _enemies->size(); i++){
-                if(_enemies->data()[i]->rect().contains(p)){
-                    return false;
-                }
-            }
-            break;
-        }
-        default:
-            BN_ASSERT(false, "Invalid direction", direction);
-            break;
-    }
-    return true;
-}
-
-void Global::enemies_update(bool& Objective){
-    for(int i = 0; i < _enemies->size(); i++){
-        _enemies->data()[i]->update();
-        Objective = Objective && !_enemies->data()[i]->alive();
-        if(_enemies->data()[i]->get_state() == Actor::State::DEAD){
-            int item_check = _randomizer->get_int(0, 3);
-            if(item_check == 1){
-                _scene_items->push_back(new jv::Potion(_enemies->data()[i]->int_x(), _enemies->data()[i]->int_y()));
-            }else if(item_check == 2){
-                _scene_items->push_back(new jv::Key(_enemies->data()[i]->int_x(), _enemies->data()[i]->int_y()));
-            }
-            delete _enemies->data()[i];
-            _enemies->erase(_enemies->begin() + i);
-        }
     }
 }
 
@@ -196,18 +63,6 @@ void Global::enemies_update(bool& Objective){
 [[nodiscard]] bn::random& Global::Random(){
     BN_ASSERT(_randomizer != nullptr, "Randomizer not found");
     return *_randomizer;
-}
-[[nodiscard]] NPCs_vector_ref_t Global::NPCs(){
-    BN_ASSERT(_npcs != nullptr, "NPCs not found");
-    return *_npcs;
-}
-[[nodiscard]] enemies_vector_ref_t Global::Enemies(){
-    BN_ASSERT(_enemies != nullptr, "Enemies not found");
-    return *_enemies;
-}
-[[nodiscard]] items_vector_ref_t Global::Scene_Items(){
-    BN_ASSERT(_scene_items != nullptr, "Scene Items not found");
-    return *_scene_items;
 }
 [[nodiscard]] projectiles_vector_ref_t Global::Projectiles(){
     BN_ASSERT(_projectiles != nullptr, "Projectiles not found");

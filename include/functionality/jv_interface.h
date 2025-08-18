@@ -24,13 +24,9 @@
     static_assert(DEV_ENABLED, "Log is not enabled");
 #endif
 
-class GameMap;
 class Zone;
 
 namespace jv{
-class Player;
-class tiled_bg;
-struct healthbar;
 
 namespace fadespeed{
     constexpr uint8_t VERYFAST = 15;  // Quarter of a second fade
@@ -44,7 +40,7 @@ inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
 
-inline void fade(const bool fadeIn, const unsigned char speed, const bool fademusic = false){
+inline void fade(const bool fadeIn, const unsigned char speed, const bool fademusic){
     bn::fixed progress;
     bn::color black = bn::colors::black;
 
@@ -101,7 +97,6 @@ inline void Log_resources(){
 }
 
 void Log_zone_layout(Zone& z);
-void set_hide_all(jv::healthbar& healthbar, bn::regular_bg_ptr& background, jv::tiled_bg& Fortress, bn::ivector<bn::sprite_ptr>& txt, bool hide);
 
 }
 }

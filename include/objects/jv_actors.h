@@ -13,7 +13,6 @@
 #include "bn_camera_actions.h"
 #include "bn_sprite_animate_actions.h"
 
-#include "jv_global.h"
 #include "jv_inventory.h"
 
 #include "bn_sprite_items_cow.h"
@@ -31,6 +30,7 @@
 class GameMap;
 
 namespace jv{
+class Enemy;
 struct stairs;
 class tiled_bg;
 
@@ -63,11 +63,11 @@ public:
     [[nodiscard]] bn::rect& rect() { return _rect;}
     [[nodiscard]] bn::sprite_ptr& sprite() { return _sprite.value();}
     [[nodiscard]] bn::sprite_animate_action<animation::MAX_FRAMES>& animation() { return _animation.value();}
-    [[nodiscard]] bool in_range(int x, int y, const int r){
+    [[nodiscard]] bool in_range(int x, int y, const int r) const {
         int delta_x = x - int_x(), delta_y = y - int_y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
-    [[nodiscard]] bool in_range(bn::point position, const int r){
+    [[nodiscard]] bool in_range(bn::point position, const int r) const {
         int delta_x = position.x() - int_x(), delta_y = position.y() - int_y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
@@ -140,13 +140,6 @@ public:
         }
     }
 
-    void walking_update(const bn::sprite_tiles_item& tiles){
-        if(_prev_dir != _dir){
-            set_animation(animation::Walk, tiles);
-        }
-        _prev_dir = _dir;
-    }
-    
     void reset_graphics(){
         _sprite.reset();
         _animation.reset();
@@ -165,17 +158,18 @@ class Player: public Actor{
 public:
     ~Player(){ reset_graphics();};
     // Constructor
-    Player(bn::point position, bn::camera_ptr& camera):
+    Player(bn::point position, bn::camera_ptr& camera, bn::ivector<Enemy*>* enemies):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         invulnerable(false),
         playerInventory(),
         _interact_token(true),
-        _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
         _state(State::NORMAL),
-        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
+        _prev_dir(Direction::SOUTH),
         _prev_attack_cooldown(0),
         _attack_cooldown(0),
-        _prev_dir(Direction::SOUTH)
+        _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
+        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
+        _enemies_ref(enemies)
         {
             _hp = _stats.max_hp;
             bn::sprite_builder builder(bn::sprite_items::good_cat);
@@ -252,7 +246,9 @@ public:
     Inventory playerInventory;
 
 private:
-    void _move(bool noClip = false);
+    bool _enemy_obstacle(int x, int y, const uint8_t direction);
+    
+    void _movement(bool noClip = false);
     
     void _start_attack(){
         if(!is_attacking() && _state != State::HURTING){
@@ -275,12 +271,13 @@ private:
     }
     
     bool _interact_token;
+    uint8_t _state;
+    uint8_t _prev_dir;
+    int8_t _prev_attack_cooldown, _attack_cooldown;
     short _hp;
     basic_stats _stats;
-    uint8_t _state;
     bn::rect _hitbox;
-    int _prev_attack_cooldown, _attack_cooldown;
-    uint8_t _prev_dir;
+    bn::ivector<Enemy*>* _enemies_ref;
 };
 
 class Enemy: public Actor{
@@ -384,7 +381,7 @@ public:
     }
     
 private:
-    void _move();
+    void _movement();
     
     void _start_attack(){
         if(!_attack_cooldown){
@@ -455,7 +452,7 @@ public:
     }
     
 private:
-    void _move();
+    void _movement();
     
     void _start_attack(){
         if(!_attack_cooldown){
@@ -526,7 +523,7 @@ public:
     }
     
 private:
-    void _move();
+    void _movement();
     
     void _start_attack();
 

@@ -19,10 +19,10 @@ int main()
     #endif
     while(true){
         switch(jv::game::start_scene(randomizer)){
-            case 0:
-                jv::game::game_scene(randomizer);
+            case 0:{
+                jv::game::MainGame game(randomizer);
                 break;
-                
+                }
             #if !DEV_ENABLED
                 case 1:
                     jv::credits::credits_scene();

@@ -97,8 +97,8 @@ private:
 
 namespace Debug{
 void debug_update(jv::menu_option* options, uint8_t const options_size, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int index, const bool increase){
-    if(increase){ options[index].increase();
-    }else{ options[index].decrease();}
+    if(increase){ options[index].increase();}
+    else{ options[index].decrease();}
 
     v_text.clear();
     for(int i = 0; i < options_size; i++){

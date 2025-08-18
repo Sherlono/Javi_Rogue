@@ -20,8 +20,8 @@ namespace {
     constexpr uint8_t ROOM_PREFAB_COUNT = 8;                        // Number of Room Prefabs
 
     constexpr uint8_t MAX_ENEMIES = 25;
-    constexpr uint8_t MAX_ROOM_ROWS = 6;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 6;
+    constexpr uint8_t MAX_ROOM_ROWS = 10;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 10;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2

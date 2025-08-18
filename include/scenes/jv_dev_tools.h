@@ -13,7 +13,6 @@
 #include "jv_tiled_bg.h"
 #include "jv_interface.h"
 #include "jv_blocks_data.h"
-#include "jv_level_generation.h"
 
 #include "bn_sprite_items_cursor.h"
 #include "bn_regular_bg_items_bg.h"
@@ -27,7 +26,9 @@ void GenerateDevLevel(GameMap& map){
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
             int index = x + y*width;
-            jv::Level::BlockFactory(bn::point(x*4, y*4), index>>1, index%2);
+
+            const int block_index = (index>>1 < BLOCK_TOTAL) ? index>>1 : 0;
+            map.insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], bn::point(x*4, y*4), index%2);
         }
     }
 }
