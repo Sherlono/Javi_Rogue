@@ -7,7 +7,7 @@
  * Tile: 8x8 pixel background tile  *
  * Block: 4x4 tile array            */
 
-#define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
+#define DEV_ENABLED false    // Turns all dev exclusive functionality on/off
 
 #define FADE_IN true
 #define FADE_OUT false

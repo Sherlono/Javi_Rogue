@@ -42,7 +42,7 @@ inline void resetcombo(){
 
 inline void fade(const bool fadeIn, const unsigned char speed, const bool fademusic){
     bn::fixed progress;
-    bn::color black = bn::colors::black;
+    const bn::color black = bn::colors::black;
 
     if(fadeIn){
         progress = 1.0;
@@ -55,12 +55,10 @@ inline void fade(const bool fadeIn, const unsigned char speed, const bool fademu
             bn::core::update();
         }
     }else{
-        bn::fixed volume, volume_decrement;
+        bn::fixed volume_decrement, min;
         if(fademusic && bn::music::playing()){
             volume_decrement = bn::music::volume()/speed;
         }
-        progress = 0.0;
-        bn::fixed min;
 
         for(int i = 0; progress <= 1; i++){
             progress = bn::fixed(i)/speed;
@@ -68,8 +66,7 @@ inline void fade(const bool fadeIn, const unsigned char speed, const bool fademu
             bn::sprite_palettes::set_fade(black, min);
             bn::bg_palettes::set_fade(black, min);
             if(fademusic && bn::music::playing()){
-                volume = bn::music::volume();
-                bn::music::set_volume(bn::max(volume - volume_decrement, bn::fixed(0)));
+                bn::music::set_volume(bn::max(bn::music::volume() - volume_decrement, bn::fixed(0)));
             }
             bn::core::update();
         }
