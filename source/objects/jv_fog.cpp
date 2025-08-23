@@ -8,7 +8,7 @@ void iFog::update(){
     if(visible()){
         bool flag = false;
         for(int r = 0; r < this->size(); r++){
-            if(_rooms[r].contains(Global::Player().int_position())){
+            if(_rooms[r].contains(Global::Player().position())){
                 if(r != current_room){
                     set_shape(_rooms[r]);
                 }
@@ -19,10 +19,10 @@ void iFog::update(){
         }
         if(!flag){
             if(current_room != -1){
-                set_shape(Global::Player().int_position(), 24, 24);
+                set_shape(Global::Player().position(), 24, 24);
                 current_room = -1;
             }else{
-                set_position(Global::Player().int_position());
+                set_position(Global::Player().position());
             }
         }
         

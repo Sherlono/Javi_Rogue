@@ -27,7 +27,7 @@ void GenerateDevLevel(GameMap& map){
         for(int x = 0; x < width; x++){
             int index = x + y*width;
 
-            const int block_index = (index>>1 < BLOCK_TOTAL) ? index>>1 : 0;
+            const int  block_index = (index>>1 < BLOCK_TOTAL) ? index>>1 : 0;
             map.insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], bn::point(x*4, y*4), index%2);
         }
     }
@@ -52,7 +52,7 @@ void Log_block_data([[maybe_unused]] GameMap& map){
     }
 }
 
-void tile_grid_move(int& _x, int& _y, int const width, int const height, int const map_x, int& current_block, int& current_tile, bn::camera_ptr& cam, tiled_bg& tb, bn::sprite_ptr& cursor){
+void tile_grid_move(int& _x, int& _y, const int width, const int height, const int map_x, int& current_block, int& current_tile, bn::camera_ptr& cam, tiled_bg& tb, bn::sprite_ptr& cursor){
     if(bn::keypad::up_pressed() && _y > 0){
         _y--;
         cam.set_y(cam.y() - 8);

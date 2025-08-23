@@ -39,7 +39,7 @@ constexpr bn::string_view Body[SECTION_TOTAL][MAX_SECTION_SIZE] = {
     {"Javier Sánchez"},
     {"Claudia Andrade", "Freddy Sánchez", "And you!"}};
 
-void generate_credits(bn::sprite_text_generator& text_gen, auto& header_sprts, auto& body_sprts, int section, int const y_offset){
+void generate_credits(bn::sprite_text_generator& text_gen, auto& header_sprts, auto& body_sprts, int section, const int y_offset){
     for(int i = 0; i < MAX_HEAD_LINES; i++){
         if(header_sprts[i].empty()){
             text_gen.generate(0, y_offset, Header[section], header_sprts[i]);

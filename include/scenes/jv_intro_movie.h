@@ -54,19 +54,15 @@ private:
             bn::music_items::cyberrid.play(0.2);
             for(int i = 0; i < _duration; i++){
                 if(bn::keypad::any_pressed()) {
-                    _fade_speed = fadespeed::MEDIUM;
-                    if(i <= _fade_speed){
-                        i = _duration - i;
-                    }else if(i < _duration - fadespeed::SLOW){
-                        i = _duration - _fade_speed;
-                    }
                     interrupted = true;
+                    break;
                 }
 
                 if(i <= _fade_speed){
                     bn::fixed max;
                     _fade_progress = 1 - bn::fixed(i)/_fade_speed;
                     max = bn::max(_fade_progress, bn::fixed(0));
+
                     bn::sprite_palettes::set_fade(_fade_color, max);
                     bn::bg_palettes::set_fade(_fade_color, max);
                     update();
@@ -74,26 +70,19 @@ private:
                     update();
                 }else{
                     bn::fixed min;
-
                     _fade_progress = bn::fixed(i - _duration + _fade_speed)/_fade_speed;
                     min = bn::min(_fade_progress, bn::fixed(1));
+
                     bn::sprite_palettes::set_fade(_fade_color, min);
                     bn::bg_palettes::set_fade(_fade_color, min);
-
-                    if(interrupted){
-                        _volume_decrement = bn::music::volume()/_fade_speed;
-                        bn::music::set_volume(bn::max(bn::music::volume() - _volume_decrement, bn::fixed(0)));
-                    }
+                    
                     update();
                 }
-            }
-            if(interrupted){
-                bn::music::stop();
             }
         }
 
         uint8_t _fade_speed;
-        const int _duration;
+        const int  _duration;
         bn::color _fade_color;
         bn::fixed _volume_decrement;
         bn::fixed _fade_progress;
@@ -151,32 +140,18 @@ private:
 
             for(int i = 0; i < _duration; i++){
                 if(bn::keypad::any_pressed()) {
-                    _fade_speed = fadespeed::MEDIUM;
-                    i = _duration - _fade_speed + (i <= _fade_speed) * (_fade_speed - i);
                     interrupted = true;
+                    break;
                 }
 
-                if(i <= _fade_speed){
-                    update();
-                }else if(i < _duration - _fade_speed){
-                    update();
-                }else{
-                    if(interrupted){
-                        _volume_decrement = bn::music::volume()/_fade_speed;
-                        bn::music::set_volume(bn::max(bn::music::volume() - _volume_decrement, bn::fixed(0)));
-                    }
-                    update();
-                }
+                update();
                 _frame++;
-            }
-            if(interrupted){
-                bn::music::stop();
             }
         }
 
         uint8_t _fade_speed;
         int _frame;
-        const int _duration;
+        const int  _duration;
         bn::color _fade_color;
         bn::fixed _volume_decrement, _fade_progress;
 
@@ -216,44 +191,109 @@ private:
         void start(bool& interrupted){
             for(int i = 0; i < _duration; i++){
                 if(bn::keypad::any_pressed()) {
-                    _fade_speed = fadespeed::MEDIUM;
-                    i = _duration - _fade_speed + (i <= _fade_speed) * (_fade_speed - i);
                     interrupted = true;
+                    break;
                 }
 
                 if(i <= _fade_speed){
                     bn::fixed max;
                     _fade_progress = 1 - bn::fixed(i)/_fade_speed;
                     max = bn::max(_fade_progress, bn::fixed(0));
+
                     bn::sprite_palettes::set_fade(_fade_color, max);
                     bn::bg_palettes::set_fade(_fade_color, max);
+
                     update();
                 }else if(i < _duration - _fade_speed){
                     update();
                 }else{
                     bn::fixed min;
-
                     _fade_progress = bn::fixed(i - _duration + _fade_speed)/_fade_speed;
                     min = bn::min(_fade_progress, bn::fixed(1));
+
                     bn::sprite_palettes::set_fade(_fade_color, min);
                     bn::bg_palettes::set_fade(_fade_color, min);
 
-                    if(interrupted){
-                        _volume_decrement = bn::music::volume()/_fade_speed;
-                        bn::music::set_volume(bn::max(bn::music::volume() - _volume_decrement, bn::fixed(0)));
-                    }
                     update();
                 }
                 _frame++;
-            }
-            if(interrupted){
-                bn::music::stop();
             }
         }
 
         uint8_t _fade_speed;
         int _frame;
-        const int _duration;
+        const int  _duration;
+        bn::color _fade_color;
+        bn::fixed _volume_decrement, _fade_progress;
+
+        bn::sprite_ptr _cat_head;
+        bn::array<bn::sprite_ptr, 4> _bush_sprites;
+        bn::regular_bg_ptr _bg;
+    };
+
+    class Shot_4{
+    public:
+        Shot_4(bool& interrupted):
+            _fade_speed(fadespeed::SLOW),
+            _frame(0),
+            _duration(500),
+            _fade_color(bn::colors::black),
+            _cat_head(bn::sprite_items::intro_shot_3_sprites.create_sprite(0, 58 + 32, 0)),
+            _bush_sprites{bn::sprite_items::intro_shot_3_sprites.create_sprite(-96, 64 + 16, 1),
+                          bn::sprite_items::intro_shot_3_sprites.create_sprite(-32, 64 + 16, 2),
+                          bn::sprite_items::intro_shot_3_sprites.create_sprite( 32, 64 + 16, 3),
+                          bn::sprite_items::intro_shot_3_sprites.create_sprite( 96, 64 + 16, 4),},
+            _bg{bn::regular_bg_items::intro_movie_tail_peak_1.create_bg(0, 45)}
+            {
+                start(interrupted);
+            }
+        
+
+    private:
+        void update(){
+            if(_frame > 80 && _frame < _duration - 260){
+                _cat_head.set_y(_cat_head.y() - bn::fixed(0.19));
+                for(bn::sprite_ptr sprite : _bush_sprites) sprite.set_y(sprite.y() - bn::fixed(0.1));
+                _bg.set_y(_bg.y() - bn::fixed(0.6));
+            }
+            bn::core::update();
+        }
+
+        void start(bool& interrupted){
+            for(int i = 0; i < _duration; i++){
+                if(bn::keypad::any_pressed()) {
+                    interrupted = true;
+                    break;
+                }
+
+                if(i <= _fade_speed){
+                    bn::fixed max;
+                    _fade_progress = 1 - bn::fixed(i)/_fade_speed;
+                    max = bn::max(_fade_progress, bn::fixed(0));
+
+                    bn::sprite_palettes::set_fade(_fade_color, max);
+                    bn::bg_palettes::set_fade(_fade_color, max);
+
+                    update();
+                }else if(i < _duration - _fade_speed){
+                    update();
+                }else{
+                    bn::fixed min;
+                    _fade_progress = bn::fixed(i - _duration + _fade_speed)/_fade_speed;
+                    min = bn::min(_fade_progress, bn::fixed(1));
+
+                    bn::sprite_palettes::set_fade(_fade_color, min);
+                    bn::bg_palettes::set_fade(_fade_color, min);
+
+                    update();
+                }
+                _frame++;
+            }
+        }
+
+        uint8_t _fade_speed;
+        int _frame;
+        const int  _duration;
         bn::color _fade_color;
         bn::fixed _volume_decrement, _fade_progress;
 

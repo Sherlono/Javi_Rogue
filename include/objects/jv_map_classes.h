@@ -24,13 +24,13 @@ public:
     [[nodiscard]] uint16_t height() const {return _height;}
     [[nodiscard]] int size() const {return _width*_height;}
     [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >= 127;}
-    [[nodiscard]] uint8_t cell(int x, int y) const {
+    [[nodiscard]] uint8_t cell(const int x, const int y) const {
         uint8_t val = _data[x + y*_width];
         return val - 127*(val >= 127);
     }
     
     // Setters
-    void set_cell(int const x, int const y, int value){
+    void set_cell(const int x, const int y, int value){
         _data[x + y*_width] = value;
     }
     
@@ -44,7 +44,7 @@ public:
         }
     }
 
-    void insert_data(int map_x, int map_y, uint8_t* map, const bn::point top_left, const bool fliped = false){
+    void insert_data(const int map_x, const int map_y, uint8_t* map, const bn::point top_left, const bool fliped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int x_end = x_begin + map_x   ,   y_end = y_begin + map_y;
 
@@ -86,10 +86,10 @@ struct bg_map
     bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
 
     // Getters
-    int cell(int const x, int const y){ return cells[x + y*32];}
+    int cell(const int x, const int y){ return cells[x + y*32];}
 
     // Setters
-    void set_cell(int const x, int const y, uint16_t value, bool flip = false){
+    void set_cell(const int x, const int y, uint16_t value, bool flip = false){
         BN_ASSERT(x >= 0, "Invalid x", x);
         BN_ASSERT(y >= 0, "Invalid y", y);
 

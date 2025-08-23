@@ -25,8 +25,8 @@ void Item::update(){
             _sprite = builder.release_build(); 
         }
 
-        if(jv::Global::Player().sprite().y() > _sprite->y() - 4){ _sprite->set_z_order(jv::Global::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(jv::Global::Player().sprite().z_order() - 1);}
+        if(jv::Global::Player().graphics.y() > _sprite->y() - 4){ _sprite->set_z_order(jv::Global::Player().graphics.z_order() + 1);}
+        else{ _sprite->set_z_order(jv::Global::Player().graphics.z_order() - 1);}
 
         if(jv::Global::Player().get_state() == Actor::State::NORMAL && !jv::Global::Player().is_attacking()){
             if(bn::keypad::a_pressed() && jv::Global::Player().rect().contains(_point) && jv::Global::Player().can_interact()){

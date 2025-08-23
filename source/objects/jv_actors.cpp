@@ -13,7 +13,7 @@
 
 namespace jv{
 // ************ Actor ************
-[[nodiscard]] bool Actor::map_obstacle(const int x, const int y, const uint8_t direction){
+[[nodiscard]] bool Actor::map_obstacle(const int  x, const int  y, const uint8_t direction){
     int target_x, target_y;
     switch(direction){
         case Direction::NORTH:
@@ -41,16 +41,16 @@ namespace jv{
 
 void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_frames){
     bn::sprite_builder builder(item);
-    builder.set_position(this->int_x(), this->int_y() - y_offset);
+    builder.set_position(x(), y() - y_offset);
     builder.set_camera(Global::Camera());
     builder.set_bg_priority(1);
     
-    _sprite = builder.release_build();
+    graphics.sprite = builder.release_build();
     set_animation(animation::Walk, item.tiles_item(), wait_frames);
 }
 
 // ************ Player ************
-bool Player::_enemy_obstacle(int x, int y, const uint8_t direction){
+bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction){
     switch(direction){
         case Actor::Direction::NORTH:{
             bn::point p(x, y - 8);
@@ -99,29 +99,29 @@ void Player::_movement(bool noClip){
     if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
 
-        int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+        int coll_x = x()>>3, coll_y = (y() + 4)>>3;
 
         // Move if dir not obstructed
-        if(bn::keypad::up_held() && (noClip || (map_obstacle(x, y, NORTH) && _enemy_obstacle(int_x(), int_y(), NORTH)))){
+        if(bn::keypad::up_held() && (noClip || (map_obstacle(coll_x, coll_y, NORTH) && _enemy_obstacle(x(), y(), NORTH)))){         // Up
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-            bn::fixed target_y = this->y() - _stats.speed*diagonal;
-            set_position(this->x(), target_y + 8, 8);
-        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(x, y, SOUTH) && _enemy_obstacle(int_x(), int_y(), SOUTH)))){
+            bn::fixed target_y = graphics.y() - _stats.speed*diagonal;
+            set_position(graphics.x(), target_y + 8, 8);
+        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(coll_x, coll_y, SOUTH) && _enemy_obstacle(x(), y(), SOUTH)))){ // Down
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
-            bn::fixed target_y = this->y() + _stats.speed*diagonal;
-            set_position(this->x(), target_y + 8, 8);
+            bn::fixed target_y = graphics.y() + _stats.speed*diagonal;
+            set_position(graphics.x(), target_y + 8, 8);
         }
-        if(bn::keypad::left_held() && (noClip || (map_obstacle(x, y, WEST) && _enemy_obstacle(int_x(), int_y(), WEST)))){
+        if(bn::keypad::left_held() && (noClip || (map_obstacle(coll_x, coll_y, WEST) && _enemy_obstacle(x(), y(), WEST)))){         // Left
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-            bn::fixed target_x = this->x() - _stats.speed*diagonal;
-            set_position(target_x, this->y() + 8, 8);
-        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(x, y, EAST) && _enemy_obstacle(int_x(), int_y(), EAST)))){
+            bn::fixed target_x = graphics.x() - _stats.speed*diagonal;
+            set_position(target_x, graphics.y() + 8, 8);
+        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(coll_x, coll_y, EAST) && _enemy_obstacle(x(), y(), EAST)))){  // Right
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
-            bn::fixed target_x = this->x() + _stats.speed*diagonal;
-            set_position(target_x, this->y() + 8, 8);
+            bn::fixed target_x = graphics.x() + _stats.speed*diagonal;
+            set_position(target_x, graphics.y() + 8, 8);
         }
-        _hitbox.set_position(this->int_x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
-                            this->int_y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
+        _hitbox.set_position(x() - 10*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) + 10*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) - 16*(_dir == Direction::WEST) + 16*(_dir == Direction::EAST),
+                            y() - 10*(_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) + 10*(_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST));
     }
 
     if(_state == State::NORMAL){
@@ -135,8 +135,8 @@ void Player::_movement(bool noClip){
 void Player::update(bool noClip){
     #ifdef DEV_ENABLED
         if(bn::keypad::l_pressed()){
-            int value = jv::Global::Map().cell(this->int_x()>>3, (this->int_y()+4)>>3);
-            BN_LOG("x: ", this->int_x()>>3, " y: ", (this->int_y()+4)>>3, " Value: ", value);
+            int value = jv::Global::Map().cell(x()>>3, (y()+4)>>3);
+            BN_LOG("x: ", x()>>3, " y: ", (y()+4)>>3, " Value: ", value);
         }
     #endif
     
@@ -145,14 +145,14 @@ void Player::update(bool noClip){
         
         _attack_update();
         if(get_state() == State::HURTING){
-            if(_animation->done()){
+            if(graphics.animation->done()){
                 set_state(State::NORMAL);
                 set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else if(!is_attacking()){
             _movement(noClip);
         }
-        if(!_animation->done()){ _animation->update();}
+        if(!graphics.animation->done()){ graphics.animation->update();}
 
         // Combat
         if(bn::keypad::b_pressed()){
@@ -164,18 +164,18 @@ void Player::update(bool noClip){
 // ************ Enemy ************
 /*[[nodiscard]] bool Enemy::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
     uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-    bool up = this->int_y() > Global::cam_pos().y() - y_offset, down = this->int_y() < Global::cam_pos().y() + y_offset;
-    bool left = this->int_x() > Global::cam_pos().x() - x_offset, right = this->int_x() < Global::cam_pos().x() + x_offset;
+    bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
+    bool left = x() > Global::cam_pos().x() - x_offset, right = x() < Global::cam_pos().x() + x_offset;
     return left && right && up && down;
 }*/
 
 // ************* BadCat *************
 void BadCat::_movement(){
-    bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
-    int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+    bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - graphics.position());
+    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
     
     // Player within range
-    if(in_range(Global::Player().int_position(), 18)){
+    if(in_range(Global::Player().position(), 18)){
         look_at(player_direction);
         _start_attack();
         
@@ -184,17 +184,17 @@ void BadCat::_movement(){
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().int_position(), 46)){
+    }else if(in_range(Global::Player().position(), 46)){
         look_at(player_direction);
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = this->x();
-        bn::fixed target_y = this->y();
-        if((player_direction.x() > 0 && map_obstacle(x, y, EAST)) || (player_direction.x() < 0 && map_obstacle(x, y, WEST))){
+        bn::fixed target_x = graphics.x();
+        bn::fixed target_y = graphics.y();
+        if((player_direction.x() > 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() < 0 && map_obstacle(coll_x, coll_y, WEST))){
             target_x += player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() > 0 && map_obstacle(x, y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(x, y, NORTH))){
+        if((player_direction.y() > 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(coll_x, coll_y, NORTH))){
             target_y += player_direction.y()*_stats.speed;
         }
 
@@ -212,7 +212,7 @@ void BadCat::_movement(){
             _idle_time = 0;
         }
 
-        displace(x, y, SPRTYOFFSET, _stats.speed);
+        displace(coll_x, coll_y, SPRTYOFFSET, _stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -225,20 +225,20 @@ void BadCat::_movement(){
 
 void BadCat::update(){
     if(on_screen(Global::Camera())){
-        if(!_sprite.has_value()){
+        if(!graphics.sprite.has_value()){
             int wait_frames = 4;
             load_graphics(bn::sprite_items::bad_cat, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
+        if(Global::Player().graphics.y() > graphics.sprite->y()){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
-                if(_animation->done()){
+                if(graphics.animation->done()){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
@@ -248,7 +248,7 @@ void BadCat::update(){
             }else if(!is_attacking(40)){
                 _movement();
             }
-            if(!_animation->done()){ _animation->update();}
+            if(!graphics.animation->done()){ graphics.animation->update();}
             
             // Combat
             if(Global::Player().alive()){
@@ -256,27 +256,26 @@ void BadCat::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().int_position(), 25);
+                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
             }
         }
     }else{
-        if(_sprite.has_value()){
-            reset_graphics();
+        if(graphics.sprite.has_value()){
+            graphics.reset();
         }
     }
 }
 
 // ************* PaleTongue *************
 void PaleTongue::_movement(){
-    
-    bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
-    int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+    bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - graphics.position());
+    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
         
     // Player within range
-    if(in_range(Global::Player().int_position(), 20)){
+    if(in_range(Global::Player().position(), 20)){
         look_at(player_direction);
         _start_attack();
         
@@ -285,18 +284,18 @@ void PaleTongue::_movement(){
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().int_position(), 46) && !is_attacking(40)){
+    }else if(in_range(Global::Player().position(), 46) && !is_attacking(40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = this->x(), target_y = this->y();
+        bn::fixed target_x = graphics.x(), target_y = graphics.y();
         
-        if((player_direction.x() > 0 && map_obstacle(x, y, EAST)) || (player_direction.x() < 0 && map_obstacle(x, y, WEST))){
+        if((player_direction.x() > 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() < 0 && map_obstacle(coll_x, coll_y, WEST))){
             target_x += player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() > 0 && map_obstacle(x, y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(x, y, NORTH))){
+        if((player_direction.y() > 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(coll_x, coll_y, NORTH))){
             target_y += player_direction.y()*_stats.speed;
         }
 
@@ -314,7 +313,7 @@ void PaleTongue::_movement(){
             _idle_time = 0;
         }
 
-        displace(x, y, SPRTYOFFSET, _stats.speed);
+        displace(coll_x, coll_y, SPRTYOFFSET, _stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -327,20 +326,20 @@ void PaleTongue::_movement(){
 
 void PaleTongue::update(){
     if(on_screen(Global::Camera())){
-        if(!_sprite.has_value()){
+        if(!graphics.sprite.has_value()){
             int wait_frames = 8;
             load_graphics(bn::sprite_items::pale_tongue, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().sprite().y() > _sprite->y()){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
+        if(Global::Player().graphics.y() > graphics.sprite->y()){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
-                if(_animation->done()){
+                if(graphics.animation->done()){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
@@ -350,7 +349,7 @@ void PaleTongue::update(){
             }else if(!is_attacking(40)){
                 _movement();
             }
-            if(!_animation->done()){ _animation->update();}
+            if(!graphics.animation->done()){ graphics.animation->update();}
             
             // Combat
             if(Global::Player().alive()){
@@ -358,43 +357,43 @@ void PaleTongue::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().int_position(), 25);
+                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
             }
         }
     }else{
-        if(_sprite.has_value()){
-            reset_graphics();
+        if(graphics.sprite.has_value()){
+            graphics.reset();
         }
     }
 }
 
 // ************* PaleFinger *************
 void PaleFinger::_movement(){
-    bn::fixed_point player_direction = jv::normalize(Global::Player().position() - bn::point(this->int_x(), this->int_y() - 8));
-    int x = this->int_x()>>3, y = (this->int_y() + 4)>>3;
+    bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - bn::point(x(), y() - 8));
+    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
         
     // Player within range
-    if(in_range(Global::Player().int_position(), 40)){
+    if(in_range(Global::Player().position(), 40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = this->x(), target_y = this->y();
+        bn::fixed target_x = graphics.x(), target_y = graphics.y();
 
-        if((player_direction.x() < 0 && map_obstacle(x, y, EAST)) || (player_direction.x() > 0 && map_obstacle(x, y, WEST))){
+        if((player_direction.x() < 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() > 0 && map_obstacle(coll_x, coll_y, WEST))){
             target_x -= player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() < 0 && map_obstacle(x, y, SOUTH)) || (player_direction.y() > 0 && map_obstacle(x, y, NORTH))){
+        if((player_direction.y() < 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() > 0 && map_obstacle(coll_x, coll_y, NORTH))){
             target_y -= player_direction.y()*_stats.speed;
         }
 
         set_position(target_x, target_y + SPRTYOFFSET, SPRTYOFFSET);
 
-    }else if(in_range(Global::Player().int_position(), 70)){
+    }else if(in_range(Global::Player().position(), 70)){
         look_at(player_direction);
         
         if(_idle_time == 0){
@@ -419,7 +418,7 @@ void PaleFinger::_movement(){
         }
 
         // If direction is valid
-        displace(x, y, SPRTYOFFSET, _stats.speed);
+        displace(coll_x, coll_y, SPRTYOFFSET, _stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -434,26 +433,26 @@ void PaleFinger::_start_attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
         set_animation(animation::Id::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
-        Global::create_projectile(this->int_x(), this->int_y() - 40, Projectile::IDs::ENERGYORB);
+        Global::create_projectile(x(), y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
 
 void PaleFinger::update(){
     if(on_screen(Global::Camera(), 32, 58)){
-        if(!_sprite.has_value()){
+        if(!graphics.sprite.has_value()){
             int wait_frames = 8;
             load_graphics(bn::sprite_items::pale_finger, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().sprite().y() > _sprite->y() + 8){ _sprite->set_z_order(Global::Player().sprite().z_order() + 1);}
-        else{ _sprite->set_z_order(Global::Player().sprite().z_order() - 1);}
+        if(Global::Player().graphics.y() > graphics.sprite->y() + 8){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
 
             // Movement and Animations
             if(get_state() == State::HURTING){
-                if(_animation->done()){
+                if(graphics.animation->done()){
                     set_state(State::NORMAL);
                     if(!_idle_time){
                         _dir = 0;
@@ -463,7 +462,7 @@ void PaleFinger::update(){
             }else if(!is_attacking(40)){
                 _movement();
             }
-            if(!_animation->done()){ _animation->update();}
+            if(!graphics.animation->done()){ graphics.animation->update();}
             
             // Combat
             if(Global::Player().alive()){
@@ -474,8 +473,8 @@ void PaleFinger::update(){
             }
         }
     }else{
-        if(_sprite.has_value()){
-            reset_graphics();
+        if(graphics.sprite.has_value()){
+            graphics.reset();
         }
     }
 }
@@ -483,21 +482,21 @@ void PaleFinger::update(){
 // ************** NPC **************
 void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
     if(on_screen(Global::Camera())){
-        if(!_sprite.has_value()){
+        if(!graphics.sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
-            builder.set_position(this->int_x(), this->int_y() - 8);
+            builder.set_position(x(), y() - 8);
             builder.set_camera(Global::Camera());
             builder.set_bg_priority(1);
             
-            _sprite = builder.release_build();
-            _animation = bn::create_sprite_animate_action_forever(_sprite.value(), 8,
+            graphics.sprite = builder.release_build();
+            graphics.animation = bn::create_sprite_animate_action_forever(graphics.sprite.value(), 8,
                                     bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
         }
 
-        if(Global::Player().sprite().y() > _sprite->y()){
-            _sprite->set_z_order(Global::Player().sprite().z_order() + 1);
+        if(Global::Player().graphics.y() > graphics.sprite->y()){
+            graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);
         }else{
-            _sprite->set_z_order(Global::Player().sprite().z_order() - 1);
+            graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);
         }
 
         if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()){
@@ -516,10 +515,10 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
             }
         }
 
-        _animation->update();
+        graphics.animation->update();
     }else{
-        if(_sprite.has_value()){
-            reset_graphics();
+        if(graphics.sprite.has_value()){
+            graphics.reset();
         }
     }
     

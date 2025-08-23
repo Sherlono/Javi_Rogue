@@ -57,11 +57,11 @@ public:
     _background(bn::regular_bg_items::bg.create_bg(0, 0)),
     _map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
     _tiles(bn::regular_bg_tiles_items::fortress_tiles1,
-                          bn::bg_palette_items::fortress_palette,
-                          _map),
+           bn::bg_palette_items::fortress_palette,
+           _map),
     _tiles_items{bn::regular_bg_tiles_items::fortress_tiles1,
-                bn::regular_bg_tiles_items::fortress_tiles2,
-                bn::regular_bg_tiles_items::fortress_tiles3},
+                 bn::regular_bg_tiles_items::fortress_tiles2,
+                 bn::regular_bg_tiles_items::fortress_tiles3},
     _bg_animation(jv::create_tiled_bg_animate_action_forever(_tiles.background(), 15, _tiles_items, 0, 1, 0, 2)),
 
     _cam(bn::camera_ptr::create(0, 0)),
@@ -179,9 +179,9 @@ private:
             if(_v_enemies[i]->get_state() == Actor::State::DEAD){
                 int item_check = randomizer.get_int(0, 3);
                 if(item_check == 1){
-                    _v_scene_items.push_back(new jv::Potion(_v_enemies[i]->int_x(), _v_enemies[i]->int_y()));
+                    _v_scene_items.push_back(new jv::Potion(_v_enemies[i]->x(), _v_enemies[i]->y()));
                 }else if(item_check == 2){
-                    _v_scene_items.push_back(new jv::Key(_v_enemies[i]->int_x(), _v_enemies[i]->int_y()));
+                    _v_scene_items.push_back(new jv::Key(_v_enemies[i]->x(), _v_enemies[i]->y()));
                 }
                 delete _v_enemies[i];
                 _v_enemies.erase(_v_enemies.begin() + i);
@@ -223,7 +223,7 @@ private:
         for(bn::sprite_ptr sprite : _txt_sprts){ sprite.set_visible(!hide);}
     }
 
-    [[nodiscard]] bn::point pop_point(bn::point* points, int& size, const int index){
+    [[nodiscard]] bn::point pop_point(bn::point* points, int& size, const int  index){
         BN_ASSERT(size > 0, "Invalid size: ", size);
         BN_ASSERT(index < size, "Invalid index: ", index);
         bn::point out = bn::point(points[index].x(), points[index].y());
@@ -288,7 +288,7 @@ private:
     }
 
     void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
-        const int block_index = (option < BLOCK_TOTAL) ? option : 0;
+        const int  block_index = (option < BLOCK_TOTAL) ? option : 0;
         _map.insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
@@ -768,7 +768,7 @@ private:
         bn::vector<bn::point, pointsSize> v_points;
         random_coords(v_points);
         
-        _cat.set_position(v_points[0]);
+        _cat.set_position(v_points[0], 8);
         _cat.reset();
         _cam.set_position(_cat.get_hitbox().x(), _cat.get_hitbox().y() + 4);
         _stairs.set_position(v_points[1]);
@@ -983,7 +983,7 @@ int start_scene(bn::random& randomizer){
     
     int option = 0, idle = 0;
     int x_offset = -32, y_offset = 46;
-    const int idle_limit = 600;
+    const int  idle_limit = 600;
 
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-44, y_offset);
     
