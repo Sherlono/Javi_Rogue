@@ -46,7 +46,7 @@ void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_fr
     builder.set_bg_priority(1);
     
     graphics.sprite = builder.release_build();
-    set_animation(animation::Walk, item.tiles_item(), wait_frames);
+    graphics.set_animation(_dir, animation::Walk, item.tiles_item(), wait_frames);
 }
 
 // ************ Player ************
@@ -126,7 +126,7 @@ void Player::_movement(bool noClip){
 
     if(_state == State::NORMAL){
         if(_prev_dir != _dir){
-            set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -147,7 +147,7 @@ void Player::update(bool noClip){
         if(get_state() == State::HURTING){
             if(graphics.animation->done()){
                 set_state(State::NORMAL);
-                set_animation(animation::Walk, bn::sprite_items::good_cat.tiles_item());
+                graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else if(!is_attacking()){
             _movement(noClip);
@@ -217,7 +217,7 @@ void BadCat::_movement(){
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::bad_cat.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -230,8 +230,8 @@ void BadCat::update(){
             load_graphics(bn::sprite_items::bad_cat, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().graphics.y() > graphics.sprite->y()){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
-        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
+        if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
@@ -243,7 +243,7 @@ void BadCat::update(){
                     if(!_idle_time){
                         _dir = 0;
                     }
-                    set_animation(animation::Walk, bn::sprite_items::bad_cat.tiles_item());
+                    graphics.set_animation(_dir, animation::Walk, bn::sprite_items::bad_cat.tiles_item());
                 }
             }else if(!is_attacking(40)){
                 _movement();
@@ -318,7 +318,7 @@ void PaleTongue::_movement(){
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_tongue.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -331,8 +331,8 @@ void PaleTongue::update(){
             load_graphics(bn::sprite_items::pale_tongue, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().graphics.y() > graphics.sprite->y()){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
-        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
+        if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
@@ -344,7 +344,7 @@ void PaleTongue::update(){
                     if(!_idle_time){
                         _dir = 0;
                     }
-                    set_animation(animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
+                    graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
                 _movement();
@@ -423,7 +423,7 @@ void PaleFinger::_movement(){
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_finger.tiles_item());
         }
         _prev_dir = _dir;
     }
@@ -432,7 +432,7 @@ void PaleFinger::_movement(){
 void PaleFinger::_start_attack(){
     if(!(_attack_cooldown + _idle_time)){
         _attack_cooldown = 60;
-        set_animation(animation::Id::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
+        graphics.set_animation(_dir, animation::Id::Attack, bn::sprite_items::pale_finger.tiles_item(), 8);
         Global::create_projectile(x(), y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
@@ -444,8 +444,8 @@ void PaleFinger::update(){
             load_graphics(bn::sprite_items::pale_finger, SPRTYOFFSET, wait_frames);
         }
 
-        if(Global::Player().graphics.y() > graphics.sprite->y() + 8){ graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);}
-        else{ graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);}
+        if(Global::Player().graphics.y() > sprite().y() + 8){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
+        else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
 
         if(alive()){
             _attack_update();
@@ -457,7 +457,7 @@ void PaleFinger::update(){
                     if(!_idle_time){
                         _dir = 0;
                     }
-                    set_animation(animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
+                    graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
                 _movement();
@@ -489,14 +489,14 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
             builder.set_bg_priority(1);
             
             graphics.sprite = builder.release_build();
-            graphics.animation = bn::create_sprite_animate_action_forever(graphics.sprite.value(), 8,
+            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8,
                                     bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
         }
 
-        if(Global::Player().graphics.y() > graphics.sprite->y()){
-            graphics.sprite->set_z_order(Global::Player().graphics.z_order() + 1);
+        if(Global::Player().graphics.y() > sprite().y()){
+            sprite().set_z_order(Global::Player().graphics.z_order() + 1);
         }else{
-            graphics.sprite->set_z_order(Global::Player().graphics.z_order() - 1);
+            sprite().set_z_order(Global::Player().graphics.z_order() - 1);
         }
 
         if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()){

@@ -3,6 +3,7 @@
 
 #include "jv_constants.h"
 
+#include "bn_regular_bg_items_intro_movie_forest.h"
 #include "bn_regular_bg_items_intro_movie_bushes.h"
 #include "bn_regular_bg_items_intro_movie_tail_peak_1.h"
 #include "bn_regular_bg_items_intro_movie_shot_2_cat.h"

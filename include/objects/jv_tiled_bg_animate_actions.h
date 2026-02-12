@@ -12,6 +12,7 @@
 class GameMap;
 
 namespace jv{
+using tile_span = bn::span<const bn::tile>;
 
 class itiled_bg_animate_action{
 public:
@@ -35,7 +36,8 @@ public:
             if(current_graphics_indexes_index == 0 ||
                     graphics_indexes[current_graphics_indexes_index - 1] != current_graphics_index)
             {
-                _bg_ref->set_tiles(_tiles_item_ref[current_graphics_index]);
+                const bn::tile& tile = _tiles[current_graphics_index];
+                _tiles_ref->overwrite_tile(_tile_index, tile);
             }
 
             if(_forever && current_graphics_indexes_index == graphics_indexes.size() - 1)
@@ -60,9 +62,9 @@ public:
         _current_wait_updates = 0;
     }
 
-    [[nodiscard]] const bn::regular_bg_ptr& regular_bg() const
+    [[nodiscard]] const bn::regular_bg_tiles_ptr& regular_bg() const
     {
-        return *_bg_ref;
+        return *_tiles_ref;
     }
 
     [[nodiscard]] int wait_updates() const
@@ -95,9 +97,13 @@ public:
         _current_wait_updates = next_change_updates;
     }
 
-    [[nodiscard]] const bn::regular_bg_tiles_item& tiles_item() const
+    void set_tile_index(int index){
+        _tile_index = index;
+    }
+
+    [[nodiscard]] const tile_span& tiles_item() const
     {
-        return *_tiles_item_ref;
+        return _tiles;
     }
 
     [[nodiscard]] const bn::ivector<uint16_t>& graphics_indexes() const
@@ -133,13 +139,14 @@ public:
 
             _current_graphics_indexes_index = current_index;
 
-            if(current_index == num_graphics_indexes)
-            {
-                --current_index;
-            }
+            if(current_index == num_graphics_indexes) --current_index;
         }
 
-        _bg_ref->set_tiles(_tiles_item_ref[current_index]);
+        int current_graphics_indexes_index = _current_graphics_indexes_index;
+        int current_graphics_index = graphics_indexes[current_graphics_indexes_index];
+
+        const bn::tile& tile = _tiles[current_graphics_index];
+        _tiles_ref->overwrite_tile(_tile_index, tile);
     }
 
     [[nodiscard]] int current_graphics_index() const
@@ -150,9 +157,9 @@ public:
 protected:
     itiled_bg_animate_action() = default;
 
-    void _set_refs(bn::regular_bg_ptr& bg, bn::regular_bg_tiles_item* tiles_item, bn::ivector<uint16_t>& graphics_indexes){
-        _bg_ref = &bg;
-        _tiles_item_ref = tiles_item;
+    void _set_refs(bn::regular_bg_tiles_ptr& bg, const tile_span& tiles_item, bn::ivector<uint16_t>& graphics_indexes){
+        _tiles_ref = &bg;
+        _tiles = tiles_item;
         _graphics_indexes_ref = &graphics_indexes;
     }
 
@@ -186,10 +193,12 @@ protected:
     }
 
 private:
-    bn::regular_bg_ptr* _bg_ref = nullptr;
-    bn::regular_bg_tiles_item* _tiles_item_ref = nullptr;
+    bn::regular_bg_tiles_ptr* _tiles_ref = nullptr;
+    tile_span _tiles;
+
     bn::ivector<uint16_t>* _graphics_indexes_ref = nullptr;
     uint16_t _wait_updates = 0;
+    uint16_t _tile_index = 0;
     uint16_t _current_graphics_indexes_index = 0;
     uint16_t _current_wait_updates = 0;
     bool _forever = true;
@@ -201,60 +210,57 @@ class tiled_bg_animate_action: public itiled_bg_animate_action{
     static_assert(MaxSize > 1);
 public:
     [[nodiscard]] static tiled_bg_animate_action once(
-            const bn::regular_bg_ptr& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item,
+            const bn::regular_bg_tiles_ptr& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item,
             const bn::span<const uint16_t>& graphics_indexes)
     {
-        return tiled_bg_animate_action(regular_bg, wait_updates, tiles_item, false, graphics_indexes);
+        return tiled_bg_animate_action(regular_bg, wait_updates, tile_index, tiles_item, false, graphics_indexes);
     }
 
     [[nodiscard]] static tiled_bg_animate_action once(
-            bn::regular_bg_ptr&& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item,
+            bn::regular_bg_tiles_ptr&& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item,
             const bn::span<const uint16_t>& graphics_indexes)
     {
-        return tiled_bg_animate_action(std::move(regular_bg), wait_updates, tiles_item, false, graphics_indexes);
+        return tiled_bg_animate_action(std::move(regular_bg), wait_updates, tile_index, tiles_item, false, graphics_indexes);
     }
 
     [[nodiscard]] static tiled_bg_animate_action forever(
-            const bn::regular_bg_ptr& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item,
+            const bn::regular_bg_tiles_ptr& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item,
             const bn::span<const uint16_t>& graphics_indexes)
     {
-        return tiled_bg_animate_action(regular_bg, wait_updates, tiles_item, true, graphics_indexes);
+        return tiled_bg_animate_action(regular_bg, wait_updates, tile_index, tiles_item, true, graphics_indexes);
     }
 
     [[nodiscard]] static tiled_bg_animate_action forever(
-            bn::regular_bg_ptr&& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item,
+            bn::regular_bg_tiles_ptr&& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item,
             const bn::span<const uint16_t>& graphics_indexes)
     {
-        return tiled_bg_animate_action(std::move(regular_bg), wait_updates, tiles_item, true, graphics_indexes);
+        return tiled_bg_animate_action(std::move(regular_bg), wait_updates, tile_index, tiles_item, true, graphics_indexes);
     }
 
     tiled_bg_animate_action(const tiled_bg_animate_action& other) :
-        _regular_bg(other._regular_bg),
-        _tiles_item(other._tiles_item),
+        _regular_bg_tiles(other._regular_bg_tiles),
         _graphics_indexes(other._graphics_indexes)
     {
-        this->_set_refs(_regular_bg, _tiles_item, _graphics_indexes);
+        this->_set_refs(_regular_bg_tiles, _tiles, _graphics_indexes);
         this->_assign(other);
     }
 
     tiled_bg_animate_action(tiled_bg_animate_action&& other) noexcept :
-        _regular_bg(std::move(other._regular_bg)),
-        _tiles_item(other._tiles_item),
+        _regular_bg_tiles(std::move(other._regular_bg_tiles)),
         _graphics_indexes(other._graphics_indexes)
     {
-        this->_set_refs(_regular_bg, _tiles_item, _graphics_indexes);
+        this->_set_refs(_regular_bg_tiles, _tiles, _graphics_indexes);
         this->_assign(other);
     }
 
     tiled_bg_animate_action(const itiled_bg_animate_action& other) :
-        _regular_bg(other.regular_bg()),
-        _tiles_item(other.tiles_item()),
+        _regular_bg_tiles(other.regular_bg()),
         _graphics_indexes(other.graphics_indexes())
     {
         BN_ASSERT(other.graphics_indexes().size() <= MaxSize,
                   "Too many graphics indexes: ", other.graphics_indexes().size(), " - ", MaxSize);
 
-        this->_set_refs(_regular_bg, _tiles_item, _graphics_indexes);
+        this->_set_refs(_regular_bg_tiles, _tiles, _graphics_indexes);
         this->_assign(other);
     }
 
@@ -262,8 +268,7 @@ public:
     {
         if(this != &other)
         {
-            _regular_bg = other._regular_bg;
-            _tiles_item = other._tiles_item;
+            _regular_bg_tiles = other._regular_bg_tiles;
             _graphics_indexes = other._graphics_indexes;
             this->_assign(other);
         }
@@ -275,8 +280,7 @@ public:
     {
         if(this != &other)
         {
-            _regular_bg = std::move(other._regular_bg);
-            _tiles_item = other._tiles_item;
+            _regular_bg_tiles = std::move(other._regular_bg_tiles);
             _graphics_indexes = other._graphics_indexes;
             this->_assign(other);
         }
@@ -298,29 +302,28 @@ public:
 
 
 private:
-    bn::regular_bg_ptr _regular_bg;
-    bn::regular_bg_tiles_item* _tiles_item;
+    bn::regular_bg_tiles_ptr _regular_bg_tiles;
     bn::vector<uint16_t, MaxSize> _graphics_indexes;
 
-    tiled_bg_animate_action(const bn::regular_bg_ptr& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item,
+    tiled_bg_animate_action(const bn::regular_bg_tiles_ptr& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item,
                           bool forever, const bn::span<const uint16_t>& graphics_indexes) :
-        _regular_bg(regular_bg),
-        _tiles_item(tiles_item)
+        _regular_bg_tiles(regular_bg)
     {
-        this->_set_refs(_regular_bg, _tiles_item, _graphics_indexes);
+        this->_set_refs(_regular_bg_tiles, tiles_item, _graphics_indexes);
         this->_set_update_forever(forever);
         this->set_wait_updates(wait_updates);
+        this->set_tile_index(tile_index);
         this->_assign_graphics_indexes(graphics_indexes);
     }
 
-    tiled_bg_animate_action(bn::regular_bg_ptr&& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item, bool forever,
+    tiled_bg_animate_action(bn::regular_bg_tiles_ptr&& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item, bool forever,
                           const bn::span<const uint16_t>& graphics_indexes) :
-        _regular_bg(std::move(regular_bg)),
-        _tiles_item(tiles_item)
+        _regular_bg_tiles(std::move(regular_bg))
     {
-        this->_set_refs(_regular_bg, _tiles_item, _graphics_indexes);
+        this->_set_refs(_regular_bg_tiles, tiles_item, _graphics_indexes);
         this->_set_update_forever(forever);
         this->set_wait_updates(wait_updates);
+        this->set_tile_index(tile_index);
         this->_assign_graphics_indexes(graphics_indexes);
     }
 };
@@ -329,40 +332,40 @@ private:
 
 template<typename ...Args>
 [[nodiscard]] auto create_tiled_bg_animate_action_once(
-        const bn::regular_bg_ptr& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item, Args ...graphics_indexes)
+        const bn::regular_bg_tiles_ptr& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item, Args ...graphics_indexes)
 {
     return tiled_bg_animate_action<sizeof...(Args)>::once(
-                regular_bg, wait_updates, tiles_item,
+                regular_bg, wait_updates, tile_index, tiles_item,
                 bn::array<uint16_t, sizeof...(Args)>{{ uint16_t(graphics_indexes)... }});
 }
 
 
 template<typename ...Args>
 [[nodiscard]] auto create_tiled_bg_animate_action_once(
-        bn::regular_bg_ptr&& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item, Args ...graphics_indexes)
+        bn::regular_bg_tiles_ptr&& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item, Args ...graphics_indexes)
 {
     return tiled_bg_animate_action<sizeof...(Args)>::once(
-                std::move(regular_bg), wait_updates, tiles_item,
+                std::move(regular_bg), wait_updates, tile_index, tiles_item,
                 bn::array<uint16_t, sizeof...(Args)>{{ uint16_t(graphics_indexes)... }});
 }
 
 
 template<typename ...Args>
 [[nodiscard]] auto create_tiled_bg_animate_action_forever(
-        const bn::regular_bg_ptr& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item, Args ...graphics_indexes)
+        const bn::regular_bg_tiles_ptr& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item, Args ...graphics_indexes)
 {
     return tiled_bg_animate_action<sizeof...(Args)>::forever(
-                regular_bg, wait_updates, tiles_item,
+                regular_bg, wait_updates, tile_index, tiles_item,
                 bn::array<uint16_t, sizeof...(Args)>{{ uint16_t(graphics_indexes)... }});
 }
 
 
 template<typename ...Args>
 [[nodiscard]] auto create_tiled_bg_animate_action_forever(
-        bn::regular_bg_ptr&& regular_bg, int wait_updates, bn::regular_bg_tiles_item* tiles_item, Args ...graphics_indexes)
+        bn::regular_bg_tiles_ptr&& regular_bg, int wait_updates, int tile_index, const tile_span& tiles_item, Args ...graphics_indexes)
 {
     return tiled_bg_animate_action<sizeof...(Args)>::forever(
-                std::move(regular_bg), wait_updates, tiles_item,
+                std::move(regular_bg), wait_updates, tile_index, tiles_item,
                 bn::array<uint16_t, sizeof...(Args)>{{ uint16_t(graphics_indexes)... }});
 }
 

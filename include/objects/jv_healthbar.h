@@ -28,7 +28,7 @@ struct healthbar{
     void init();
 
     void update(){
-        BN_ASSERT(*max_value >= *value, "Hp can't surpass MaxHp");
+        //BN_ASSERT(*max_value >= *value, "Hp can't surpass MaxHp");
         bn::fixed v(*value);
         bn::fixed m_v(*max_value);
 

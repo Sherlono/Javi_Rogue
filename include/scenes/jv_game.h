@@ -1,6 +1,7 @@
 #ifndef JV_GAME_H
 #define JV_GAME_H
 
+#include "bn_log.h"
 #include "bn_string.h"
 #include "bn_vector.h"
 #include "bn_colors.h"
@@ -28,11 +29,17 @@
 #include "jv_blocks_data.h"
 #include "jv_tiled_bg_animate_actions.h"
 
+#include "bn_regular_bg_tiles_items_fortress_tiles.h"
+#include "bn_regular_bg_tiles_items_fortress_torch.h"
+#include "bn_bg_palette_items_fortress_palette.h"
+
+#include "bn_regular_bg_tiles_items_new_tiles1.h"
+#include "bn_bg_palette_items_new_tiles1_palette.h"
+
 #include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_intro1.h"
 #include "bn_regular_bg_items_intro_card.h"
 #include "bn_regular_bg_items_intro_card_bg.h"
-#include "bn_regular_bg_items_intro_movie_forest.h"
 
 #include "bn_sprite_items_cursor.h"
 
@@ -56,22 +63,17 @@ public:
     randomizer(r),
     _background(bn::regular_bg_items::bg.create_bg(0, 0)),
     _map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
-    _tiles(bn::regular_bg_tiles_items::fortress_tiles1,
-           bn::bg_palette_items::fortress_palette,
-           _map),
-    _tiles_items{bn::regular_bg_tiles_items::fortress_tiles1,
-                 bn::regular_bg_tiles_items::fortress_tiles2,
-                 bn::regular_bg_tiles_items::fortress_tiles3},
-    _bg_animation(jv::create_tiled_bg_animate_action_forever(_tiles.background(), 15, _tiles_items, 0, 1, 0, 2)),
-
+    _tiled_bg(bn::regular_bg_tiles_items::fortress_tiles,
+              bn::bg_palette_items::fortress_palette,
+              _map),
+    _tiles_item(bn::regular_bg_tiles_items::fortress_torch.tiles_ref()),
+    _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 99, _tiles_item, 0, 2, 0, 4),
+                  jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 100, _tiles_item, 1, 3, 1, 5)},
     _cam(bn::camera_ptr::create(0, 0)),
     _healthbar(),
     _cat(bn::point(0, 0), _cam, &_v_enemies),
     _stairs(),
-    cam_x_target(0),
-    cam_y_target(0),
-    floor(0), gameover_delay(0),
-    next_level(false), game_over(false), Objective(true)
+    objective(true)
     #if DEV_ENABLED
     ,options{jv::menu_option(&_cat.invulnerable, "Invuln."),
             jv::menu_option(&FullHeal, "Fully heal"),
@@ -80,13 +82,13 @@ public:
             jv::menu_option(&Die, "Die"),
             jv::menu_option(&Clear, "Clear"),
             jv::menu_option(&NoFog, "No Fog"),}
-    #endif    
+    #endif
     {
         bn::music_items::cyberrid.play(0.2);
-
+        BN_LOG(sizeof(jv::tiled_bg_animate_action<4>));
         text_generator.set_bg_priority(0);
         _background.set_camera(_cam);
-        _tiles.set_camera(_cam);
+        _tiled_bg.set_camera(_cam);
 
         bn::sprites::set_blending_bottom_enabled(false);
         bn::blending::set_transparency_alpha(0.8);
@@ -175,7 +177,7 @@ private:
     void enemies_update(){
         for(int i = 0; i < _v_enemies.size(); i++){
             _v_enemies[i]->update();
-            Objective = Objective && !_v_enemies[i]->alive();
+            objective = objective && !_v_enemies[i]->alive();
             if(_v_enemies[i]->get_state() == Actor::State::DEAD){
                 int item_check = randomizer.get_int(0, 3);
                 if(item_check == 1){
@@ -214,7 +216,7 @@ private:
     void set_hide_all(bool hide){
         _healthbar.set_visible(!hide);
         _background.set_visible(!hide);
-        _tiles.set_visible(!hide);
+        _tiled_bg.set_visible(!hide);
         _cat.set_visible(!hide);
         npcs_set_visible(!hide);
         enemies_set_visible(!hide);
@@ -223,9 +225,33 @@ private:
         for(bn::sprite_ptr sprite : _txt_sprts){ sprite.set_visible(!hide);}
     }
 
+    void load_bg_assets(const int option){
+        if(environment_id != option){
+            switch (option){
+                case 0:
+                    _tiled_bg.set_tiles(bn::regular_bg_tiles_items::fortress_tiles);
+                    _tiled_bg.set_palette(bn::bg_palette_items::fortress_palette);
+                    _tiles_item = bn::regular_bg_tiles_items::fortress_torch.tiles_ref();
+                    break;
+                
+                case 1:
+                    _tiled_bg.set_tiles(bn::regular_bg_tiles_items::new_tiles1);
+                    _tiled_bg.set_palette(bn::bg_palette_items::new_tiles1_palette);
+                    //_tiles_item = bn::regular_bg_tiles_items::fortress_torch.tiles_ref();
+                    break;
+                
+                default:
+                    _tiled_bg.set_tiles(bn::regular_bg_tiles_items::new_tiles1);
+                    _tiled_bg.set_palette(bn::bg_palette_items::new_tiles1_palette);
+                    //_tiles_item = bn::regular_bg_tiles_items::fortress_torch.tiles_ref();
+                    break;
+            }
+        }
+    }
+
     [[nodiscard]] bn::point pop_point(bn::point* points, int& size, const int  index){
-        BN_ASSERT(size > 0, "Invalid size: ", size);
-        BN_ASSERT(index < size, "Invalid index: ", index);
+        /*BN_ASSERT(size > 0, "Invalid size: ", size);
+        BN_ASSERT(index < size, "Invalid index: ", index);*/
         bn::point out = bn::point(points[index].x(), points[index].y());
 
         points[index] = points[size-1];
@@ -287,13 +313,16 @@ private:
         delete[] valid_points;
     }
 
-    void BlockFactory(const bn::point top_left, const uint8_t option, const bool blockFlip){
+    void block_factory(const bn::point top_left, const uint8_t option, const bool blockFlip){
         const int  block_index = (option < BLOCK_TOTAL) ? option : 0;
         _map.insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
-    bn::point InsertRoom(const bn::point top_left, const uint8_t option){
+    bn::point insert_room(const bn::point top_left, const uint8_t option){
         bn::point target;   // Target Map cell to insert block
+        int value;
+        bool flip;
+
         switch(option){
             // Rooms
             case Small:{
@@ -320,9 +349,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
             
@@ -369,9 +400,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
             
@@ -418,9 +451,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
             
@@ -455,9 +490,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
             
@@ -490,9 +527,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
             
@@ -541,9 +580,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
 
@@ -590,9 +631,11 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
+                        flip = flipArr[index];
                         target.set_x((x + top_left.x()*7)*4 - 2);
                         target.set_y((y + top_left.y()*7)*4 - 2);
-                        BlockFactory(target, blockArr[index], flipArr[index]);
+                        block_factory(target, value, flip);
                     }
                 }
 
@@ -616,9 +659,10 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
                         target.set_x((x + top_left.x())*4 - 2);
                         target.set_y((y + top_left.y())*4 - 2);
-                        BlockFactory(target, blockArr[index], index == 5);
+                        block_factory(target, blockArr[index], index == 5);
                     }
                 }
             
@@ -645,9 +689,10 @@ private:
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         int index = x + y*width;
+                        value = blockArr[index];
                         target.set_x((x + top_left.x())*4 - 2);
                         target.set_y((y + top_left.y())*4 - 4);
-                        BlockFactory(target, blockArr[index], false);
+                        block_factory(target, blockArr[index], false);
                     }
                 }
                 break;
@@ -660,7 +705,7 @@ private:
         return bn::point(0, 0);
     }
 
-    void Generate(){
+    void generate(){
         using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
 
         _map.reset();
@@ -703,7 +748,7 @@ private:
                     }
                 }
                 if(x+y == 0 || ((y + 1 < zone._height && x + 1 < zone._width) && !zone.cell(x+1, y) && !zone.cell(x+1, y+1))){
-                    //validRooms.push_back(Big1);
+                    validRooms.push_back(Big1);
                     validRooms.push_back(Big2);
                 }
 
@@ -715,7 +760,7 @@ private:
                 top_left.set_x(x);
                 top_left.set_y(y);
 
-                bn::point occupied = InsertRoom(top_left, selectedRoom);
+                bn::point occupied = insert_room(top_left, selectedRoom);
 
                 // Sectors update
                 for(int row = y; row < y + occupied.y(); row++){
@@ -734,7 +779,7 @@ private:
                 int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
                 if(!zone.cell(x, y) || !_map.cell(next_cell_x, next_cell_y) || _map.cell(next_cell_x, halfway_cell_y)){ continue;}
-                InsertRoom(bn::point(2 + x*7, 5 + y*7), V_Corr);
+                insert_room(bn::point(2 + x*7, 5 + y*7), V_Corr);
             }
         }
         
@@ -748,7 +793,7 @@ private:
                 int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
                 if(!zone.cell(x, y) || !_map.cell(next_cell_x, next_cell_y) || _map.cell(halfway_cell_x, next_cell_y)){ continue;}
-                InsertRoom(bn::point(5 + x*7, 2 + y*7), H_Corr);
+                insert_room(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
                 if(_map.cell(22 + x*28, 18 + y*28) == 82){
                     _map.insert_data(2, 2, cornerFix, bn::point(22 + x*28, 16 + y*28), true);
@@ -763,7 +808,7 @@ private:
         delete[] zData;
     }
 
-    void Populate(){
+    void populate(){
         const uint8_t pointsSize = 3 + MAX_ENEMIES; // positions for Player, npc, stairs and enemies
         bn::vector<bn::point, pointsSize> v_points;
         random_coords(v_points);
@@ -775,7 +820,7 @@ private:
 
         _v_npcs.push_back(jv::NPC(v_points[2], _cam));
 
-        bn::vector<uint8_t, 2> enemyCountList;
+        /*bn::vector<uint8_t, 2> enemyCountList;
         enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES));
         enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES - enemyCountList[0]));
         uint8_t enemyCount[2];
@@ -783,16 +828,16 @@ private:
             int index = randomizer.get_int(enemyCountList.size());
             enemyCount[i] = enemyCountList[index];
             enemyCountList.erase(enemyCountList.begin()+index);
-        }
+        }*/
 
-        for(int i = 0; i < enemyCount[0]; i++){
+        for(int i = 0; i < MAX_ENEMIES/3; i++){
             _v_enemies.push_back(new jv::BadCat(v_points[3+i], _cam));
         }
-        for(int i = 0; i < enemyCount[1]; i++){
-            _v_enemies.push_back(new jv::PaleTongue(v_points[3+enemyCount[0]+i], _cam));
+        for(int i = 0; i < MAX_ENEMIES/3; i++){
+            _v_enemies.push_back(new jv::PaleTongue(v_points[3+_v_enemies.size()+i], _cam));
         }
-        for(int i = 0; i < MAX_ENEMIES - enemyCount[0] - enemyCount[1]; i++){
-            _v_enemies.push_back(new jv::PaleFinger(v_points[3+enemyCount[0]+enemyCount[1]+i], _cam));
+        for(int i = 0; i < _v_enemies.max_size() - _v_enemies.size(); i++){
+            _v_enemies.push_back(new jv::PaleFinger(v_points[3+_v_enemies.size()+i], _cam));
         }
         
         jv::Global::update();
@@ -804,14 +849,16 @@ private:
         gameover_delay = 0;
 
         // Level generation
-        zone_x = 2 + randomizer.get_int(MAX_ROOM_ROWS - 2);
-        zone_y = 2 + randomizer.get_int(MAX_ROOM_COLUMNS - 2);
+        //zone_x = 2 + randomizer.get_int(MAX_ROOM_ROWS - 2);
+        //zone_y = 2 + randomizer.get_int(MAX_ROOM_COLUMNS - 2);
+        zone_x = MAX_ROOM_COLUMNS;
+        zone_y = MAX_ROOM_ROWS;
         
-        Generate();
-        Populate();
+        generate();
+        populate();
         
         // Initialize level visuals
-        _tiles.init();
+        _tiled_bg.init();
         _fog.update();
         
         #if DEV_ENABLED
@@ -828,9 +875,10 @@ private:
 
         while(!next_level){
             jv::Global::update();
-            _tiles.update();
-            _bg_animation.update();
-            Objective = true;
+            _tiled_bg.update();
+            _bg_animation[0].update();
+            _bg_animation[1].update();
+            objective = true;
 
             // Player update
             #if DEV_ENABLED
@@ -894,7 +942,7 @@ private:
             projectiles_update();
             _healthbar.update();
             
-            for(int i = 0; i < _v_npcs.size(); i++){ _v_npcs[i].update(_stairs, _tiles, Objective);}
+            for(int i = 0; i < _v_npcs.size(); i++) _v_npcs[i].update(_stairs, _tiled_bg, objective);
 
             #if DEV_ENABLED
             while(cpu_sprts.size() > 1){
@@ -921,6 +969,8 @@ private:
         _fog.reset();
         _txt_sprts.erase(_txt_sprts.begin() + 1);
 
+        load_bg_assets(4);
+
         #if DEV_ENABLED
         while(cpu_sprts.size() > 1){
             cpu_sprts.erase(cpu_sprts.end() - 1);
@@ -934,10 +984,10 @@ private:
 
     bn::regular_bg_ptr _background;
     GameMap _map;
-    jv::tiled_bg _tiles;
+    jv::tiled_bg _tiled_bg;
 
-    bn::regular_bg_tiles_item _tiles_items[3];
-    jv::tiled_bg_animate_action<4> _bg_animation;
+    jv::tile_span _tiles_item;
+    jv::tiled_bg_animate_action<4> _bg_animation[2];
 
     NPCs_vector_t _v_npcs;
     enemies_vector_t _v_enemies;
@@ -953,9 +1003,10 @@ private:
     bn::vector<bn::sprite_ptr, 2> _txt_sprts;
     
     bn::fixed cam_x_target, cam_y_target;
+    uint8_t environment_id;
     uint8_t zone_x, zone_y;
     int floor, gameover_delay;
-    bool next_level, game_over, Objective;
+    bool next_level, game_over, objective;
     
     #if DEV_ENABLED
     bn::vector<bn::sprite_ptr, 3> cpu_sprts;
@@ -981,9 +1032,10 @@ int start_scene(bn::random& randomizer){
     bn::vector<bn::sprite_ptr, 15> menu_sprts;
     bn::vector<bn::sprite_ptr, 30> explain_sprts;
     
-    int option = 0, idle = 0;
+    int option = 0;
     int x_offset = -32, y_offset = 46;
-    const int  idle_limit = 600;
+    [[maybe_unused]] int idle = 0;
+    [[maybe_unused]] const int  idle_limit = 600;
 
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-44, y_offset);
     
@@ -1073,8 +1125,10 @@ int start_scene(bn::random& randomizer){
         }
         #endif
 
+        #if !DEV_ENABLED
         idle++;
         if(idle == idle_limit) break;
+        #endif
 
         jv::Interface::resetcombo();
         randomizer.update();
@@ -1092,8 +1146,11 @@ int start_scene(bn::random& randomizer){
         if(bg.y() == end_y){ bg.set_y(start_y);}
         bn::core::update();
     }
-    
+    #if DEV_ENABLED
+    return option;
+    #else
     return idle == idle_limit ? Start_intro : option;
+    #endif
 }
 
 }

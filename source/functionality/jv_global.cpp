@@ -36,7 +36,7 @@ void Global::update(){
 }
 
 void Global::create_projectile(int x, int y, uint8_t option){
-    BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
+    //BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
     switch(option){
         case 0:{
             _projectiles->push_back(new EnergyOrb(x, y));
@@ -53,19 +53,19 @@ void Global::create_projectile(int x, int y, uint8_t option){
     return *_camera;
 }
 [[nodiscard]] Player& Global::Player(){
-    BN_ASSERT(_player != nullptr, "Player not found");
+    //BN_ASSERT(_player != nullptr, "Player not found");
     return *_player;
 }
 [[nodiscard]] GameMap& Global::Map(){
-    BN_ASSERT(_map != nullptr, "Map not found");
+    //BN_ASSERT(_map != nullptr, "Map not found");
     return *_map;
 }
 [[nodiscard]] bn::random& Global::Random(){
-    BN_ASSERT(_randomizer != nullptr, "Randomizer not found");
+    //BN_ASSERT(_randomizer != nullptr, "Randomizer not found");
     return *_randomizer;
 }
 [[nodiscard]] projectiles_vector_ref_t Global::Projectiles(){
-    BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
+    //BN_ASSERT(_projectiles != nullptr, "Projectiles not found");
     return *_projectiles;
 }
 

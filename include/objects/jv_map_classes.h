@@ -17,7 +17,7 @@
 class GameMap{
 public:
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
-    GameMap(uint16_t x, uint16_t y): _width(x), _height(y), _data(std::make_unique<uint8_t[]>(x*y)){}
+    GameMap(uint16_t x, uint16_t y): _data(std::make_unique<uint8_t[]>(x*y)), _width(x), _height(y){}
 
     // Getters
     [[nodiscard]] uint16_t width() const {return _width;}
@@ -68,9 +68,9 @@ public:
         bn::memory::clear(size(), _data[0]);
     }
 
+    std::unique_ptr<uint8_t[]> _data;
 private:
     const uint16_t _width, _height;
-    std::unique_ptr<uint8_t[]> _data;
 };
 
 // Tile data for tiled regular bgs
@@ -90,8 +90,8 @@ struct bg_map
 
     // Setters
     void set_cell(const int x, const int y, uint16_t value, bool flip = false){
-        BN_ASSERT(x >= 0, "Invalid x", x);
-        BN_ASSERT(y >= 0, "Invalid y", y);
+        /*BN_ASSERT(x >= 0, "Invalid x", x);
+        BN_ASSERT(y >= 0, "Invalid y", y);*/
 
         bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);

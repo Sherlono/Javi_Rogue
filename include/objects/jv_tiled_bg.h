@@ -2,19 +2,12 @@
 #define JV_TILED_BG_H
 
 #include "bn_point.h"
-#include "bn_array.h"
-#include "bn_limits.h"
 #include "bn_unique_ptr.h"
 #include "bn_camera_ptr.h"
 #include "bn_regular_bg_tiles_ptr.h"
 
 #include "jv_global.h"
 #include "jv_map_classes.h"
-
-#include "bn_bg_palette_items_fortress_palette.h"
-#include "bn_regular_bg_tiles_items_fortress_tiles1.h"
-#include "bn_regular_bg_tiles_items_fortress_tiles2.h"
-#include "bn_regular_bg_tiles_items_fortress_tiles3.h"
 
 class GameMap;
 
@@ -33,6 +26,7 @@ public:
     [[nodiscard]] int size() const { return map.width()*map.height();}
     [[nodiscard]] bn::fixed_point position() const { return _bg.position();}
     [[nodiscard]] bn::regular_bg_ptr& background() { return _bg;}
+    [[nodiscard]] bn::regular_bg_tiles_ptr tiles() { return _bg.tiles();}
     [[nodiscard]] bool visible() { return _bg.visible();}
 
     // Setters
@@ -46,6 +40,23 @@ public:
         _bg.set_priority(priority);
     }
     void set_visible(bool visible){ _bg.set_visible(visible);}
+
+    void set_tiles(const bn::regular_bg_tiles_ptr& tiles){
+        _bg.set_tiles(tiles);
+    }
+    void set_tiles(const bn::regular_bg_tiles_item& tiles_item){
+        _bg.set_tiles(tiles_item);
+    }
+    void set_tiles(bn::regular_bg_tiles_ptr&& tiles){
+        _bg.set_tiles(tiles);
+    }
+    void set_palette(const bn::bg_palette_ptr& palette){
+        _bg.set_palette(palette);
+    }
+    void set_palette(const bn::bg_palette_item& palette_item){
+        _bg.set_palette(palette_item);
+    }
+
 
     // Functionality
     void update();
