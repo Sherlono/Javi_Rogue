@@ -16,13 +16,13 @@ void tiled_bg::init(){
     
     for(int y = current_y; y < cy_plus_32; y++){
         for(int x = current_x; x < cx_plus_32; x++){
-            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= map.width() || y - 15 <= 0 || y - 16 >= map.height()){ continue;}
+            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= _map.width() || y - 15 <= 0 || y - 16 >= _map.height()){ continue;}
             const int  xmod = bamod(x, 32), ymod = bamod(y, 32);
 
             const int  cell_x = x - 16, cell_y = y - 16;
 
-            value = map.cell(cell_x, cell_y);
-            flip = map.horizontal_flip(cell_x + cell_y*map.width());
+            value = _map.cell(cell_x, cell_y);
+            flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             
             _bg_m_ptr->set_cell(xmod, ymod, value, flip);
         }
@@ -45,12 +45,12 @@ void tiled_bg::update(){
         const short aux_x = current_x + 24, x_minus_16 = aux_x - 16;
         for(int y = current_y; y < cy_plus_32; y++){
             const short ymod = bamod(y, 32), y_minus_16 = y - 16;
-            const bool oob = x_minus_16 >= map.width() || y_minus_16 < 0 || y_minus_16 >= map.height();
+            const bool oob = x_minus_16 >= _map.width() || y_minus_16 < 0 || y_minus_16 >= _map.height();
 
             const int  cell_x = x_minus_16, cell_y = y_minus_16;
             if(!oob){
-                value = map.cell(cell_x, cell_y);
-                flip = map.horizontal_flip(cell_x + cell_y*map.width());
+                value = _map.cell(cell_x, cell_y);
+                flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
                 value = 0;
                 flip = false;
@@ -61,12 +61,12 @@ void tiled_bg::update(){
         const short aux_x = current_x + 25, x_minus_48 = aux_x - 48;
         for(int y = current_y; y < cy_plus_32; y++){
             const short ymod = bamod(y, 32), y_minus_16 = y - 16;
-            const bool oob = x_minus_48 < 0 || y_minus_16 < 0 || y_minus_16 >= map.height();
+            const bool oob = x_minus_48 < 0 || y_minus_16 < 0 || y_minus_16 >= _map.height();
 
-            const int  cell_x = x_minus_48 + map.width(), cell_y = y - 17;
+            const int  cell_x = x_minus_48 + _map.width(), cell_y = y - 17;
             if(!oob){
-                value = map.cell(cell_x, cell_y);
-                flip = map.horizontal_flip(cell_x + cell_y*map.width());
+                value = _map.cell(cell_x, cell_y);
+                flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
                 value = 0;
                 flip = false;
@@ -79,12 +79,12 @@ void tiled_bg::update(){
         const short aux_y = current_y + 24, y_minus_16 = aux_y - 16;
         for(int x = current_x; x < cx_plus_32; x++){
             const short x_minus_23 = x - 23;
-            const bool oob = y_minus_16 >= map.height() || x_minus_23 < 0 || x_minus_23 >= map.width();
+            const bool oob = y_minus_16 >= _map.height() || x_minus_23 < 0 || x_minus_23 >= _map.width();
 
             const int  cell_x = x_minus_23, cell_y = y_minus_16;
             if(!oob){
-                value = map.cell(cell_x, cell_y);
-                flip = map.horizontal_flip(cell_x + cell_y*map.width());
+                value = _map.cell(cell_x, cell_y);
+                flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
                 value = 0;
                 flip = false;
@@ -95,12 +95,12 @@ void tiled_bg::update(){
         const short y_minus_16 = current_y - 16;
         for(int x = current_x; x < cx_plus_32; x++){
             const short x_minus_23 = x - 23;
-            const bool oob = y_minus_16 < 0 || x_minus_23 < 0 || x_minus_23 >= map.width();
+            const bool oob = y_minus_16 < 0 || x_minus_23 < 0 || x_minus_23 >= _map.width();
 
             const int  cell_x = x_minus_23, cell_y = y_minus_16;
             if(!oob){
-                value = map.cell(cell_x, cell_y);
-                flip = map.horizontal_flip(cell_x + cell_y*map.width());
+                value = _map.cell(cell_x, cell_y);
+                flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
                 value = 0;
                 flip = false;

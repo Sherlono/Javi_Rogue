@@ -59,63 +59,63 @@ class MainGame{
     enum RoomTag {Empty, Small, Tall1, Tall2, Wide1, Wide2, Big1, Big2, V_Corr, H_Corr};
 
 public:
-    MainGame(bn::random& r):text_generator(common::variable_8x8_sprite_font),
-    randomizer(r),
-    _background(bn::regular_bg_items::bg.create_bg(0, 0)),
-    _map(((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
-    _tiled_bg(bn::regular_bg_tiles_items::fortress_tiles,
-              bn::bg_palette_items::fortress_palette,
-              _map),
-    _tiles_item(bn::regular_bg_tiles_items::fortress_torch.tiles_ref()),
-    _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 99, _tiles_item, 0, 2, 0, 4),
-                  jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 100, _tiles_item, 1, 3, 1, 5)},
-    _cam(bn::camera_ptr::create(0, 0)),
-    _healthbar(),
-    _cat(bn::point(0, 0), _cam, &_v_enemies),
-    _stairs(),
-    objective(true)
-    #if DEV_ENABLED
-    ,options{jv::menu_option(&_cat.invulnerable, "Invuln."),
-            jv::menu_option(&FullHeal, "Fully heal"),
-            jv::menu_option(&Noclip, "Noclip"),
-            jv::menu_option(&next_level, "Next level"),
-            jv::menu_option(&Die, "Die"),
-            jv::menu_option(&Clear, "Clear"),
-            jv::menu_option(&NoFog, "No Fog"),}
-    #endif
-    {
-        bn::music_items::cyberrid.play(0.2);
-        BN_LOG(sizeof(jv::tiled_bg_animate_action<4>));
-        text_generator.set_bg_priority(0);
-        _background.set_camera(_cam);
-        _tiled_bg.set_camera(_cam);
-
-        bn::sprites::set_blending_bottom_enabled(false);
-        bn::blending::set_transparency_alpha(0.8);
-
-        jv::Global::initialize(&_cam, &_map, &_cat, &randomizer, &_v_projectiles);
-        
-        _healthbar.init();
-        text_generator.generate(64, -70, "Floor", _txt_sprts);
-
+    MainGame(bn::random& r):
+        text_generator(common::variable_8x8_sprite_font),
+        randomizer(r),
+        _backdrop(bn::regular_bg_items::bg.create_bg(0, 0)),
+        _tiled_bg(bn::regular_bg_tiles_items::fortress_tiles,
+                  bn::bg_palette_items::fortress_palette,
+                  ((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
+        _tiles_item(bn::regular_bg_tiles_items::fortress_torch.tiles_ref()),
+        _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 99, _tiles_item, 0, 2, 0, 4),
+                      jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 100, _tiles_item, 1, 3, 1, 5)},
+        _cam(bn::camera_ptr::create(0, 0)),
+        _cat(bn::point(0, 0), _cam, &_v_enemies)
         #if DEV_ENABLED
-            _cat.invulnerable = true;
-            FullHeal = false;
-            Noclip = false;
-            Die = false;
-            Clear = false;
-            NoFog = false;
-            text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
-            cpu_sprts[0].set_bg_priority(0);
+        ,options{jv::menu_option(&_cat.invulnerable, "Invuln."),
+                jv::menu_option(&FullHeal, "Fully heal"),
+                jv::menu_option(&Noclip, "Noclip"),
+                jv::menu_option(&next_level, "Next level"),
+                jv::menu_option(&Die, "Die"),
+                jv::menu_option(&Clear, "Clear"),
+                jv::menu_option(&NoFog, "No Fog"),}
         #endif
+        {
+            bn::music_items::cyberrid.play(0.2);
+            floor = 0;
+            gameover_delay = 0;
+            game_over = false;
+            objective = true;
+            text_generator.set_bg_priority(0);
+            _backdrop.set_camera(_cam);
+            _tiled_bg.set_camera(_cam);
 
-        while(!game_over){
-            update();
+            bn::sprites::set_blending_bottom_enabled(false);
+            bn::blending::set_transparency_alpha(0.8);
+
+            jv::Global::initialize(&_cam, _tiled_bg.map_ptr(), &_cat, &randomizer, &_v_projectiles);
+            
+            _healthbar.init();
+            text_generator.generate(64, -70, "Floor", _txt_sprts);
+
+            #if DEV_ENABLED
+                _cat.invulnerable = true;
+                FullHeal = false;
+                Noclip = false;
+                Die = false;
+                Clear = false;
+                NoFog = false;
+                text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
+                cpu_sprts[0].set_bg_priority(0);
+            #endif
+
+            while(!game_over){
+                update();
+            }
+
+            bn::sprites::set_blending_bottom_enabled(true);
+            bn::music::stop();
         }
-
-        bn::sprites::set_blending_bottom_enabled(true);
-        bn::music::stop();
-    }
 
 private:
     void fade(const bool fadeIn, const unsigned char speed, const bool fademusic){
@@ -215,7 +215,7 @@ private:
 
     void set_hide_all(bool hide){
         _healthbar.set_visible(!hide);
-        _background.set_visible(!hide);
+        _backdrop.set_visible(!hide);
         _tiled_bg.set_visible(!hide);
         _cat.set_visible(!hide);
         npcs_set_visible(!hide);
@@ -264,7 +264,7 @@ private:
         int pointCount = 0;
 
         int current_size = 0;
-        int width = (_map.width() - 2)>>2, height = (_map.height() - 3)>>2;
+        int width = (_tiled_bg.map().width() - 2)>>2, height = (_tiled_bg.map().height() - 3)>>2;
         int tileIndex[2][2] = {{0, 0}, {0, 0}};
 
         // Finding coordinates with floor in them
@@ -277,7 +277,7 @@ private:
                 tileIndex[1][1] = y*4 + 2;
 
                 for(int i = 0; i < 4; i++){
-                    uint8_t value = _map.cell(tileIndex[i%2][0], tileIndex[i/2][1]);
+                    uint8_t value = _tiled_bg.map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
                     walkable_check = walkable_check && (value > 0 && value < WTILES_COUNT);
                 }
                 
@@ -315,7 +315,7 @@ private:
 
     void block_factory(const bn::point top_left, const uint8_t option, const bool blockFlip){
         const int  block_index = (option < BLOCK_TOTAL) ? option : 0;
-        _map.insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], top_left, blockFlip);
+        _tiled_bg.map().insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
     bn::point insert_room(const bn::point top_left, const uint8_t option){
@@ -672,7 +672,7 @@ private:
                 for(int x = 0; x < 2; x++){
                     target.set_x(top_left.x()*4 + 6*(x == 1));
                     target.set_y((2 + top_left.y())*4 - 2);
-                    _map.insert_data(2, 2, aux_blockArr, target, (x == 1));
+                    _tiled_bg.map().insert_data(2, 2, aux_blockArr, target, (x == 1));
                 }
                 break;
             }
@@ -708,7 +708,7 @@ private:
     void generate(){
         using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
 
-        _map.reset();
+        _tiled_bg.map().reset();
         bool* zData = new bool[zone_x*zone_y];
         Zone zone(zone_x, zone_y, zData);
         _fog.reset();
@@ -778,7 +778,7 @@ private:
             for(int x = 0; x < zone._width; x++){
                 int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-                if(!zone.cell(x, y) || !_map.cell(next_cell_x, next_cell_y) || _map.cell(next_cell_x, halfway_cell_y)){ continue;}
+                if(!zone.cell(x, y) || !_tiled_bg.map().cell(next_cell_x, next_cell_y) || _tiled_bg.map().cell(next_cell_x, halfway_cell_y)){ continue;}
                 insert_room(bn::point(2 + x*7, 5 + y*7), V_Corr);
             }
         }
@@ -792,14 +792,14 @@ private:
             for(int x = 0; x < zone._width - 1; x++){
                 int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-                if(!zone.cell(x, y) || !_map.cell(next_cell_x, next_cell_y) || _map.cell(halfway_cell_x, next_cell_y)){ continue;}
+                if(!zone.cell(x, y) || !_tiled_bg.map().cell(next_cell_x, next_cell_y) || _tiled_bg.map().cell(halfway_cell_x, next_cell_y)){ continue;}
                 insert_room(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
-                if(_map.cell(22 + x*28, 18 + y*28) == 82){
-                    _map.insert_data(2, 2, cornerFix, bn::point(22 + x*28, 16 + y*28), true);
+                if(_tiled_bg.map().cell(22 + x*28, 18 + y*28) == 82){
+                    _tiled_bg.map().insert_data(2, 2, cornerFix, bn::point(22 + x*28, 16 + y*28), true);
                 }
-                if(_map.cell(29 + x*28, 18 + y*28) == 82){
-                    _map.insert_data(2, 2, cornerFix, bn::point(28 + x*28, 16 + y*28));
+                if(_tiled_bg.map().cell(29 + x*28, 18 + y*28) == 82){
+                    _tiled_bg.map().insert_data(2, 2, cornerFix, bn::point(28 + x*28, 16 + y*28));
                 }
             }
         }
@@ -980,12 +980,12 @@ private:
     }
 
     bn::sprite_text_generator text_generator;
+    bn::vector<bn::sprite_ptr, 2> _txt_sprts;
+    
     bn::random& randomizer;
 
-    bn::regular_bg_ptr _background;
-    GameMap _map;
+    bn::regular_bg_ptr _backdrop;
     jv::tiled_bg _tiled_bg;
-
     jv::tile_span _tiles_item;
     jv::tiled_bg_animate_action<4> _bg_animation[2];
 
@@ -1000,8 +1000,6 @@ private:
     jv::Player _cat;
     jv::stairs _stairs;
 
-    bn::vector<bn::sprite_ptr, 2> _txt_sprts;
-    
     bn::fixed cam_x_target, cam_y_target;
     uint8_t environment_id;
     uint8_t zone_x, zone_y;
