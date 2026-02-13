@@ -31,7 +31,7 @@ void Global::reset(){
 
 void Global::update(){
     if(_camera != nullptr){
-        cam_position = bn::point(_camera->position().x().integer(), _camera->position().y().integer());
+        cam_position = bn::point(_camera->position().x().floor_integer(), _camera->position().y().floor_integer());
     }
 }
 

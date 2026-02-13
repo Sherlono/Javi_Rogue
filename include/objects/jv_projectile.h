@@ -36,8 +36,8 @@ public:
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y){
-        _point.set_x(x.integer());
-        _point.set_y(y.integer());
+        _point.set_x(x.floor_integer());
+        _point.set_y(y.floor_integer());
         _sprite->set_position(x, y);
     };
 
@@ -46,7 +46,6 @@ public:
     }
 
     virtual void animation_update() = 0;
-
     virtual bool update() = 0;
     
 protected:

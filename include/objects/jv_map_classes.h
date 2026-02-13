@@ -16,17 +16,19 @@
 // For big tile maps for tiled bgs or other purposes
 class GameMap{
 public:
+    using cell_type = uint16_t;
+
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
-    GameMap(uint16_t x, uint16_t y): _data(std::make_unique<uint8_t[]>(x*y)), _width(x), _height(y){}
+    GameMap(uint16_t x, uint16_t y): _data(std::make_unique<cell_type[]>(x*y)), _width(x), _height(y){}
 
     // Getters
     [[nodiscard]] uint16_t width() const {return _width;}
     [[nodiscard]] uint16_t height() const {return _height;}
     [[nodiscard]] int size() const {return _width*_height;}
-    [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >= 127;}
-    [[nodiscard]] uint8_t cell(const int x, const int y) const {
-        uint8_t val = _data[x + y*_width];
-        return val - 127*(val >= 127);
+    [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >= FLPTHD;}
+    [[nodiscard]] cell_type cell(const int x, const int y) const {
+        cell_type val = _data[x + y*_width];
+        return val - FLPTHD*(val >= FLPTHD);
     }
     
     // Setters
@@ -37,14 +39,14 @@ public:
     void set_horizontal_flip(int index, bool f){
         if(f == true){
             if(horizontal_flip(index) == false){
-                _data[index] += 127;
+                _data[index] += FLPTHD;
             }
         }else if(horizontal_flip(index) == true){
-            _data[index] -= 127;
+            _data[index] -= FLPTHD;
         }
     }
 
-    void insert_data(const int map_x, const int map_y, uint8_t* map, const bn::point top_left, const bool fliped = false){
+    void insert_data(const int map_x, const int map_y, cell_type* map, const bn::point top_left, const bool fliped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int x_end = x_begin + map_x   ,   y_end = y_begin + map_y;
 
@@ -59,7 +61,7 @@ public:
                 if(!map[room_index]){ continue;}
                 map_index = x + y * this->_width;
                 this->_data[map_index] = map[room_index];
-                this->set_horizontal_flip(map_index, fliped ? !(map[room_index] >= 127) : (map[room_index] >= 127));
+                this->set_horizontal_flip(map_index, fliped ? !(map[room_index] >= FLPTHD) : (map[room_index] >= FLPTHD));
             }
         }
     }
@@ -68,7 +70,9 @@ public:
         bn::memory::clear(size(), _data[0]);
     }
 
-    std::unique_ptr<uint8_t[]> _data;
+    std::unique_ptr<cell_type[]> _data;
+    //static constexpr cell_type FLPTHD = 127;
+    static constexpr cell_type FLPTHD = 32767;  // Flip threshold
 private:
     const uint16_t _width, _height;
 };
@@ -89,7 +93,7 @@ struct bg_map
     int cell(const int x, const int y){ return cells[x + y*32];}
 
     // Setters
-    void set_cell(const int x, const int y, uint16_t value, bool flip = false){
+    void set_cell(const int x, const int y, GameMap::cell_type value, bool flip = false){
         /*BN_ASSERT(x >= 0, "Invalid x", x);
         BN_ASSERT(y >= 0, "Invalid y", y);*/
 

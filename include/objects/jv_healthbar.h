@@ -15,7 +15,7 @@ struct healthbar{
     
     // Getters
     bn::array<bn::sprite_ptr, 4>& sprites(){ return _sprites;}
-    bool visible(){ return bar().visible();}
+    bool visible(){ return _sprites[2].visible();}
 
     // Setters
     void set_visible(bool visible){
@@ -29,17 +29,11 @@ struct healthbar{
 
     void update(){
         //BN_ASSERT(*max_value >= *value, "Hp can't surpass MaxHp");
-        bn::fixed v(*value);
-        bn::fixed m_v(*max_value);
-
-        int target_x = (-147 + 48*(v/m_v)).integer();
-        bar().set_x(target_x);
+        int target_x = (-147 + 48*((*value)/bn::fixed(*max_value))).floor_integer();
+         _sprites[2].set_x(target_x);
     }
     
 private:
-    // Getters
-    bn::sprite_ptr& bar() { return _sprites[2];}
-
     short *max_value, *value;
     bn::array<bn::sprite_ptr, 4> _sprites;
 };

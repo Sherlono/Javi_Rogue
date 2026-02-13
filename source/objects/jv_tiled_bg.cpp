@@ -1,7 +1,7 @@
 #include "jv_tiled_bg.h"
 
 #include "jv_math.h"
-#include "jv_map_classes.h"
+#include "jv_global.h"
 
 namespace jv{
 int tiled_bg::_prev_x = 0, tiled_bg::_prev_y = 0;
@@ -11,7 +11,7 @@ void tiled_bg::init(){
 
     const int  current_x = Global::cam_pos().x()>>3    , current_y = (Global::cam_pos().y() + 43)>>3;
     const int  cx_plus_32 = current_x + 32    , cy_plus_32 = current_y + 32;
-    uint8_t value;
+    GameMap::cell_type value;
     bool flip;
     
     for(int y = current_y; y < cy_plus_32; y++){
@@ -36,7 +36,7 @@ void tiled_bg::init(){
 void tiled_bg::update(){
     const int  current_x = (Global::cam_pos().x() + 60)>>3   ,   current_y = (Global::cam_pos().y() + 44)>>3;
     const int  cx_plus_32 = current_x + 32   ,   cy_plus_32 = current_y + 32;
-    uint8_t value;
+    GameMap::cell_type value;
     bool flip;
 
     bn::bg_tiles::set_allow_offset(false);
@@ -45,7 +45,7 @@ void tiled_bg::update(){
         const short aux_x = current_x + 24, x_minus_16 = aux_x - 16;
         for(int y = current_y; y < cy_plus_32; y++){
             const short ymod = bamod(y, 32), y_minus_16 = y - 16;
-            const bool oob = x_minus_16 >= _map.width() || y_minus_16 < 0 || y_minus_16 >= _map.height();
+            const bool oob = x_minus_16 >= _map.width() || y_minus_16 < 0 || y_minus_16 >= _map.height();   // Out of bounds check
 
             const int  cell_x = x_minus_16, cell_y = y_minus_16;
             if(!oob){

@@ -106,11 +106,11 @@ public:
     // Setters
     void set_position(const bn::fixed x, const bn::fixed y, const uint16_t y_offset){
         sprite().set_position(x, y - y_offset);
-        _rect.set_position(x.integer(), y.integer());
+        _rect.set_position(x.floor_integer(), y.floor_integer());
     }
     void set_position(const bn::fixed_point point, const uint16_t y_offset){
         sprite().set_position(point.x(), point.y() - y_offset);
-        _rect.set_position(point.x().integer(), point.y().integer());
+        _rect.set_position(point.x().floor_integer(), point.y().floor_integer());
     }
     void set_visible(bool visible){
         if(graphics.sprite.has_value()){ sprite().set_visible(visible);};

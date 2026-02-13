@@ -277,7 +277,7 @@ private:
                 tileIndex[1][1] = y*4 + 2;
 
                 for(int i = 0; i < 4; i++){
-                    uint8_t value = _tiled_bg.map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
+                    GameMap::cell_type value = _tiled_bg.map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
                     walkable_check = walkable_check && (value > 0 && value < WTILES_COUNT);
                 }
                 
@@ -315,7 +315,7 @@ private:
 
     void block_factory(const bn::point top_left, const uint8_t option, const bool blockFlip){
         const int  block_index = (option < BLOCK_TOTAL) ? option : 0;
-        _tiled_bg.map().insert_data(4, 4, (uint8_t*)jv::blocks::data[block_index], top_left, blockFlip);
+        _tiled_bg.map().insert_data(4, 4, (GameMap::cell_type*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
     bn::point insert_room(const bn::point top_left, const uint8_t option){
@@ -666,7 +666,7 @@ private:
                     }
                 }
             
-                uint8_t aux_blockArr[4] = {
+                GameMap::cell_type aux_blockArr[4] = {
                         81,82,
                         83,84,};
                 for(int x = 0; x < 2; x++){
@@ -784,7 +784,7 @@ private:
         }
         
         // Horizontal corridors
-        uint8_t cornerFix[4] =
+        GameMap::cell_type cornerFix[4] =
                 {77, 82,
                 78, 84,};
 

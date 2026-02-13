@@ -11,9 +11,9 @@ namespace jv{
 class Player;
 healthbar::healthbar():
     _sprites( {bn::sprite_items::healthbar_hud.create_sprite(-104, HB_Y_OFFSET, 0), 
-                bn::sprite_items::healthbar_hud.create_sprite(-72, HB_Y_OFFSET, 1),
-                bn::sprite_items::healthbar.create_sprite(-99, HB_Y_OFFSET),
-                bn::sprite_items::healthbar_corner.create_sprite(-116, HB_Y_OFFSET)} )
+               bn::sprite_items::healthbar_hud.create_sprite(-72, HB_Y_OFFSET, 1),
+               bn::sprite_items::healthbar.create_sprite(-99, HB_Y_OFFSET),
+               bn::sprite_items::healthbar_corner.create_sprite(-116, HB_Y_OFFSET)} )
     {
         for(bn::sprite_ptr sprite : _sprites){
             sprite.set_bg_priority(0);

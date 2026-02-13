@@ -13,7 +13,7 @@
 #define FADE_OUT false
 
 namespace {
-    constexpr bn::string_view Version = "0.1.0";
+    constexpr bn::string_view Version = "0.1.1";
     constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_TOTAL = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles

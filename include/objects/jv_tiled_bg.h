@@ -3,13 +3,9 @@
 
 #include "bn_point.h"
 #include "bn_unique_ptr.h"
-#include "bn_camera_ptr.h"
 #include "bn_regular_bg_tiles_ptr.h"
 
-#include "jv_global.h"
 #include "jv_map_classes.h"
-
-class GameMap;
 
 namespace jv{
 struct itiled_bg{
@@ -17,8 +13,7 @@ struct itiled_bg{
     bn::unique_ptr<bg_map> _bg_m_ptr;
 };
 
-
-class tiled_bg: public itiled_bg, public bn::regular_bg_ptr{
+class tiled_bg: private itiled_bg, public bn::regular_bg_ptr{
 public:
     tiled_bg(const bn::regular_bg_tiles_item& tiles_item, const bn::bg_palette_item& palette_item, int x, int y):
         bn::regular_bg_ptr(bn::regular_bg_item(tiles_item, palette_item, itiled_bg::_bg_m_ptr->map_item).create_bg(0, 0)),
@@ -37,7 +32,7 @@ public:
     void update();
     void init();
 
-protected:
+private:
     GameMap _map;
     bn::regular_bg_map_ptr _bg_m;
     static int _prev_x, _prev_y;

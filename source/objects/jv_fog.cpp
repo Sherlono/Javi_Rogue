@@ -33,14 +33,20 @@ void iFog::update(){
         const int hdh_plus_y = half_display_height + y_int;
         
         uint8_t curve_line = 0;
+        const int x_int = Global::cam_pos().x();
         for(int index = 0; index < _height; ++index){
-            int qc_index = curve_line + 24 - _height;
-            int x_m_camx = _x - Global::cam_pos().x();
-            bn::fixed aux = (index > _height - 24)*(22*quarter_circle[qc_index]);
-            bn::fixed w_m_aux = _width - aux;
+            const int qc_index = curve_line + 24 - _height;
+            const int x_m_camx = _x - x_int;
+            bn::fixed aux;
+            if(index > _height - 24){
+                aux = 22*quarter_circle[qc_index];
+            }
+            else aux = 0;
 
-            bn::pair<bn::fixed, bn::fixed> left_right(x_m_camx - w_m_aux, x_m_camx + w_m_aux);
-            int upper_index = hdh_plus_y + index   ,   lower_index = hdh_plus_y - index - 1;
+            const int w_m_aux = _width - aux.floor_integer();
+
+            const bn::pair<int, int> left_right(x_m_camx - w_m_aux, x_m_camx + w_m_aux);
+            const int upper_index = hdh_plus_y + index   ,   lower_index = hdh_plus_y - index - 1;
             if(upper_index >= 0 && upper_index < 160){ _horizontal_boundaries[upper_index] = left_right;}
             if(lower_index >= 0 && lower_index < 160){ _horizontal_boundaries[lower_index] = left_right;}
             curve_line += 1;
