@@ -15,13 +15,12 @@
 #include "jv_blocks_data.h"
 
 #include "bn_sprite_items_cursor.h"
-#include "bn_regular_bg_items_bg.h"
 #include "bn_sprite_items_good_cat.h"
 
 namespace jv::dev{
 void GenerateDevLevel(GameMap& map){
     map.reset();
-    int width = 12, height = 10;
+    const int width = 12, height = 10;
 
     for(int y = 0; y < height; y++){
         for(int x = 0; x < width; x++){
@@ -33,27 +32,29 @@ void GenerateDevLevel(GameMap& map){
     }
 }
 
+#ifdef DEV_ENABLED
 void Log_block_data(GameMap& map){
     for(int block_y = 0; block_y < 7; block_y++){
         for(int block_x = 0; block_x < 6; block_x++){
-            if(block_x + block_y*6 >= BLOCK_TOTAL){ break; }
+            if(block_x + block_y*6 >= BLOCK_TOTAL) break; 
 
-                int start_x = block_x*8, start_y = block_y*4;
-                BN_LOG("//block ", block_x + block_y*6);
-                for(int y = start_y; y < start_y + 4; y++){
-                    bn::string_view line = (y == start_y) ? "{" : "";
-                    for(int x = start_x; x < start_x + 4; x++){
-                        int num;
-                        if(map.cell(x, y) >= 127) num = map.cell(x, y) - 127 + GameMap::FLPTHD;
-                        else num = map.cell(x, y);
-                        line = line + bn::to_string<32>(num) + ", ";
-                    }
-                    line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
-                    BN_LOG(line);
+            const int start_x = block_x*8, start_y = block_y*4;
+            BN_LOG("//block ", block_x + block_y*6);
+            for(int y = start_y; y < start_y + 4; y++){
+                bn::string_view line = (y == start_y) ? "{" : "";
+                for(int x = start_x; x < start_x + 4; x++){
+                    int num = map.raw_cell(x, y);
+                    /*if(num >= 41 && num <= 118) num += 32;
+                    else if(num >= 119 && num <= 150) num -= (119 - 41);*/
+                    line = line + bn::to_string<32>(num) + ", ";
                 }
+                line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
+                BN_LOG(line);
+            }
         }
     }
 }
+#endif
 
 void tile_grid_move(int& _x, int& _y, const int width, const int height, const int map_x, int& current_block, int& current_tile, bn::camera_ptr& cam, tiled_bg& tb, bn::sprite_ptr& cursor){
     if(bn::keypad::up_pressed() && _y > 0){
@@ -86,7 +87,6 @@ void tile_grid_move(int& _x, int& _y, const int width, const int height, const i
         if(bamod(_x>>2, 2) == 0){ cursor.set_palette(bn::sprite_items::cursor.palette_item().create_palette());}
         else{ cursor.set_palette(bn::sprite_items::good_cat.palette_item().create_palette());}
     }
-    
 }
 
 void tile_change(int _x, int _y, int& current_tile, tiled_bg& tb){
@@ -114,13 +114,10 @@ void blocks_scene(){
     bn::sprite_ptr arrowUp = bn::sprite_items::cursor.create_sprite(-1, -8);
 
     // Background
-    bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-
+    bn::bg_palettes::set_transparent_color(bn::color(31, 0, 31));
     constexpr bn::point mapSize(20, 20);
-    int width = 12, height = 6;
-
-    // *** Level Generation ***
     jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles, bn::bg_palette_items::fortress_palette, mapSize.x()*4, mapSize.y()*4);
+    const int width = 12, height = 7;
     
     // ******** Camera ********
     bn::camera_ptr cam = bn::camera_ptr::create(4, 4);
@@ -138,7 +135,6 @@ void blocks_scene(){
         arrowUp.set_rotation_angle(270);
         arrowUp.set_visible(false);
 
-        background.set_camera(cam);
         Fortress.set_camera(cam);
 
         jv::Global::initialize(&cam, &Fortress.map(), nullptr, nullptr, nullptr);
@@ -168,14 +164,10 @@ void blocks_scene(){
         // Movement
         if(!selected){
             tile_grid_move(_x, _y, width, height, mapSize.x(), current_block, current_tile, cam, Fortress, cursor);
-
-            // Show block values in logging tool
             if(bn::keypad::start_pressed()){ Log_block_data(Fortress.map());}
         }
         // Change tile
-        else{
-            tile_change(_x, _y, current_tile, Fortress);
-        }
+        else tile_change(_x, _y, current_tile, Fortress);
         
         // Hide block index
         if(bn::keypad::select_pressed()){
@@ -208,11 +200,8 @@ void tile_scene(){
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
 
     // Background
-    bn::regular_bg_ptr background = bn::regular_bg_items::bg.create_bg(0, 0);
-
+    bn::bg_palettes::set_transparent_color(bn::color(31, 0, 31));
     constexpr bn::point mapSize(20, 20);
-
-    // *** Level Generation ***
     jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles, bn::bg_palette_items::fortress_palette, mapSize.x()*4, mapSize.y()*4);
     
     // ******** Camera ********
@@ -221,13 +210,12 @@ void tile_scene(){
     // ****** Other data ******
     int current_tile = 0, timer = 0;
     bool prev_toggle = false, toggle = false;
-    int x_offset = -110, y_offset = -70;
-    int width = 12, height = 7;
+    const int x_offset = -110, y_offset = -70;
+    const int width = 12, height = 7;
 
     { // Configs
         Fortress.set_priority(3);
         text_generator.set_camera(cam);
-        background.set_camera(cam);
         Fortress.set_camera(cam);
 
         // **** Number sprites ****
@@ -272,9 +260,7 @@ void tile_scene(){
         }
 
         if(bn::keypad::select_pressed()){
-            for(bn::sprite_ptr sprite : numbers){
-                sprite.set_visible(!sprite.visible());
-            }
+            for(bn::sprite_ptr sprite : numbers) sprite.set_visible(!sprite.visible());
         }else if(bn::keypad::l_pressed() && current_tile > 0){
             current_tile--;
             tile_index_sprite.clear();
@@ -303,9 +289,8 @@ void tile_scene(){
             Fortress.init();
         }
 
-        if(bamod(timer>>6, 2)){ toggle = true;}
-        else{ toggle = false;}
-
+        toggle = bamod(timer>>6, 2);
+        
         if(prev_toggle != toggle){
             if(toggle){
                 for(int y = 0; y < Fortress.map().height(); y++){

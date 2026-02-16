@@ -14,14 +14,14 @@
 
 namespace {
     constexpr bn::string_view Version = "0.1.1";
-    constexpr uint8_t WTILES_COUNT = 46;                            // Number of Walkable Tiles
+    constexpr uint8_t WTILES_COUNT = 76;                            // Number of Walkable Tiles
     constexpr uint8_t NWTILES_COUNT = 52;                           // Number of Not Walkable Tiles
     constexpr uint8_t TILES_TOTAL = WTILES_COUNT + NWTILES_COUNT;   // Number of Total Tiles
-    constexpr uint8_t ROOM_PREFAB_COUNT = 8;                        // Number of Room Prefabs
+    constexpr uint8_t ROOM_PREFAB_COUNT = 9;                        // Number of Room Prefabs
 
     constexpr uint8_t MAX_ENEMIES = 15;
-    constexpr uint8_t MAX_ROOM_ROWS = 4;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 4;
+    constexpr uint8_t MAX_ROOM_ROWS = 5;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 5;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2

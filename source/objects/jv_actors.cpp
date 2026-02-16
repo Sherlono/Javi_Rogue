@@ -36,7 +36,7 @@ namespace jv{
             BN_ASSERT(false, "Invalid direction", direction);
             return false;
     }
-    return Global::Map().cell(target_x, target_y) > 0 && Global::Map().cell(target_x, target_y) < WTILES_COUNT;
+    return Global::Map().cell(target_x, target_y) <= WTILES_COUNT;
 }
 
 void Actor::load_graphics(const bn::sprite_item& item, int y_offset, int wait_frames){

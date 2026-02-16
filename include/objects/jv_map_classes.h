@@ -30,7 +30,19 @@ public:
         cell_type val = _data[x + y*_width];
         return val - FLPTHD*(val >= FLPTHD);
     }
-    
+    [[nodiscard]] cell_type cell(const bn::point p) const {
+        cell_type val = _data[p.x() + p.y()*_width];
+        return val - FLPTHD*(val >= FLPTHD);
+    }
+    [[nodiscard]] cell_type cell(const int index) const {
+        cell_type val = _data[index];
+        return val - FLPTHD*(val >= FLPTHD);
+    }
+    #ifdef DEV_ENABLED
+    [[nodiscard]] cell_type raw_cell(const int x, const int y) const {
+        return _data[x + y*_width];
+    }
+    #endif
     // Setters
     void set_cell(const int x, const int y, int value){
         _data[x + y*_width] = value;
