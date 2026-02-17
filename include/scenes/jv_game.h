@@ -67,18 +67,19 @@ public:
                   bn::bg_palette_items::fortress_palette,
                   ((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
         _tiles_item(bn::regular_bg_tiles_items::fortress_torch.tiles_ref()),
-        _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 89, _tiles_item, 0, 2, 0, 4),
-                      jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5)},
+        _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 73, _tiles_item, 0, 2, 0, 4),
+                      jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 74, _tiles_item, 1, 3, 1, 5)},
         _cam(bn::camera_ptr::create(0, 0)),
-        _cat(bn::point(0, 0), _cam, &_v_enemies)
+        _cat(bn::point(0, 0), _cam, &_v_enemies),
+        _stairs(_tiled_bg.tiles())
         #if DEV_ENABLED
         ,options{jv::menu_option(&_cat.invulnerable, "Invuln."),
-                jv::menu_option(&FullHeal, "Fully heal"),
-                jv::menu_option(&Noclip, "Noclip"),
-                jv::menu_option(&next_level, "Next level"),
-                jv::menu_option(&Die, "Die"),
-                jv::menu_option(&Clear, "Clear"),
-                jv::menu_option(&NoFog, "No Fog"),}
+                 jv::menu_option(&FullHeal, "Fully heal"),
+                 jv::menu_option(&Noclip, "Noclip"),
+                 jv::menu_option(&next_level, "Next level"),
+                 jv::menu_option(&Die, "Die"),
+                 jv::menu_option(&Clear, "Clear"),
+                 jv::menu_option(&NoFog, "No Fog"),}
         #endif
         {
             bn::music_items::cyberrid.play(0.2);
@@ -93,7 +94,7 @@ public:
             bn::sprites::set_blending_bottom_enabled(false);
             bn::blending::set_transparency_alpha(0.8);
 
-            jv::Global::initialize(&_cam, _tiled_bg.map_ptr(), &_cat, &randomizer, &_v_projectiles);
+            jv::Global::initialize(&_cam, _tiled_bg.game_map_ptr(), &_cat, &randomizer, &_v_projectiles);
             
             _healthbar.init();
             text_generator.generate(64, -70, "Floor", _txt_sprts);
@@ -263,7 +264,7 @@ private:
         bn::point* valid_points = nullptr;
         int pointCount = 0;
 
-        const int width = (_tiled_bg.map().width() - 2)>>2, height = (_tiled_bg.map().height() - 3)>>2;
+        const int width = (_tiled_bg.game_map().width() - 2)>>2, height = (_tiled_bg.game_map().height() - 3)>>2;
         int current_size = 0;
         int tileIndex[2][2] = {{0, 0}, {0, 0}};
 
@@ -277,7 +278,7 @@ private:
                 tileIndex[1][1] = y*4 + 2;
 
                 for(int i = 0; i < 4; i++){
-                    GameMap::cell_type value = _tiled_bg.map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
+                    GameMap::cell_type value = _tiled_bg.game_map().cell(tileIndex[i%2][0], tileIndex[i/2][1]);
                     walkable_check = walkable_check && (value > 0 && value < WTILES_COUNT);
                 }
                 
@@ -315,7 +316,7 @@ private:
 
     void block_factory(const bn::point top_left, const uint8_t option, const bool blockFlip){
         const int  block_index = (option < BLOCK_TOTAL) ? option : 0;
-        _tiled_bg.map().insert_data(4, 4, (GameMap::cell_type*)jv::blocks::data[block_index], top_left, blockFlip);
+        _tiled_bg.game_map().insert_data(4, 4, (GameMap::cell_type*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
     bn::point insert_room(const bn::point top_left, const uint8_t option){
@@ -718,13 +719,13 @@ private:
                 }
             
                 GameMap::cell_type auxBlockArr[4] = {
-                    139, 140,
-                    136, 137};
+                    123, 124,
+                    120, 121};
 
                 for(int x = 0; x < 2; x++){
                     target.set_x(top_left.x()*4 + 6*(x == 1));
                     target.set_y((2 + top_left.y())*4 - 2);
-                    _tiled_bg.map().insert_data(2, 2, auxBlockArr, target, (x == 1));
+                    _tiled_bg.game_map().insert_data(2, 2, auxBlockArr, target, (x == 1));
                 }
                 break;
             }
@@ -760,7 +761,7 @@ private:
     void generate(){
         using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
 
-        _tiled_bg.map().reset();
+        _tiled_bg.game_map().reset();
         bool* zData = new bool[zone_x*zone_y];
         Zone zone(zone_x, zone_y, zData);
         _fog.reset();
@@ -829,37 +830,37 @@ private:
             for(int x = 0; x < zone._width; x++){
                 const int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-                if(!zone.cell(x, y) || !_tiled_bg.map().cell(next_cell_x, next_cell_y) || _tiled_bg.map().cell(next_cell_x, halfway_cell_y)) continue;
+                if(!zone.cell(x, y) || !_tiled_bg.game_map().cell(next_cell_x, next_cell_y) || _tiled_bg.game_map().cell(next_cell_x, halfway_cell_y)) continue;
                 insert_room(bn::point(2 + x*7, 5 + y*7), V_Corr);
             }
         }
         
         // Horizontal corridors
         GameMap::cell_type auxBlockArr[2][4] =
-            {{184, 144,
-              183, 147,},
-             {149, 140,
-              150, 137,}};
+            {{168, 128,
+              167, 131,},
+             {133, 124,
+              134, 121,}};
 
         for(int y = 0; y < zone._height; y++){
             for(int x = 0; x < zone._width - 1; x++){
                 int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-                if(!zone.cell(x, y) || !_tiled_bg.map().cell(next_cell_x, next_cell_y) || _tiled_bg.map().cell(halfway_cell_x, next_cell_y)) continue;
+                if(!zone.cell(x, y) || !_tiled_bg.game_map().cell(next_cell_x, next_cell_y) || _tiled_bg.game_map().cell(halfway_cell_x, next_cell_y)) continue;
                 insert_room(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
                 const int x_times_28 = x*28, y_times_28 = y*28;
                 bn::point checkPoint(22 + x_times_28, 18 + y_times_28);
                 bn::point targetPoint(checkPoint.x(), 16 + y_times_28);
 
-                bool cellCheck = _tiled_bg.map().cell(checkPoint) == 140;
-                if(cellCheck || _tiled_bg.map().cell(checkPoint) == 147) _tiled_bg.map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint, true);
+                bool cellCheck = _tiled_bg.game_map().cell(checkPoint) == 124;
+                if(cellCheck || _tiled_bg.game_map().cell(checkPoint) == 131) _tiled_bg.game_map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint, true);
                 
                 checkPoint.set_x(29 + x_times_28);
                 targetPoint.set_x(28 + x_times_28);
                 
-                cellCheck = _tiled_bg.map().cell(checkPoint) == 140;
-                if(cellCheck || _tiled_bg.map().cell(checkPoint) == 147)  _tiled_bg.map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint);
+                cellCheck = _tiled_bg.game_map().cell(checkPoint) == 124;
+                if(cellCheck || _tiled_bg.game_map().cell(checkPoint) == 131)  _tiled_bg.game_map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint);
             }
         }
         
@@ -906,6 +907,7 @@ private:
         text_generator.generate(94, -70, bn::to_string<3>(floor), _txt_sprts);
         next_level = false;
         gameover_delay = 0;
+        int prev_cam_x, prev_cam_y;
 
         // Level generation
         //zone_x = 2 + randomizer.get_int(MAX_ROOM_ROWS - 2);
@@ -933,6 +935,11 @@ private:
         fade(FADE_IN, fadespeed::MEDIUM, false);
 
         while(!next_level){
+            prev_cam_x = _cam.x().floor_integer(), prev_cam_y = _cam.y().floor_integer();
+            cam_x_target = lerp(_cam.x(), _cat.get_hitbox().x(), cam_lerp_value);
+            cam_y_target = lerp(_cam.y(), _cat.get_hitbox().y() + 4, cam_lerp_value);
+            _cam.set_position(cam_x_target, cam_y_target);
+            
             jv::Global::update();
             _tiled_bg.update();
             _bg_animation[0].update();
@@ -946,11 +953,7 @@ private:
             _cat.update();
             #endif
             
-            cam_x_target = lerp(_cam.x(), _cat.get_hitbox().x(), cam_lerp_value);
-            cam_y_target = lerp(_cam.y(), _cat.get_hitbox().y() + 4, cam_lerp_value);
-            _cam.set_position(cam_x_target, cam_y_target);
-            
-            _fog.update();
+            if(prev_cam_x != jv::Global::cam_pos().x() || prev_cam_y != jv::Global::cam_pos().y()) _fog.update();
             
             if( _cat.alive()){
                 next_level = _stairs.climb();

@@ -2,14 +2,9 @@
 #define JV_fog_bg_H
 
 #include "bn_rect.h"
-#include "bn_assert.h"
-#include "bn_utility.h"
 #include "bn_display.h"
-#include "bn_blending.h"
-#include "bn_camera_ptr.h"
 #include "bn_type_traits.h"
 #include "bn_regular_bg_ptr.h"
-#include "bn_rect_window_actions.h"
 #include "bn_rect_window_boundaries_hbe_ptr.h"
 
 #include "bn_regular_bg_items_darkness.h"

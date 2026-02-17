@@ -25,8 +25,8 @@ public:
     [[nodiscard]] int width() const { return _map.width();}
     [[nodiscard]] int height() const { return _map.height();}
     [[nodiscard]] int size() const { return _map.width()*_map.height();}
-    [[nodiscard]] GameMap& map() { return _map;}
-    [[nodiscard]] GameMap* map_ptr() { return &_map;}
+    [[nodiscard]] GameMap& game_map() { return _map;}
+    [[nodiscard]] GameMap* game_map_ptr() { return &_map;}
 
     // Functionality
     void update();

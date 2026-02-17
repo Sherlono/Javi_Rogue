@@ -65,12 +65,10 @@ public:
         for(int y = y_begin; y < y_end; y++){
             int room_index, map_index;
             for(int x = x_begin; x < x_end; x++){
-                if(!fliped){
-                    room_index = (x - x_begin) + (y - y_begin) * map_x;
-                }else{
-                    room_index = -(x + 1 - x_end) + (y - y_begin) * map_x;
-                }
-                if(!map[room_index]){ continue;}
+                if(!fliped) room_index = (x - x_begin) + (y - y_begin) * map_x;
+                else room_index =       -(x + 1 - x_end) + (y - y_begin) * map_x;
+                
+                if(!map[room_index]) continue;
                 map_index = x + y * this->_width;
                 this->_data[map_index] = map[room_index];
                 this->set_horizontal_flip(map_index, fliped ? !(map[room_index] >= FLPTHD) : (map[room_index] >= FLPTHD));
@@ -83,7 +81,6 @@ public:
     }
 
     std::unique_ptr<cell_type[]> _data;
-    //static constexpr cell_type FLPTHD = 127;
     static constexpr cell_type FLPTHD = 32767;  // Flip threshold
 private:
     const uint16_t _width, _height;

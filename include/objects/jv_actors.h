@@ -213,8 +213,10 @@ public:
         graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
         graphics.animation->update();
     }
-
+    
+    #if DEV_ENABLED
     void update(bool noClip = false);
+    #endif
 
     void heal(int h){
         _hp = bn::min(_hp + h, int(_stats.max_hp));
