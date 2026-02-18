@@ -132,7 +132,6 @@ void Player::_movement(bool noClip){
     }
 }
 
-#if DEV_ENABLED
 void Player::update(bool noClip){
     #ifdef DEV_ENABLED
         if(bn::keypad::l_pressed()){
@@ -161,7 +160,6 @@ void Player::update(bool noClip){
         }
     }
 }
-#endif
 
 // ************ Enemy ************
 /*[[nodiscard]] bool Enemy::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {

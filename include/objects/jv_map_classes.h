@@ -1,7 +1,9 @@
 #ifndef JV_MAP_CLASSES_H
 #define JV_MAP_CLASSES_H
 
+#include "bn_span.h"
 #include "bn_point.h"
+#include "bn_array.h"
 #include "bn_memory.h"
 #include "bn_vector.h"
 #include "bn_bg_tiles.h"
@@ -10,8 +12,6 @@
 #include "bn_regular_bg_item.h"
 #include "bn_regular_bg_map_ptr.h"
 #include "bn_regular_bg_map_cell_info.h"
-
-#include "jv_constants.h"
 
 // For big tile maps for tiled bgs or other purposes
 class GameMap{
@@ -124,9 +124,9 @@ struct bg_map
 
 // Level layout cells
 struct Zone{
-    ~Zone(){ reset();}
+    ~Zone(){ reset(); }
     Zone(uint8_t w, uint8_t h, bool* a):_width(w), _height(h), data(a){
-        bn::memory::clear(size(), data[0]);
+        bn::memory::clear(_width*_height, data[0]);
     }
     
     bool cell(int x, int y) { 
@@ -137,12 +137,24 @@ struct Zone{
         }
     }
     
-    int size() const { return _width*_height;}
     void reset(){
-        bn::memory::clear(size(), data[0]);
+        bn::memory::clear(_width*_height, data[0]);
     }
     const uint8_t _width, _height;
     bool* data;
+};
+
+struct prefab_map{
+    static constexpr uint8_t ROOM_PREFAB_COUNT = 9;    // Number of Room Prefabs
+    constexpr prefab_map(uint8_t w, uint8_t h, const bn::span<const uint8_t> c):
+        width(w), height(h), cell_data(c) {}
+    [[nodiscard]] uint8_t  cell(const uint16_t index) const {
+        uint8_t val = cell_data[index];
+        return val - 127*(val >= 127);
+    }
+    [[nodiscard]] bool horizontal_flip(int index) const {return cell_data[index] >= 127;}
+    const uint8_t width, height;
+    const bn::span<const uint8_t> cell_data;
 };
 
 #endif

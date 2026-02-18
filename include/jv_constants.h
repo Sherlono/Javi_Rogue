@@ -15,7 +15,6 @@
 namespace {
     constexpr bn::string_view Version = "0.1.1";
     constexpr uint8_t WTILES_COUNT = 60;        // Number of Walkable Tiles
-    constexpr uint8_t ROOM_PREFAB_COUNT = 9;    // Number of Room Prefabs
 
     constexpr uint8_t MAX_ENEMIES = 15;
     constexpr uint8_t MAX_ROOM_ROWS = 6;

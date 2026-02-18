@@ -40,7 +40,7 @@ class Actor{
 public:
     virtual ~Actor() = default;
     // Constructor
-    Actor(bn::rect r): _prev_dir(Direction::SOUTH), _dir(Direction::SOUTH), _rect(r){}
+    Actor(bn::rect r): _rect(r){}
 
     enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
     enum State { NORMAL, ATTACKING, HURTING, CHARGING, DEAD};
@@ -156,7 +156,7 @@ protected:
         bn::fixed speed;
     };
     
-    uint8_t _prev_dir, _dir;
+    uint8_t _prev_dir = Direction::SOUTH, _dir = Direction::SOUTH;
     bn::rect _rect;
 };
 
@@ -166,12 +166,6 @@ public:
     // Constructor
     Player(bn::point position, bn::camera_ptr& camera, bn::ivector<Enemy*>* enemies):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        invulnerable(false),
-        _interact_token(true),
-        _state(State::NORMAL),
-        _prev_dir(Direction::SOUTH),
-        _prev_attack_cooldown(0),
-        _attack_cooldown(0),
         _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
         _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
         _enemies_ref(enemies)
@@ -214,9 +208,7 @@ public:
         graphics.animation->update();
     }
     
-    #if DEV_ENABLED
     void update(bool noClip = false);
-    #endif
 
     void heal(int h){
         _hp = bn::min(_hp + h, int(_stats.max_hp));
@@ -249,7 +241,7 @@ public:
         _interact_token = t;
     }
 
-    bool invulnerable;
+    bool invulnerable = false;
     Inventory playerInventory;
 
 private:
@@ -277,10 +269,10 @@ private:
         }
     }
     
-    bool _interact_token;
-    uint8_t _state;
-    uint8_t _prev_dir;
-    int8_t _prev_attack_cooldown, _attack_cooldown;
+    bool _interact_token = true;
+    uint8_t _state = State::NORMAL;
+    uint8_t _prev_dir = Direction::SOUTH;
+    int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
     short _hp;
     basic_stats _stats;
     bn::rect _hitbox;
@@ -290,12 +282,7 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){ graphics.reset();}
-    Enemy(bn::point position):
-        Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        _state(State::NORMAL),
-        _prev_attack_cooldown(0),
-        _attack_cooldown(0),
-        _idle_time(0) {}
+    Enemy(short max_hp, bn::point position): Actor(bn::rect(position.x(), position.y(), 16, 16)), hp(max_hp) {}
 
     // Getters
     [[nodiscard]] bool alive() const { return _state != State::DEAD;}
@@ -339,19 +326,17 @@ public:
     
 protected:
     short hp;
-    uint8_t _state;
-    int8_t _prev_attack_cooldown, _attack_cooldown;
-    uint8_t _idle_time;
+    uint8_t _state = State::NORMAL;
+    int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
+    uint8_t _idle_time = 0;
 };
 
 class BadCat: public Enemy{
 public:
     ~BadCat(){ graphics.reset();}
     // Constructor
-    BadCat(bn::point position, bn::camera_ptr cam):
-        Enemy(position)
+    BadCat(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            hp = _stats.max_hp;
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::bad_cat);
                 builder.set_position(position.x(), position.y() - 8);
@@ -419,10 +404,8 @@ class PaleTongue: public Enemy{
 public:
     ~PaleTongue(){ graphics.reset();}
     // Constructor
-    PaleTongue(bn::point position, bn::camera_ptr cam):
-        Enemy(position)
+    PaleTongue(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            hp = _stats.max_hp;
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::pale_tongue);
                 builder.set_position(position.x(), position.y() - SPRTYOFFSET);
@@ -483,17 +466,14 @@ private:
     
     static constexpr uint8_t SPRTYOFFSET = 8;
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
-
 };
 
 class PaleFinger: public Enemy{
 public:
     ~PaleFinger(){ graphics.reset();}
     // Constructor
-    PaleFinger(bn::point position, bn::camera_ptr cam):
-        Enemy(position)
+    PaleFinger(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            hp = _stats.max_hp;
             if(on_screen(cam, 32, 58)){
                 bn::sprite_builder builder(bn::sprite_items::pale_finger);
                 builder.set_position(position.x(), position.y() - SPRTYOFFSET);
@@ -532,7 +512,6 @@ public:
     
 private:
     void _movement();
-    
     void _start_attack();
 
     void _attack_update(){

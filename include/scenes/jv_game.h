@@ -83,10 +83,6 @@ public:
         #endif
         {
             bn::music_items::cyberrid.play(0.2);
-            floor = 0;
-            gameover_delay = 0;
-            game_over = false;
-            objective = true;
             text_generator.set_bg_priority(0);
             _backdrop.set_camera(_cam);
             _tiled_bg.set_camera(_cam);
@@ -101,11 +97,6 @@ public:
 
             #if DEV_ENABLED
                 _cat.invulnerable = true;
-                FullHeal = false;
-                Noclip = false;
-                Die = false;
-                Clear = false;
-                NoFog = false;
                 text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
                 cpu_sprts[0].set_bg_priority(0);
             #endif
@@ -131,6 +122,7 @@ private:
                 max = bn::max(progress, bn::fixed(0));
                 bn::sprite_palettes::set_fade(black, max);
                 bn::bg_palettes::set_fade(black, max);
+                jv::Interface::resetcombo();
                 bn::core::update();
             }
         }else{
@@ -150,6 +142,7 @@ private:
                     volume = bn::music::volume();
                     bn::music::set_volume(bn::max(volume - volume_decrement, bn::fixed(0)));
                 }
+                jv::Interface::resetcombo();
                 bn::core::update();
             }
         }
@@ -319,385 +312,120 @@ private:
         _tiled_bg.game_map().insert_data(4, 4, (GameMap::cell_type*)jv::blocks::data[block_index], top_left, blockFlip);
     }
 
-    bn::point insert_room(const bn::point top_left, const uint8_t option){
+    void insert_room(const bn::point top_left, int option_minus_1){
         bn::point target;   // Target Map cell to insert block
         int value;
         bool flip;
 
+        for(int y = 0; y < jv::prefab_maps::data[option_minus_1].height; y++){
+            for(int x = 0; x < jv::prefab_maps::data[option_minus_1].width; x++){
+                const uint16_t index = x + y*jv::prefab_maps::data[option_minus_1].width;
+                value = jv::prefab_maps::data[option_minus_1].cell(index);
+                flip = jv::prefab_maps::data[option_minus_1].horizontal_flip(index);
+                target.set_x((x + top_left.x()*7)*4 - 2);
+                target.set_y((y + top_left.y()*7)*4 - 2);
+                block_factory(target, value, flip);
+            }
+        }
+    }
+
+    bn::point room_factory(const bn::point top_left, const uint8_t option){
+        int option_minus_1 = option - 1;
+        
         switch(option){
             // Rooms
             case Small:{
-                const uint8_t width = 7, height = 7;
-                constexpr uint16_t size = width*height;
+                insert_room(top_left, option_minus_1);
 
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 6,22,
-                     0,26,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
-            
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 1*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(1, 1);
             }
             case Tall1:{
-                const uint8_t width = 7, height = 14;
-                constexpr uint16_t size = width*height;
-
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 6,22,
-                     0,26,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
+                insert_room(top_left, option_minus_1);
             
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 2*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 2*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(1, 2);
             }
             case Tall2:{
-                const uint8_t width = 7, height = 14;
-                constexpr uint16_t size = width*height;
-
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20,29,29,29,29,29,20,
-                    20, 9, 9, 9, 9, 9,20,
-                    20, 2, 2, 2, 2, 2,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 6,22,
-                     0,26,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
+                insert_room(top_left, option_minus_1);
             
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
-                                        (width - 1)*32, ((height>>1) - 1)*32 + 16));
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 3*112),
-                                        (width - 1)*32, ((height>>1) - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 1*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          ((jv::prefab_maps::data[option_minus_1].height>>1) - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 3*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          ((jv::prefab_maps::data[option_minus_1].height>>1) - 1)*32 + 16));
                 
                 return bn::point(1, 2);
             }
             case Tall3:{
-                const uint8_t width = 7, height = 14;
-                constexpr uint16_t size = width*height;
-
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    20, 1, 1,29, 1, 1,20,
-                    20, 1, 1,28, 1, 1,20,
-                    20, 1, 1,24, 1, 1,20,
-                    20, 1, 1, 9, 1, 1,20,
-                    20, 1, 1, 2, 1, 1,20,
-                    20, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 6,22,
-                     0,26,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
+                insert_room(top_left, option_minus_1);
             
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 2*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 2*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(1, 2);
             }
             case Wide1:{
-                const uint8_t width = 14, height = 7;
-                constexpr uint16_t size = width*height;
-                
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,15,15,15,15,15,15,15,18, 0,
-                    19,16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6,22,
-                     0,26,25,25,25,25,25,25,25,25,25,25,26, 0};
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
+                insert_room(top_left, option_minus_1);
             
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 1*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112),
+                                          -16 + (top_left.y()*224 + 1*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(2, 1);
             }
             case Wide2:{
-                const uint8_t width = 14, height = 7;
-                constexpr uint16_t size = width*height;
-                
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,15,18, 0,18,15,15,15,18, 0,
-                    19,16, 9, 9, 9, 9,16,31,16, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 2, 8,28, 8, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1, 1, 1,30, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5, 5, 6,37, 6, 5, 5, 5, 6,22,
-                     0,26,25,25,25,25,26, 0,26,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
-            
-                _fog.create_room(bn::rect(0 + (top_left.x()*224 + 1*112), -16 + (top_left.y()*224 + 1*112),
-                                        ((width>>1) )*32, (height - 1)*32 + 16));
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 3*112), -16 + (top_left.y()*224 + 1*112),
-                                        ((width>>1) - 1)*32, (height - 1)*32 + 16));
+                insert_room(top_left, option_minus_1);
+
+                _fog.create_room(bn::rect(0 + (top_left.x()*224 + 1*112),
+                                          -16 + (top_left.y()*224 + 1*112),
+                                          ((jv::prefab_maps::data[option_minus_1].width>>1) )*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 3*112),
+                                          -16 + (top_left.y()*224 + 1*112),
+                                          ((jv::prefab_maps::data[option_minus_1].width>>1) - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(2, 1);
             }
             case Big1:{
-                const uint8_t width = 14, height = 14;
-                constexpr uint16_t size = width*height;
+                insert_room(top_left, option_minus_1);
 
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,15,15,15,15,15,15,15,18, 0,
-                    19,16, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8,20,
-                    20, 1, 1,29, 1, 1, 1, 1, 1, 1,29, 1, 1,20,
-                    20, 1, 1,24, 1, 1, 1, 1, 1, 1,24, 1, 1,20,
-                    20, 1, 1, 9, 1, 1, 1, 1, 1, 1, 9, 1, 1,20,
-                    20, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,20,
-                    20, 1, 1,29, 1, 1, 1, 1, 1, 1,29, 1, 1,20,
-                    20, 1, 1,24, 1, 1, 1, 1, 1, 1,24, 1, 1,20,
-                    20, 1, 1, 9, 1, 1, 1, 1, 1, 1, 9, 1, 1,20,
-                    40, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1,40,
-                    22, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6,22,
-                     0,26,25,25,25,25,25,25,25,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
-                
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
-
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112),
+                                          -16 + (top_left.y()*224 + 2*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(2, 2);
             }
             case Big2:{
-                const uint8_t width = 14, height = 14;
-                constexpr uint16_t size = width*height;
-
-                uint8_t blockArr[size] = {
-                     0,18,15,15,15,15,15,15,36,15,15,15,18, 0,
-                    19,16, 9, 9, 9, 9, 9, 9,28, 9, 9, 9,16,19,
-                    20, 8, 2, 2, 2, 2, 2, 2,28, 2, 2, 2, 8,20,
-                    20, 1, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1, 1, 1, 1,28, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,29, 1, 1,28, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,28, 1, 1,28, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,28, 1, 1,24, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,28, 1, 1, 9, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,28, 1, 1, 2, 1, 1, 1, 1,20,
-                    20, 1, 1, 1, 1,28, 1, 1, 1, 1, 1, 1, 1,20,
-                    40, 1, 1, 1, 1,28, 1, 1, 1, 1, 1, 1, 1,40,
-                    22, 6, 5, 5, 5,39, 5, 5, 5, 5, 5, 5, 6,22,
-                    0,26,25,25,25, 38,25,25,25,25,25,25,26, 0 };
-                bool flipArr[size] = {
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+                insert_room(top_left, option_minus_1);
                 
-                for(int y = 0; y < height; y++){
-                    for(int x = 0; x < width; x++){
-                        int index = x + y*width;
-                        value = blockArr[index];
-                        flip = flipArr[index];
-                        target.set_x((x + top_left.x()*7)*4 - 2);
-                        target.set_y((y + top_left.y()*7)*4 - 2);
-                        block_factory(target, value, flip);
-                    }
-                }
-
-                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112), -16 + (top_left.y()*224 + 2*112),
-                                        (width - 1)*32, (height - 1)*32 + 16));
+                _fog.create_room(bn::rect(-16 + (top_left.x()*224 + 2*112),
+                                          -16 + (top_left.y()*224 + 2*112),
+                                          (jv::prefab_maps::data[option_minus_1].width - 1)*32,
+                                          (jv::prefab_maps::data[option_minus_1].height - 1)*32 + 16));
                 
                 return bn::point(2, 2);
             }
             // Corridors
             case V_Corr:{
+                bn::point target;
+                int value;
                 const uint8_t width = 3, height = 5;
                 constexpr uint16_t size = width*height;
 
@@ -714,7 +442,7 @@ private:
                         value = blockArr[index];
                         target.set_x((x + top_left.x())*4 - 2);
                         target.set_y((y + top_left.y())*4 - 2);
-                        block_factory(target, blockArr[index], index == 5);
+                        block_factory(target, value, index == 5);
                     }
                 }
             
@@ -730,6 +458,8 @@ private:
                 break;
             }
             case H_Corr:{
+                bn::point target;
+                int value;
                 const uint8_t width = 4, height = 4;
                 constexpr uint16_t size = width*height;
 
@@ -745,7 +475,7 @@ private:
                         value = blockArr[index];
                         target.set_x((x + top_left.x())*4 - 2);
                         target.set_y((y + top_left.y())*4 - 4);
-                        block_factory(target, blockArr[index], false);
+                        block_factory(target, value, false);
                     }
                 }
                 break;
@@ -759,7 +489,7 @@ private:
     }
 
     void generate(){
-        using rooms_type = bn::vector<uint8_t, ROOM_PREFAB_COUNT>;
+        using rooms_type = bn::vector<uint8_t, prefab_map::ROOM_PREFAB_COUNT>;
 
         _tiled_bg.game_map().reset();
         bool* zData = new bool[zone_x*zone_y];
@@ -812,7 +542,7 @@ private:
                 top_left.set_x(x);
                 top_left.set_y(y);
 
-                const bn::point occupied = insert_room(top_left, selectedRoom);
+                const bn::point occupied = room_factory(top_left, selectedRoom);
 
                 // Sectors update
                 for(int row = y; row < y + occupied.y(); row++){
@@ -831,7 +561,7 @@ private:
                 const int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
                 if(!zone.cell(x, y) || !_tiled_bg.game_map().cell(next_cell_x, next_cell_y) || _tiled_bg.game_map().cell(next_cell_x, halfway_cell_y)) continue;
-                insert_room(bn::point(2 + x*7, 5 + y*7), V_Corr);
+                room_factory(bn::point(2 + x*7, 5 + y*7), V_Corr);
             }
         }
         
@@ -847,7 +577,7 @@ private:
                 int next_cell_x = (7 + x*7)*4 + 1, next_cell_y = (2 + y*7)*4, halfway_cell_x = (6 + x*7)*4 + 1;
                 // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
                 if(!zone.cell(x, y) || !_tiled_bg.game_map().cell(next_cell_x, next_cell_y) || _tiled_bg.game_map().cell(halfway_cell_x, next_cell_y)) continue;
-                insert_room(bn::point(5 + x*7, 2 + y*7), H_Corr);
+                room_factory(bn::point(5 + x*7, 2 + y*7), H_Corr);
 
                 const int x_times_28 = x*28, y_times_28 = y*28;
                 bn::point checkPoint(22 + x_times_28, 18 + y_times_28);
@@ -904,10 +634,13 @@ private:
     }
 
     void update(){
+        bn::fixed_point cam_target;
+        bn::point prev_cam_pos;
+        bool cam_moved;
+
         text_generator.generate(94, -70, bn::to_string<3>(floor), _txt_sprts);
         next_level = false;
         gameover_delay = 0;
-        int prev_cam_x, prev_cam_y;
 
         // Level generation
         //zone_x = 2 + randomizer.get_int(MAX_ROOM_ROWS - 2);
@@ -935,13 +668,16 @@ private:
         fade(FADE_IN, fadespeed::MEDIUM, false);
 
         while(!next_level){
-            prev_cam_x = _cam.x().floor_integer(), prev_cam_y = _cam.y().floor_integer();
-            cam_x_target = lerp(_cam.x(), _cat.get_hitbox().x(), cam_lerp_value);
-            cam_y_target = lerp(_cam.y(), _cat.get_hitbox().y() + 4, cam_lerp_value);
-            _cam.set_position(cam_x_target, cam_y_target);
+            prev_cam_pos.set_x(_cam.x().floor_integer());
+            prev_cam_pos.set_y(_cam.y().floor_integer());
+            cam_target.set_x(lerp(_cam.x(), _cat.get_hitbox().x(), cam_lerp_value));
+            cam_target.set_y(lerp(_cam.y(), _cat.get_hitbox().y() + 4, cam_lerp_value));
+            _cam.set_position(cam_target);
             
             jv::Global::update();
-            _tiled_bg.update();
+            cam_moved = prev_cam_pos.x() != jv::Global::cam_pos().x() || prev_cam_pos.y() != jv::Global::cam_pos().y();
+
+            if(cam_moved) _tiled_bg.update();
             _bg_animation[0].update();
             _bg_animation[1].update();
             objective = true;
@@ -953,7 +689,7 @@ private:
             _cat.update();
             #endif
             
-            if(prev_cam_x != jv::Global::cam_pos().x() || prev_cam_y != jv::Global::cam_pos().y()) _fog.update();
+            if(cam_moved) _fog.update();
             
             if( _cat.alive()){
                 next_level = _stairs.climb();
@@ -1062,16 +798,15 @@ private:
     jv::Player _cat;
     jv::stairs _stairs;
 
-    bn::fixed cam_x_target, cam_y_target;
     uint8_t environment_id;
-    uint8_t zone_x, zone_y;
-    int floor, gameover_delay;
-    bool next_level, game_over, objective;
+    uint8_t zone_x = 0, zone_y = 0;
+    int floor = 0, gameover_delay = 0;
+    bool next_level = false, game_over = false, objective = true;
     
     #if DEV_ENABLED
     bn::vector<bn::sprite_ptr, 3> cpu_sprts;
     bn::array<jv::menu_option, 7> options;
-    bool FullHeal, Noclip, Die, Clear, NoFog;
+    bool FullHeal = false, Noclip = false, Die = false, Clear = false, NoFog = false;
     #endif
 };
 
@@ -1079,7 +814,10 @@ void intro_scene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
     
     jv::Interface::fade(FADE_IN, fadespeed::MEDIUM, false);
-    for(int i = 0; i < 180; i++) bn::core::update();
+    for(int i = 0; i < 180; i++) {
+        jv::Interface::resetcombo();
+        bn::core::update();
+    }
     jv::Interface::fade(FADE_OUT, fadespeed::MEDIUM, false);
 }
 
@@ -1146,6 +884,7 @@ int start_scene(bn::random& randomizer){
         bn::bg_palettes::set_fade(bn::colors::black, bn::max(fadeProgress, bn::fixed(0)));
         bg.set_y(bg.y() + scrollSpeed);
         if(bg.y() == end_y){ bg.set_y(start_y);}
+        jv::Interface::resetcombo();
         bn::core::update();
     }
 
@@ -1204,6 +943,7 @@ int start_scene(bn::random& randomizer){
         bn::bg_palettes::set_fade(bn::colors::black, bn::min(fadeProgress, bn::fixed(1)));
         bg.set_y(bg.y() + scrollSpeed);
         if(bg.y() == end_y){ bg.set_y(start_y);}
+        jv::Interface::resetcombo();
         bn::core::update();
     }
     #if DEV_ENABLED
