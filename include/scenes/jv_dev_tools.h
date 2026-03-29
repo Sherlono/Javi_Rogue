@@ -119,7 +119,7 @@ void blocks_scene(){
     // Background
     bn::bg_palettes::set_transparent_color(bn::color(31, 0, 31));
     constexpr bn::point mapSize(20, 20);
-    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::fortress_tiles, bn::bg_palette_items::fortress_palette, mapSize.x()*4, mapSize.y()*4);
+    jv::tiled_bg Fortress(bn::regular_bg_tiles_items::jungle_tiles, bn::bg_palette_items::jungle_palette, mapSize.x()*4, mapSize.y()*4);
     const int width = 12, height = 7;
     
     // ******** Camera ********

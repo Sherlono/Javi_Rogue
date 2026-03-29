@@ -507,7 +507,7 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
                 }else{
                     jv::Dialog::init("Thanks for getting rid of the evil", "creatures! The stairs are open now!");
                     if(!stairs.isOpen){
-                        stairs.set_open(true);
+                        stairs.set_open(bg.tiles(), true);
                         bg.init();
                     }
                 }

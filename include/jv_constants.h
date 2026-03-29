@@ -15,10 +15,11 @@
 namespace {
     constexpr bn::string_view Version = "0.1.1";
     constexpr uint8_t WTILES_COUNT = 60;        // Number of Walkable Tiles
+    //constexpr uint8_t STAIRS_START_TILE = 41;
 
-    constexpr uint8_t MAX_ENEMIES = 15;
-    constexpr uint8_t MAX_ROOM_ROWS = 6;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 6;
+    constexpr uint8_t MAX_ENEMIES = 3;
+    constexpr uint8_t MAX_ROOM_ROWS = 4;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 4;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2

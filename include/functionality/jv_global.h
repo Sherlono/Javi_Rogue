@@ -21,6 +21,7 @@ using projectiles_vector_ref_t = bn::ivector<jv::Projectile*>&;
 
 struct Global{
 public:
+    enum Environments {Fortress, Jungle};
     Global() = delete;
     Global(const Global&) = delete;
     Global operator=(Global const& other) = delete;
@@ -41,6 +42,7 @@ public:
     [[nodiscard]] static projectiles_vector_ref_t Projectiles();
     [[nodiscard]] static bn::point cam_pos();
 
+    static uint8_t environment_id;
 private:
     static bn::camera_ptr* _camera;
     static GameMap* _map;

@@ -13,6 +13,8 @@ GameMap* Global::_map = nullptr;
 Player* Global::_player = nullptr;
 bn::random* Global::_randomizer = nullptr;
 bn::point Global::cam_position;
+uint8_t Global::environment_id = 0;
+
 
 void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player, bn::random* randomizer, projectiles_vector_ptr_t projectiles){
     _camera = camera;
@@ -20,6 +22,7 @@ void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player
     _map = map;
     _randomizer = randomizer;
     _projectiles = projectiles;
+    environment_id = 0;
 }
 
 void Global::reset(){

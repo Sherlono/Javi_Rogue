@@ -58,20 +58,20 @@ public:
         }
     }
 
-    void insert_data(const int map_x, const int map_y, cell_type* map, const bn::point top_left, const bool fliped = false){
+    void insert_data(const int map_x, const int map_y, cell_type* map, const bn::point top_left, const bool flipped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int x_end = x_begin + map_x   ,   y_end = y_begin + map_y;
 
         for(int y = y_begin; y < y_end; y++){
             int room_index, map_index;
             for(int x = x_begin; x < x_end; x++){
-                if(!fliped) room_index = (x - x_begin) + (y - y_begin) * map_x;
+                if(!flipped) room_index = (x - x_begin) + (y - y_begin) * map_x;
                 else room_index =       -(x + 1 - x_end) + (y - y_begin) * map_x;
                 
                 if(!map[room_index]) continue;
                 map_index = x + y * this->_width;
                 this->_data[map_index] = map[room_index];
-                this->set_horizontal_flip(map_index, fliped ? !(map[room_index] >= FLPTHD) : (map[room_index] >= FLPTHD));
+                this->set_horizontal_flip(map_index, flipped ? !(map[room_index] >= FLPTHD) : (map[room_index] >= FLPTHD));
             }
         }
     }
@@ -103,9 +103,6 @@ struct bg_map
 
     // Setters
     void set_cell(const int x, const int y, GameMap::cell_type value, bool flip = false){
-        /*BN_ASSERT(x >= 0, "Invalid x", x);
-        BN_ASSERT(y >= 0, "Invalid y", y);*/
-
         bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
         bn::regular_bg_map_cell_info current_cell_info(current_cell);
 
@@ -124,24 +121,31 @@ struct bg_map
 
 // Level layout cells
 struct Zone{
-    ~Zone(){ reset(); }
-    Zone(uint8_t w, uint8_t h, bool* a):_width(w), _height(h), data(a){
-        bn::memory::clear(_width*_height, data[0]);
+    ~Zone(){ bn::memory::clear(size(), data[0]); }
+    Zone(uint8_t w, uint8_t h):data(std::make_unique<bool[]>(w*h)), width(w), height(h){
+        reset();
     }
     
     bool cell(int x, int y) { 
-        if(x < 0 || y < 0 || x >= _width || y >= _height){ // If xy is outside the zone
+        if(x < 0 || y < 0 || x >= width || y >= height){ // If xy is outside the zone
             return false;
         }else{
-            return data[x + (y*_width)];
+            return this->data[x + (y*width)];
         }
     }
-    
-    void reset(){
-        bn::memory::clear(_width*_height, data[0]);
+
+    void set_cell(const uint16_t index, bool value){
+        this->data[index] = value;
     }
-    const uint8_t _width, _height;
-    bool* data;
+    
+    [[nodiscard]] int size() const {return width*height;}
+
+    void reset(){
+        bn::memory::clear(size(), data[0]);
+    }
+
+    std::unique_ptr<bool[]> data;
+    const uint8_t width, height;
 };
 
 struct prefab_map{
