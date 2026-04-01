@@ -9,7 +9,7 @@ namespace jv{
 class Player;
 
 struct stairs{
-    static constexpr int stairs_tiles_begin = 41;
+    static constexpr int stairs_tiles_begin = 57;
     stairs(): isOpen(false), _rect(bn::rect(0, 0, 16, 16)) {}
 
     // Setters

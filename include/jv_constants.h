@@ -13,13 +13,13 @@
 #define FADE_OUT false
 
 namespace {
-    constexpr bn::string_view Version = "0.1.1";
-    constexpr uint8_t WTILES_COUNT = 60;        // Number of Walkable Tiles
+    constexpr bn::string_view Version = "0.1.2";
+    constexpr uint8_t WTILES_COUNT = 76;        // Number of Walkable Tiles
     //constexpr uint8_t STAIRS_START_TILE = 41;
 
-    constexpr uint8_t MAX_ENEMIES = 3;
-    constexpr uint8_t MAX_ROOM_ROWS = 4;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 4;
+    constexpr uint8_t MAX_ENEMIES = 16;
+    constexpr uint8_t MAX_ROOM_ROWS = 5;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 5;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2

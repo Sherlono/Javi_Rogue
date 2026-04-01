@@ -134,28 +134,28 @@ void Player::_movement(bool noClip){
 
 void Player::update(bool noClip){
     #ifdef DEV_ENABLED
-        if(bn::keypad::l_pressed()){
-            int value = jv::Global::Map().cell(x()>>3, (y()+4)>>3);
-            BN_LOG("x: ", x()>>3, " y: ", (y()+4)>>3, " Value: ", value);
-        }
+    if(bn::keypad::l_pressed()) [[unlikely]] {
+        int value = jv::Global::Map().cell(x()>>3, (y()+4)>>3);
+        BN_LOG("x: ", x()>>3, " y: ", (y()+4)>>3, " Value: ", value);
+    }
     #endif
     
-    if(alive()){
+    if(alive()) [[likely]] {
         _interact_token = true;
         
         _attack_update();
-        if(get_state() == State::HURTING){
-            if(graphics.animation->done()){
+        if(get_state() == State::HURTING) [[unlikely]] {
+            if(graphics.animation->done()) [[unlikely]] {
                 set_state(State::NORMAL);
                 graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
-        }else if(!is_attacking()){
+        }else if(!is_attacking()) [[likely]] {
             _movement(noClip);
         }
-        if(!graphics.animation->done()){ graphics.animation->update();}
+        if(!graphics.animation->done()) [[likely]] { graphics.animation->update();}
 
         // Combat
-        if(bn::keypad::b_pressed()){
+        if(bn::keypad::b_pressed()) [[unlikely]] {
             _start_attack();
         }
     }
@@ -233,7 +233,7 @@ void BadCat::update(){
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
         else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
 
-        if(alive()){
+        if(alive()) [[likely]] {
             _attack_update();
 
             // Movement and Animations
@@ -334,11 +334,11 @@ void PaleTongue::update(){
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
         else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
 
-        if(alive()){
+        if(alive()) [[likely]] {
             _attack_update();
 
             // Movement and Animations
-            if(get_state() == State::HURTING){
+            if(get_state() == State::HURTING) [[unlikely]] {
                 if(graphics.animation->done()){
                     set_state(State::NORMAL);
                     if(!_idle_time){
@@ -349,10 +349,10 @@ void PaleTongue::update(){
             }else if(!is_attacking(40)){
                 _movement();
             }
-            if(!graphics.animation->done()){ graphics.animation->update();}
+            if(!graphics.animation->done()) [[likely]] { graphics.animation->update();}
             
             // Combat
-            if(Global::Player().alive()){
+            if(Global::Player().alive()) [[likely]] {
                 bool player_attack_connected = Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect());
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
@@ -451,7 +451,7 @@ void PaleFinger::update(){
             _attack_update();
 
             // Movement and Animations
-            if(get_state() == State::HURTING){
+            if(get_state() == State::HURTING) [[unlikely]] {
                 if(graphics.animation->done()){
                     set_state(State::NORMAL);
                     if(!_idle_time){
@@ -462,10 +462,10 @@ void PaleFinger::update(){
             }else if(!is_attacking(40)){
                 _movement();
             }
-            if(!graphics.animation->done()){ graphics.animation->update();}
+            if(!graphics.animation->done()) [[likely]] { graphics.animation->update();}
             
             // Combat
-            if(Global::Player().alive()){
+            if(Global::Player().alive()) [[likely]] {
                 bool player_attack_connected = Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect());
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
@@ -499,7 +499,7 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
             sprite().set_z_order(Global::Player().graphics.z_order() - 1);
         }
 
-        if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()){
+        if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()) [[likely]] {
             // Dialog
             if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
                 if(!objective){

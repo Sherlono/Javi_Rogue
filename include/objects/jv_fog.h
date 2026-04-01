@@ -25,7 +25,7 @@ public:
     iFog(const iFog& other) = delete;
 
     iFog(bn::rect& data, int max_size):
-        _rooms(&data),
+        _shapes(&data),
         _max_size(max_size),
         current_room(-1), _x(0), _y(0), _width(0), _height(0),
         _window(bn::window::internal()),
@@ -71,7 +71,7 @@ public:
     // Getters
     [[nodiscard]] bn::rect* end()
     {
-        return _rooms + _size;
+        return _shapes + _size;
     }
     [[nodiscard]] int size() const
     {
@@ -109,33 +109,33 @@ public:
 protected:
     void _assign(const iFog& other)
     {
-        bn::rect* data = _rooms;
-        const bn::rect* other_rooms = other._rooms;
+        bn::rect* data = _shapes;
+        const bn::rect* other_shapes = other._shapes;
         int other_size = other._size;
         _size = other_size;
 
         for(int index = 0; index < other_size; ++index)
         {
-            ::new(static_cast<void*>(data + index)) bn::rect(other_rooms[index]);
+            ::new(static_cast<void*>(data + index)) bn::rect(other_shapes[index]);
         }
     }
 
     void _assign(iFog&& other)
     {
-        bn::rect* data = _rooms;
-        bn::rect* other_rooms = other._rooms;
+        bn::rect* data = _shapes;
+        bn::rect* other_shapes = other._shapes;
         int other_size = other._size;
         _size = other_size;
 
         for(int index = 0; index < other_size; ++index)
         {
-            ::new(static_cast<void*>(data + index)) bn::rect(move(other_rooms[index]));
+            ::new(static_cast<void*>(data + index)) bn::rect(move(other_shapes[index]));
         }
 
         other.clear();
     }
 
-    bn::rect* _rooms;
+    bn::rect* _shapes;
     int _size = 0;
     int _max_size;
     

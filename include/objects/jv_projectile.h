@@ -54,7 +54,7 @@ protected:
     bn::fixed_point _moveVector;
     bn::optional<bn::sprite_ptr> _sprite;
     
-    static constexpr bn::fixed _speed = bn::fixed(1.8);
+    static constexpr bn::fixed _speed = bn::fixed(1.9);
 };
 class EnergyOrb: public Projectile{
 public:

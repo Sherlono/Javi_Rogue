@@ -38,14 +38,21 @@ public:
         cell_type val = _data[index];
         return val - FLPTHD*(val >= FLPTHD);
     }
-    #ifdef DEV_ENABLED
+    
     [[nodiscard]] cell_type raw_cell(const int x, const int y) const {
-        return _data[x + y*_width];
+        if(x < 0 || y < 0 || x >= _width || y >= _height){
+            return 0;
+        }else{
+            return this->_data[x + y*_width];
+        }
     }
-    #endif
+    
     // Setters
     void set_cell(const int x, const int y, int value){
         _data[x + y*_width] = value;
+    }
+    void set_cell(const int index, int value){
+        _data[index] = value;
     }
     
     void set_horizontal_flip(int index, bool f){
@@ -58,7 +65,7 @@ public:
         }
     }
 
-    void insert_data(const int map_x, const int map_y, cell_type* map, const bn::point top_left, const bool flipped = false){
+    void insert_data(const int map_x, const int map_y, bn::span<const GameMap::cell_type> map, const bn::point top_left, const bool flipped = false){
         int y_begin = top_left.y()  ,   x_begin = top_left.x();
         int x_end = x_begin + map_x   ,   y_end = y_begin + map_y;
 
@@ -119,35 +126,7 @@ struct bg_map
     }
 };
 
-// Level layout cells
-struct Zone{
-    ~Zone(){ bn::memory::clear(size(), data[0]); }
-    Zone(uint8_t w, uint8_t h):data(std::make_unique<bool[]>(w*h)), width(w), height(h){
-        reset();
-    }
-    
-    bool cell(int x, int y) { 
-        if(x < 0 || y < 0 || x >= width || y >= height){ // If xy is outside the zone
-            return false;
-        }else{
-            return this->data[x + (y*width)];
-        }
-    }
-
-    void set_cell(const uint16_t index, bool value){
-        this->data[index] = value;
-    }
-    
-    [[nodiscard]] int size() const {return width*height;}
-
-    void reset(){
-        bn::memory::clear(size(), data[0]);
-    }
-
-    std::unique_ptr<bool[]> data;
-    const uint8_t width, height;
-};
-
+// Meant for room prefab data stored in rom
 struct prefab_map{
     static constexpr uint8_t ROOM_PREFAB_COUNT = 9;    // Number of Room Prefabs
     constexpr prefab_map(uint8_t w, uint8_t h, const bn::span<const uint8_t> c):

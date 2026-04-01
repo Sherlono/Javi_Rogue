@@ -24,8 +24,6 @@
     static_assert(DEV_ENABLED, "Log is not enabled");
 #endif
 
-class Zone;
-
 namespace jv{
 
 namespace fadespeed{
@@ -89,12 +87,10 @@ inline void Log_resources(){
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     BN_LOG("Used alloc ewram: ", bn::memory::used_alloc_ewram(), " Available alloc ewram: ", bn::memory::available_alloc_ewram());
     BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
-    //BN_LOG("Rom: ", bn::memory::used_rom());
 #endif
 }
 
-void Log_zone_layout(Zone& z);
-
+void Log_zone_layout(GameMap& z);
 }
 }
 

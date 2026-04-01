@@ -5,20 +5,20 @@
 
 namespace jv{
 void iFog::update(){
-    if(visible()){
+    if(visible()) [[likely]] {
         bool flag = false;
         for(int r = 0; r < this->size(); r++){
-            if(_rooms[r].contains(Global::Player().position())){
+            if(_shapes[r].contains(Global::Player().position())){
                 if(r != current_room){
-                    set_shape(_rooms[r]);
+                    set_shape(_shapes[r]);
                 }
                 current_room = r;
                 flag = true;
                 break;
             }
         }
-        if(!flag){
-            if(current_room != -1){
+        if(!flag){  // If player is not inside a Fog room
+            if(current_room != -1) [[unlikely]] {
                 set_shape(Global::Player().position(), 24, 24);
                 current_room = -1;
             }else{
@@ -38,14 +38,10 @@ void iFog::update(){
             const int qc_index = curve_line + 24 - _height;
             const int x_m_camx = _x - x_int;
             bn::fixed aux;
-            if(index > _height - 24){
-                aux = 22*quarter_circle[qc_index];
-            }
-            else aux = 0;
+            if(index > _height - 24){ aux = _width - (22*quarter_circle[qc_index]).floor_integer(); }
+            else aux = _width;
 
-            const int w_m_aux = _width - aux.floor_integer();
-
-            const bn::pair<int, int> left_right(x_m_camx - w_m_aux, x_m_camx + w_m_aux);
+            const bn::pair<int, int> left_right(x_m_camx - aux, x_m_camx + aux);
             const int upper_index = hdh_plus_y + index   ,   lower_index = hdh_plus_y - index - 1;
             if(upper_index >= 0 && upper_index < 160){ _horizontal_boundaries[upper_index] = left_right;}
             if(lower_index >= 0 && lower_index < 160){ _horizontal_boundaries[lower_index] = left_right;}

@@ -16,9 +16,11 @@ void tiled_bg::init(){
     
     for(int y = current_y; y < cy_plus_32; y++){
         for(int x = current_x; x < cx_plus_32; x++){
-            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= _map.width() || y - 15 <= 0 || y - 16 >= _map.height()){ continue;}
+            if(x > cx_plus_32 || y > cy_plus_32 || x - 15 <= 0 || x - 16 >= _map.width() || y - 15 <= 0 || y - 16 >= _map.height()) [[unlikely]] {
+                continue;
+            }
+            
             const int  xmod = bamod(x, 32), ymod = bamod(y, 32);
-
             const int  cell_x = x - 16, cell_y = y - 16;
 
             value = _map.cell(cell_x, cell_y);
@@ -48,7 +50,7 @@ void tiled_bg::update(){
             const bool oob = x_minus_16 >= _map.width() || y_minus_16 < 0 || y_minus_16 >= _map.height();   // Out of bounds check
 
             const int  cell_x = x_minus_16, cell_y = y_minus_16;
-            if(!oob){
+            if(!oob) [[likely]] {
                 value = _map.cell(cell_x, cell_y);
                 flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
@@ -64,7 +66,7 @@ void tiled_bg::update(){
             const bool oob = x_minus_48 < 0 || y_minus_16 < 0 || y_minus_16 >= _map.height();
 
             const int  cell_x = x_minus_48 + _map.width(), cell_y = y - 17;
-            if(!oob){
+            if(!oob) [[likely]] {
                 value = _map.cell(cell_x, cell_y);
                 flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
@@ -82,7 +84,7 @@ void tiled_bg::update(){
             const bool oob = y_minus_16 >= _map.height() || x_minus_23 < 0 || x_minus_23 >= _map.width();
 
             const int  cell_x = x_minus_23, cell_y = y_minus_16;
-            if(!oob){
+            if(!oob) [[likely]] {
                 value = _map.cell(cell_x, cell_y);
                 flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{
@@ -98,7 +100,7 @@ void tiled_bg::update(){
             const bool oob = y_minus_16 < 0 || x_minus_23 < 0 || x_minus_23 >= _map.width();
 
             const int  cell_x = x_minus_23, cell_y = y_minus_16;
-            if(!oob){
+            if(!oob) [[likely]] {
                 value = _map.cell(cell_x, cell_y);
                 flip = _map.horizontal_flip(cell_x + cell_y*_map.width());
             }else{

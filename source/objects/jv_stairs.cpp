@@ -18,7 +18,7 @@ void stairs::set_position(bn::point p){
     _rect.set_position(p);
     bn::point top_left((_rect.position().x()>>3)-2, (_rect.position().y()>>3)-2);
     
-    Global::Map().insert_data(4, 4, (GameMap::cell_type*)blocks::data[32], top_left);
+    Global::Map().insert_data(4, 4, jv::blocks::get_block(32), top_left);
 }
 
 void stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){

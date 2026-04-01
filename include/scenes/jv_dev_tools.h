@@ -18,6 +18,8 @@
 #include "bn_sprite_items_good_cat.h"
 #include "bn_regular_bg_tiles_items_fortress_tiles.h"
 #include "bn_bg_palette_items_fortress_palette.h"
+#include "bn_regular_bg_tiles_items_jungle_tiles.h"
+#include "bn_bg_palette_items_jungle_palette.h"
 
 namespace jv::dev{
 void GenerateDevLevel(GameMap& map){
@@ -29,7 +31,7 @@ void GenerateDevLevel(GameMap& map){
             int index = x + y*width;
 
             const int  block_index = (index>>1 < BLOCK_TOTAL) ? index>>1 : 0;
-            map.insert_data(4, 4, (GameMap::cell_type*)jv::blocks::data[block_index], bn::point(x*4, y*4), index%2);
+            map.insert_data(4, 4, jv::blocks::get_block(block_index), bn::point(x*4, y*4), index%2);
         }
     }
 }
@@ -43,15 +45,14 @@ void Log_block_data(GameMap& map){
             const int start_x = block_x*8, start_y = block_y*4;
             BN_LOG("//block ", block_x + block_y*6);
             for(int y = start_y; y < start_y + 4; y++){
-                bn::string_view line = (y == start_y) ? "{" : "";
+                bn::string_view line = "";
                 for(int x = start_x; x < start_x + 4; x++){
                     int num = map.raw_cell(x, y);
-                    if(num >= 73) num -= (73 - 57);
+                    //if(num >= 17) num += 16;
                     //if(num >= 41 && num <= 118) num += 32;
                     //else if(num >= 119 && num <= 150) num -= (119 - 41);
                     line = line + bn::to_string<32>(num) + ", ";
                 }
-                line = line + bn::to_string<32>((y == start_y + 3) ? "}, " : "");
                 BN_LOG(line);
             }
         }

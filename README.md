@@ -9,3 +9,5 @@ My best attempt at a real time action roguelike rpg for the GBA.<br>
 * "Recursive level progression."
 
 <img src="Javi_Rogue-0.png" width=50%>
+<img src="Javi_Rogue-3.png" width=50%>
+<img src="Javi_Rogue-7.png" width=50%>
