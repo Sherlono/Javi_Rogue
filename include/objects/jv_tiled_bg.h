@@ -2,6 +2,7 @@
 #define JV_TILED_BG_H
 
 #include "bn_point.h"
+#include "bn_memory.h"
 #include "bn_unique_ptr.h"
 #include "bn_regular_bg_tiles_ptr.h"
 
@@ -37,6 +38,37 @@ private:
     bn::regular_bg_map_ptr _bg_m;
     static int _prev_x, _prev_y;
 };
+
+/*struct GameMap_item{
+GameMap map;
+bn::point offset;
+};
+
+class GameMapCollection{
+public:
+    ~GameMapCollection(){ bn::memory::clear(size(), _data[0]);}
+    GameMapCollection(uint16_t x, uint16_t y): _current_map_index(0), _item_count(0), _width(x), _height(y) {}
+
+    [[nodiscard]] uint16_t width() const {return _width;}
+    [[nodiscard]] uint16_t height() const {return _height;}
+    [[nodiscard]] int size() const {return _width*_height;}
+
+    [[nodiscard]] uint16_t cell(const int x, const int y) const {
+        for(){
+
+        }
+        return ;
+    }
+
+    void reset(){
+        bn::memory::clear(size(), _data[0]);
+    }
+
+private:
+    uint8_t _current_map_index, _item_count;
+    uint16_t _width, _height;
+    GameMap_item* _data;
+};*/
 
 }
 

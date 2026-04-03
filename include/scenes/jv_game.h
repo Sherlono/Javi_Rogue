@@ -326,7 +326,7 @@ private:
         switch(option){
             // Rooms
             case Empty:{
-                break;
+                return bn::point(0, 0);
             }
             case Small:{
                 insert_room(top_left, option_minus_1);
@@ -556,42 +556,6 @@ private:
         jv::Interface::Log_zone_layout(zone);
     }
 
-    void populate(){
-        const uint8_t pointsSize = 3 + MAX_ENEMIES; // positions for Player, npc, stairs and enemies
-        bn::vector<bn::point, pointsSize> v_points;
-        
-        random_coords(v_points);
-        _tiled_bg.init();
-        _cat.set_position(v_points[0], 8);
-        _cat.reset();
-        _cam.set_position(_cat.get_hitbox().x(), _cat.get_hitbox().y() + 4);
-        _stairs.set_position(v_points[1]);
-
-        _v_npcs.push_back(jv::NPC(v_points[2], _cam));
-
-        /*bn::vector<uint8_t, 2> enemyCountList;
-        enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES));
-        enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES - enemyCountList[0]));
-        uint8_t enemyCount[2];
-        for(int i = 0; i < 2; i++){
-            int index = randomizer.get_int(enemyCountList.size());
-            enemyCount[i] = enemyCountList[index];
-            enemyCountList.erase(enemyCountList.begin()+index);
-        }*/
-
-        for(int i = 0; i < MAX_ENEMIES/3; i++){
-            _v_enemies.push_back(new jv::BadCat(v_points[3+i], _cam));
-        }
-        for(int i = 0; i < MAX_ENEMIES/3; i++){
-            _v_enemies.push_back(new jv::PaleTongue(v_points[3+_v_enemies.size()+i], _cam));
-        }
-        for(int i = 0; i < _v_enemies.max_size() - _v_enemies.size(); i++){
-            _v_enemies.push_back(new jv::PaleFinger(v_points[3+_v_enemies.size()+i], _cam));
-        }
-        
-        jv::Global::update();
-    }
-
     void generate_corridors(GameMap& zone){
         // Vertical corridors
         if(zone.height() > 1) [[likely]] {
@@ -640,6 +604,42 @@ private:
             }
         }
         
+    }
+
+    void populate(){
+        const uint8_t pointsSize = 3 + MAX_ENEMIES; // positions for Player, npc, stairs and enemies
+        bn::vector<bn::point, pointsSize> v_points;
+        
+        random_coords(v_points);
+        _tiled_bg.init();
+        _cat.set_position(v_points[0], 8);
+        _cat.reset();
+        _cam.set_position(_cat.get_hitbox().x(), _cat.get_hitbox().y() + 4);
+        _stairs.set_position(v_points[1]);
+
+        _v_npcs.push_back(jv::NPC(v_points[2], _cam));
+
+        /*bn::vector<uint8_t, 2> enemyCountList;
+        enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES));
+        enemyCountList.push_back(randomizer.get_int(MAX_ENEMIES - enemyCountList[0]));
+        uint8_t enemyCount[2];
+        for(int i = 0; i < 2; i++){
+            int index = randomizer.get_int(enemyCountList.size());
+            enemyCount[i] = enemyCountList[index];
+            enemyCountList.erase(enemyCountList.begin()+index);
+        }*/
+
+        for(int i = 0; i < MAX_ENEMIES/3; i++){
+            _v_enemies.push_back(new jv::BadCat(v_points[3+i], _cam));
+        }
+        for(int i = 0; i < MAX_ENEMIES/3; i++){
+            _v_enemies.push_back(new jv::PaleTongue(v_points[3+_v_enemies.size()+i], _cam));
+        }
+        for(int i = 0; i < _v_enemies.max_size() - _v_enemies.size(); i++){
+            _v_enemies.push_back(new jv::PaleFinger(v_points[3+_v_enemies.size()+i], _cam));
+        }
+        
+        jv::Global::update();
     }
 
     void load_bg_assets(){
@@ -770,11 +770,11 @@ private:
                 gameover_delay++;
             }
 
+            objective = true;
             enemies_update();
             projectiles_update();
             _healthbar.update();
             
-            objective = true;
             for(int i = 0; i < _v_npcs.size(); i++){
                 _v_npcs[i].update(_stairs, _tiled_bg, objective);
                 /* Other NPC updates*/
@@ -798,6 +798,7 @@ private:
         floor--;
         //Global::environment_id = (bn::abs(floor)/2)%2;
         Global::environment_id = bn::abs(floor)%2;
+        _fog.set_visible(Global::environment_id == Global::Environments::Jungle);
         load_bg_assets();
 
         // Flush and reset objects
