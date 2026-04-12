@@ -75,9 +75,9 @@ inline void Log_skipped_frames(){
 #if DEV_ENABLED
     int skipped = bn::core::last_missed_frames();
     if(skipped != 0){
-        BN_LOG("******************");
+        //BN_LOG("******************");
         BN_LOG("Frames skipped: ", skipped);
-        BN_LOG("******************");
+        //BN_LOG("******************");
     }
 #endif
 }

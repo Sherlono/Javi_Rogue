@@ -93,31 +93,31 @@ public:
     [[nodiscard]] bn::point position() const { return _rect.position();}
     [[nodiscard]] bn::rect& rect() { return _rect;}
     [[nodiscard]] bn::sprite_ptr& sprite() { return graphics.sprite.value();}
-    [[nodiscard]] bool in_range(const int point_x, const int point_y, const int  r) const {
+    [[nodiscard]] bool in_range(const int point_x, const int point_y, const int r) const {
         int delta_x = point_x - x(), delta_y = point_y - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
-    [[nodiscard]] bool in_range(const bn::point position, const int  r) const {
+    [[nodiscard]] bool in_range(const bn::point position, const int r) const {
         int delta_x = position.x() - x(), delta_y = position.y() - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
     [[nodiscard]] bool map_obstacle(int x, int y, const uint8_t direction);
 
     // Setters
-    void set_position(const bn::fixed x, const bn::fixed y, const uint16_t y_offset){
-        sprite().set_position(x, y - y_offset);
-        _rect.set_position(x.floor_integer(), y.floor_integer());
+    void set_position(const bn::fixed x, const bn::fixed y){
+        sprite().set_position(x, y);
+        _rect.set_position(x.floor_integer(), y.floor_integer() + _sprite_y_offset());
     }
-    void set_position(const bn::fixed_point point, const uint16_t y_offset){
-        sprite().set_position(point.x(), point.y() - y_offset);
-        _rect.set_position(point.x().floor_integer(), point.y().floor_integer());
+    void set_position(const bn::fixed_point point){
+        sprite().set_position(point.x(), point.y());
+        _rect.set_position(point.x().floor_integer(), point.y().floor_integer() + _sprite_y_offset());
     }
     void set_visible(bool visible){
         if(graphics.sprite.has_value()){ sprite().set_visible(visible);};
     }
 
     // For actions with direction
-    void load_graphics(const bn::sprite_item& item, int y_offset, int wait_frames);
+    void load_graphics(const bn::sprite_item& item, int wait_frames);
 
     void look_at(bn::fixed_point& xyVector){
         bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
@@ -156,6 +156,8 @@ protected:
         bn::fixed speed;
     };
     
+    [[nodiscard]] virtual int _sprite_y_offset() const = 0;
+    
     uint8_t _prev_dir = Direction::SOUTH, _dir = Direction::SOUTH;
     bn::rect _rect;
 };
@@ -172,7 +174,7 @@ public:
         {
             _hp = _stats.max_hp;
             bn::sprite_builder builder(bn::sprite_items::good_cat);
-            builder.set_position(position.x(), position.y() - 8);
+            builder.set_position(position.x(), position.y() - _sprite_y_offset());
             builder.set_camera(camera);
             builder.set_bg_priority(1);
             
@@ -269,6 +271,8 @@ private:
         }
     }
     
+    [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+
     bool _interact_token = true;
     uint8_t _state = State::NORMAL;
     uint8_t _prev_dir = Direction::SOUTH;
@@ -303,23 +307,23 @@ public:
     // Functionality
     virtual void update() = 0;
 
-    void displace(const int x, const int y, const int  sprite_offset, const bn::fixed speed){
+    void displace(const int x, const int y, const bn::fixed speed){
         // If direction is valid
         if(_dir != Direction::NEUTRAL && _dir < 9){
             // Move if dir not obstructed
             if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && map_obstacle(x, y, NORTH)){          // UP
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
-                set_position(graphics.x(), graphics.y() + sprite_offset - speed*diagonal, sprite_offset); 
+                set_position(graphics.x(), graphics.y() - speed*diagonal); 
             }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, SOUTH)){  // DOWN
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
-                set_position(graphics.x(), graphics.y() + sprite_offset + speed*diagonal, sprite_offset);
+                set_position(graphics.x(), graphics.y() + speed*diagonal);
             }
             if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && map_obstacle(x, y, WEST)){  // LEFT
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
-                set_position(graphics.x() - speed*diagonal, graphics.y() + sprite_offset, sprite_offset);
+                set_position(graphics.x() - speed*diagonal, graphics.y());
             }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, EAST)){ // RIGHT
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
-                set_position(graphics.x() + speed*diagonal, graphics.y() + sprite_offset, sprite_offset);
+                set_position(graphics.x() + speed*diagonal, graphics.y());
             }
         }
     }
@@ -339,7 +343,7 @@ public:
         {
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::bad_cat);
-                builder.set_position(position.x(), position.y() - 8);
+                builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -395,7 +399,8 @@ private:
         }
     }
     
-    static constexpr uint8_t SPRTYOFFSET = 8;
+    [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+
     static constexpr basic_stats _stats = {1, 1, 3, bn::fixed(0.4)};
 
 };
@@ -408,7 +413,7 @@ public:
         {
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::pale_tongue);
-                builder.set_position(position.x(), position.y() - SPRTYOFFSET);
+                builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -464,7 +469,8 @@ private:
         }
     }
     
-    static constexpr uint8_t SPRTYOFFSET = 8;
+    [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
 
@@ -476,7 +482,7 @@ public:
         {
             if(on_screen(cam, 32, 58)){
                 bn::sprite_builder builder(bn::sprite_items::pale_finger);
-                builder.set_position(position.x(), position.y() - SPRTYOFFSET);
+                builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -526,7 +532,8 @@ private:
         }
     }
     
-    static constexpr uint8_t SPRTYOFFSET = 24;
+    [[nodiscard]] int _sprite_y_offset() const override { return 24;}
+
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
 
@@ -539,7 +546,7 @@ public:
         {
             if(on_screen(cam)){
                 bn::sprite_builder builder(bn::sprite_items::cow);
-                builder.set_position(position.x(), position.y() - 8);
+                builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
                 builder.set_bg_priority(1);
                 
@@ -564,6 +571,7 @@ public:
     void update(jv::stairs& stairs, tiled_bg& bg, bool objective);
     
 private:
+    [[nodiscard]] int _sprite_y_offset() const override { return 8;}
 
 };
 

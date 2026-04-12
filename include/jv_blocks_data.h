@@ -113,14 +113,14 @@ namespace jv::prefab_maps{
     };
 
     constexpr bn::array<prefab_map, prefab_map::ROOM_PREFAB_COUNT - 1> data = {
-        prefab_map{7, 7,   bn::span<const uint8_t>(_arr.begin(), _arr.begin() + 49)},
-        prefab_map{7, 14,  bn::span<const uint8_t>(_arr.begin() + 49,  _arr.begin() + 147)},
-        prefab_map{7, 14,  bn::span<const uint8_t>(_arr.begin() + 147, _arr.begin() + 245)},
-        prefab_map{7, 14,  bn::span<const uint8_t>(_arr.begin() + 245, _arr.begin() + 343)},
-        prefab_map{14, 7,  bn::span<const uint8_t>(_arr.begin() + 343, _arr.begin() + 441)},
-        prefab_map{14, 7,  bn::span<const uint8_t>(_arr.begin() + 441, _arr.begin() + 539)},
-        prefab_map{14, 14, bn::span<const uint8_t>(_arr.begin() + 539, _arr.begin() + 735)},
-        prefab_map{14, 14, bn::span<const uint8_t>(_arr.begin() + 735, _arr.end())},
+        prefab_map{7, 7,   {1, 1}, bn::span<const uint8_t>(_arr.begin(), _arr.begin() + 49)},
+        prefab_map{7, 14,  {1, 2}, bn::span<const uint8_t>(_arr.begin() + 49,  _arr.begin() + 147)},
+        prefab_map{7, 14,  {1, 2}, bn::span<const uint8_t>(_arr.begin() + 147, _arr.begin() + 245)},
+        prefab_map{7, 14,  {1, 2}, bn::span<const uint8_t>(_arr.begin() + 245, _arr.begin() + 343)},
+        prefab_map{14, 7,  {2, 1}, bn::span<const uint8_t>(_arr.begin() + 343, _arr.begin() + 441)},
+        prefab_map{14, 7,  {2, 1}, bn::span<const uint8_t>(_arr.begin() + 441, _arr.begin() + 539)},
+        prefab_map{14, 14, {2, 2}, bn::span<const uint8_t>(_arr.begin() + 539, _arr.begin() + 735)},
+        prefab_map{14, 14, {2, 2}, bn::span<const uint8_t>(_arr.begin() + 735, _arr.end())},
     };
 }
 

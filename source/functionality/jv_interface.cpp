@@ -5,7 +5,7 @@
 namespace jv::Interface{
 void Log_zone_layout([[maybe_unused]] GameMap& zone){
 #if DEV_ENABLED
-    BN_LOG("Level Layout");
+    BN_LOG("Level Layout. x: ", zone.width(), " y: ", zone.height());
     for(int y = 0; y < zone.height(); y++){
         bn::string_view line = "";
         for(int x = 0; x < zone.width(); x++){

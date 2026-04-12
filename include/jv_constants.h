@@ -1,6 +1,8 @@
 #ifndef JV_CONSTANTS_H
 #define JV_CONSTANTS_H
 
+#include "bn_fixed.h"
+#include "bn_array.h"
 #include "bn_string.h"
 
 /* Glossary                         *
@@ -15,12 +17,11 @@
 namespace {
     constexpr bn::string_view Version = "0.1.2";
     constexpr uint8_t WTILES_COUNT = 76;        // Number of Walkable Tiles
-    //constexpr uint8_t STAIRS_START_TILE = 41;
 
-    constexpr uint8_t MAX_ENEMIES = 16;
-    constexpr uint8_t MAX_ROOM_ROWS = 5;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 5;
+    constexpr uint8_t MAX_ROOM_ROWS = 8;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 8;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
+    constexpr uint16_t MAX_ENEMIES = MAX_ROOMS*3;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 }

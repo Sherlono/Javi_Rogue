@@ -25,18 +25,14 @@ public:
     [[nodiscard]] uint16_t width() const {return _width;}
     [[nodiscard]] uint16_t height() const {return _height;}
     [[nodiscard]] int size() const {return _width*_height;}
-    [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >= FLPTHD;}
+    [[nodiscard]] bool horizontal_flip(int index) const {return _data[index] >> 15;}
     [[nodiscard]] cell_type cell(const int x, const int y) const {
         cell_type val = _data[x + y*_width];
-        return val - FLPTHD*(val >= FLPTHD);
+        return val - FLPTHD*(val >> 15);
     }
     [[nodiscard]] cell_type cell(const bn::point p) const {
         cell_type val = _data[p.x() + p.y()*_width];
-        return val - FLPTHD*(val >= FLPTHD);
-    }
-    [[nodiscard]] cell_type cell(const int index) const {
-        cell_type val = _data[index];
-        return val - FLPTHD*(val >= FLPTHD);
+        return val - FLPTHD*(val >> 15);
     }
     
     [[nodiscard]] cell_type raw_cell(const int x, const int y) const {
@@ -72,13 +68,13 @@ public:
         for(int y = y_begin; y < y_end; y++){
             int room_index, map_index;
             for(int x = x_begin; x < x_end; x++){
-                if(!flipped) room_index = (x - x_begin) + (y - y_begin) * map_x;
-                else room_index =       -(x + 1 - x_end) + (y - y_begin) * map_x;
+                if(!flipped) room_index = (x - x_begin) + (y - y_begin)*map_x;
+                else room_index =       -(x + 1 - x_end) + (y - y_begin)*map_x;
                 
                 if(!map[room_index]) continue;
                 map_index = x + y * this->_width;
                 this->_data[map_index] = map[room_index];
-                this->set_horizontal_flip(map_index, flipped ? !(map[room_index] >= FLPTHD) : (map[room_index] >= FLPTHD));
+                this->set_horizontal_flip(map_index, flipped ? !(map[room_index] >> 15) : (map[room_index] >> 15));
             }
         }
     }
@@ -129,14 +125,20 @@ struct bg_map
 // Meant for room prefab data stored in rom
 struct prefab_map{
     static constexpr uint8_t ROOM_PREFAB_COUNT = 9;    // Number of Room Prefabs
-    constexpr prefab_map(uint8_t w, uint8_t h, const bn::span<const uint8_t> c):
-        width(w), height(h), cell_data(c) {}
+    constexpr prefab_map(uint8_t w, uint8_t h, const bn::point p, const bn::span<const uint8_t> c):
+        width(w), height(h), zones(p), cell_data(c) {}
+    [[nodiscard]] uint8_t  cell(const int x, const int y) const {
+        uint8_t val = cell_data[x + y*width];
+        return val - 127*(val >> 7);
+    }
     [[nodiscard]] uint8_t  cell(const uint16_t index) const {
         uint8_t val = cell_data[index];
-        return val - 127*(val >= 127);
+        return val - 127*(val >> 7);
     }
-    [[nodiscard]] bool horizontal_flip(int index) const {return cell_data[index] >= 127;}
+    [[nodiscard]] uint16_t size() const {return width*height;}
+    [[nodiscard]] bool horizontal_flip(int index) const {return cell_data[index] >> 7;}
     const uint8_t width, height;
+    const bn::point zones;
     const bn::span<const uint8_t> cell_data;
 };
 
