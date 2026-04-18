@@ -36,13 +36,13 @@ int main()
             case 1:
                 jv::dev::blocks_scene();
                 break;
-            case 2:
+            /*case 2:
                 jv::dev::tile_scene();
-                break;
+                break;*/
             #endif
 
             default:
-                BN_ASSERT(false, "Invalid Scene");
+                BN_ERROR("Invalid Scene.");
                 break;
         }
     }

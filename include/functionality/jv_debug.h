@@ -49,7 +49,7 @@ struct menu_option{
                 *_i = *_i + 1;
                 break;
             case isFloat:
-                *_f = *_f + 0.1f;
+                *_f = *_f + bn::fixed(0.1);
                 break;
             case isBool:
                 *_b = !*_b;
@@ -64,7 +64,7 @@ struct menu_option{
                 *_i = *_i - 1;
                 break;
             case isFloat:
-                *_f = *_f - 0.1f;
+                *_f = *_f - bn::fixed(0.1);
                 break;
             case isBool:
                 *_b = !*_b;

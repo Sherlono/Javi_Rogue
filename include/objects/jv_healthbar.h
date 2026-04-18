@@ -34,7 +34,7 @@ struct healthbar{
     }
     
 private:
-    short *max_value, *value;
+    uint8_t *max_value, *value;
     bn::array<bn::sprite_ptr, 4> _sprites;
 };
 }

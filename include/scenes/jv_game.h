@@ -229,6 +229,31 @@ private:
         #endif
     }
 
+    void load_bg_assets(){
+        bn::regular_bg_tiles_ptr tiles = _tiled_bg.tiles();
+        switch (Global::environment_id){
+            case Global::Fortress:{
+                tiles.set_tiles_ref(bn::regular_bg_tiles_items::fortress_tiles);
+                _tiled_bg.set_palette(bn::bg_palette_items::fortress_palette);
+                _tiles_item = bn::regular_bg_tiles_items::fortress_torch.tiles_ref();
+                break;
+            }
+            case Global::Jungle:{
+                tiles.set_tiles_ref(bn::regular_bg_tiles_items::jungle_tiles);
+                _tiled_bg.set_palette(bn::bg_palette_items::jungle_palette);
+                _tiles_item = bn::regular_bg_tiles_items::jungle_vines.tiles_ref();
+                break;
+            }
+            default:{
+                BN_ERROR("Invalid Environment id: ", Global::environment_id);
+                break;
+            }
+        }
+        _bg_animation[0] = jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 89, _tiles_item, 0, 2, 0, 4);
+        _bg_animation[1] = jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5);
+    }
+
+
     void block_factory(const PointNum configs, const bool blockFlip){
         const int  block_index = (configs.option < BLOCK_TOTAL) ? configs.option : 0;
         
@@ -268,111 +293,8 @@ private:
         
     }
 
-    void room_factory(PointNum configs, bn::ivector<uint8_t>& unique_entities){
+    void populate(bn::ivector<uint8_t>& unique_entities, bn::ivector<bn::point>& v_walkBlocks, bool spawnEnemies = true){
         enum EntityTag {Cat, Cow, Stairs};
-        bn::vector<bn::point, 7*7*4> v_walkBlocks;
-        const int option = configs.option;
-        configs.option -= 1;
-
-        // Generate rooms
-        switch(option){
-            // Rooms
-            case Empty:{
-                break;
-            }
-            case Small1:{
-                insert_room(configs, v_walkBlocks);
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 1*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Tall1:{
-                insert_room(configs, v_walkBlocks);            
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 2*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Tall2:{
-                insert_room(configs, v_walkBlocks);            
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 1*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              ((jv::prefab_maps::data[configs.option].height>>1) - 1)*32 + 16));
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 3*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              ((jv::prefab_maps::data[configs.option].height>>1) - 1)*32 + 16));
-                }
-                break;
-            }
-            case Tall3:{
-                insert_room(configs, v_walkBlocks);            
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 2*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Wide1:{
-                insert_room(configs, v_walkBlocks);            
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
-                                              -16 + (configs.top_left.y()*224 + 1*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Wide2:{
-                insert_room(configs, v_walkBlocks);
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(0 + (configs.top_left.x()*224 + 1*112),
-                                              -16 + (configs.top_left.y()*224 + 1*112),
-                                              ((jv::prefab_maps::data[configs.option].width>>1) )*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 3*112),
-                                              -16 + (configs.top_left.y()*224 + 1*112),
-                                              ((jv::prefab_maps::data[configs.option].width>>1) - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Big1:{
-                insert_room(configs, v_walkBlocks);
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
-                                              -16 + (configs.top_left.y()*224 + 2*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            case Big2:{
-                insert_room(configs, v_walkBlocks);                
-                if(_fog.visible()){
-                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
-                                              -16 + (configs.top_left.y()*224 + 2*112),
-                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
-                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
-                }
-                break;
-            }
-            default:{
-                BN_ERROR("Invalid room option: ", configs.option);
-                break;
-            }
-        }
         
         // Populate Other entities
         for(int i = 0; i < unique_entities.size(); i++){
@@ -384,6 +306,7 @@ private:
                     _cat.reset();
                     _cam.set_position(_cat.get_hitbox().position());
                     Global::update();
+                    spawnEnemies = false;
                     break;
                 }
                 case EntityTag::Cow:{
@@ -404,32 +327,164 @@ private:
         }
         
         // Populate Enemies
-        for(int i = 0; i < v_walkBlocks.size(); i++){
-            if(_v_enemies.full()) break;
+        if(spawnEnemies){
+            for(int i = 0; i < v_walkBlocks.size(); i++){
+                if(_v_enemies.full()) break;
 
-            int rand = randomizer.get_int(128);
-            if(rand < 16){
-                _v_enemies.push_back(new jv::BadCat(v_walkBlocks[i], _cam));
-                v_walkBlocks.erase(v_walkBlocks.begin() + i);
-            }else if(rand < 24){
-                _v_enemies.push_back(new jv::PaleTongue(v_walkBlocks[i], _cam));
-                v_walkBlocks.erase(v_walkBlocks.begin() + i);
-            }else if(rand < 28){
-                _v_enemies.push_back(new jv::PaleFinger(v_walkBlocks[i], _cam));
-                v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                int rand = randomizer.get_int(128);
+                if(rand < 16){
+                    _v_enemies.push_back(new jv::BadCat(v_walkBlocks[i], _cam));
+                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                }else if(rand < 24){
+                    _v_enemies.push_back(new jv::PaleTongue(v_walkBlocks[i], _cam));
+                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                }else if(rand < 28){
+                    _v_enemies.push_back(new jv::PaleFinger(v_walkBlocks[i], _cam));
+                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                }
             }
         }
     }
 
+    void room_factory(PointNum configs, bn::ivector<uint8_t>& unique_entities){
+        const int option = configs.option;
+        configs.option -= 1;
+
+        // Generate rooms
+        switch(option){
+            // Rooms
+            case Empty:{
+                break;
+            }
+            case Small1:{
+                bn::vector<bn::point, 49> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 1*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Tall1:{
+                bn::vector<bn::point, 49*2> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);     
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 2*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Tall2:{
+                bn::vector<bn::point, 49*2> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);       
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 1*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              ((jv::prefab_maps::data[configs.option].height>>1) - 1)*32 + 16));
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 3*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              ((jv::prefab_maps::data[configs.option].height>>1) - 1)*32 + 16));
+                }
+                break;
+            }
+            case Tall3:{
+                bn::vector<bn::point, 49*2> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 2*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Wide1:{
+                bn::vector<bn::point, 49*2> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
+                                              -16 + (configs.top_left.y()*224 + 1*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Wide2:{
+                bn::vector<bn::point, 49*2> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(0 + (configs.top_left.x()*224 + 1*112),
+                                              -16 + (configs.top_left.y()*224 + 1*112),
+                                              ((jv::prefab_maps::data[configs.option].width>>1) )*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 3*112),
+                                              -16 + (configs.top_left.y()*224 + 1*112),
+                                              ((jv::prefab_maps::data[configs.option].width>>1) - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Big1:{
+                bn::vector<bn::point, 49*4> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
+                                              -16 + (configs.top_left.y()*224 + 2*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            case Big2:{
+                bn::vector<bn::point, 49*4> v_walkBlocks;
+                insert_room(configs, v_walkBlocks);
+                populate(unique_entities, v_walkBlocks);
+
+                if(_fog.visible()){
+                    _fog.create_room(bn::rect(-16 + (configs.top_left.x()*224 + 2*112),
+                                              -16 + (configs.top_left.y()*224 + 2*112),
+                                              (jv::prefab_maps::data[configs.option].width - 1)*32,
+                                              (jv::prefab_maps::data[configs.option].height - 1)*32 + 16));
+                }
+                break;
+            }
+            default:{
+                BN_ERROR("Invalid room option: ", configs.option);
+                break;
+            }
+        }
+        
+    }
+
     void corridor_factory(const PointNum configs){
+        PointNum block_data;
         switch(configs.option){
             // Corridors
             case V_Corr:{
-                PointNum block_data;
                 const uint8_t width = 3, height = 5;
                 constexpr uint16_t size = width*height;
 
-                uint8_t blockArr[size] = {
+                const uint8_t blockArr[size] = {
                     0, 1, 0,
                     27,1,27,
                     0, 1, 0,
@@ -458,21 +513,20 @@ private:
                 break;
             }
             case H_Corr:{
-                PointNum block_data;
-                const uint8_t width = 4, height = 4;
+                const uint8_t width = 2, height = 4;
                 constexpr uint16_t size = width*height;
 
-                uint8_t blockArr[size] = {
-                        0,15,15, 0,
-                        0, 9, 9, 0,
-                        0, 4, 4, 0,
-                        0,25,25, 0 };
+                const uint8_t blockArr[size] = {
+                    15,15,
+                     9, 9,
+                     4, 4,
+                    25,25,};
 
                 for(int y = 0; y < height; y++){
                     for(int x = 0; x < width; x++){
                         const int index = x + y*width;
                         block_data.option = blockArr[index];
-                        block_data.top_left = {(x + configs.top_left.x())*4 - 2, (y + configs.top_left.y())*4 - 4};
+                        block_data.top_left = {(x + 1 + configs.top_left.x())*4 - 2, (y + configs.top_left.y())*4 - 4};
                         block_factory(block_data, false);
                     }
                 }
@@ -496,13 +550,15 @@ private:
         _tiled_bg.game_map().reset();
         _fog.reset();
         
-        // Choosing rooms
+        // Choosing room shape and location
         for(int y = 0; y < zone.height(); y++){
             for(int x = 0; x < zone.width(); x++){
                 if(zone.cell(x, y) == true) continue;
                 validRooms.clear();
                 
                 // Valid room selection
+                validRooms.push_back(Small1);
+
                 if(emptyCount < (zone.width()*zone.height())/3){
                     bool Margin = !(x > 0 && x + 1 < zone.width() && y > 0 && y + 1 < zone.height());
                     bool Corners = zone.cell(x+1, y+1) && zone.cell(x+1, y-1) && zone.cell(x-1, y+1) && zone.cell(x-1, y-1);
@@ -511,8 +567,6 @@ private:
                         validRooms.push_back(Empty);
                     }
                 }
-
-                validRooms.push_back(Small1);
 
                 if(zone.height() > 1 && zone.width() > 1) [[likely]] {
                     if(x+y == 0 || ((y + 1 < zone.height() && x + 1 < zone.width()) && !zone.cell(x+1, y) && !zone.raw_cell(x+1, y+1))){
@@ -630,32 +684,9 @@ private:
         generate_corridors(zone);
         
         jv::Interface::Log_zone_layout(zone);
-        BN_LOG("Enemies percentage: ", 100*bn::fixed(_v_enemies.size())/_v_enemies.max_size());
+        //BN_LOG("Enemies percentage: ", 100*bn::fixed(_v_enemies.size())/_v_enemies.max_size());
     }
 
-    void load_bg_assets(){
-        bn::regular_bg_tiles_ptr tiles = _tiled_bg.tiles();
-        switch (Global::environment_id){
-            case Global::Fortress:{
-                tiles.set_tiles_ref(bn::regular_bg_tiles_items::fortress_tiles);
-                _tiled_bg.set_palette(bn::bg_palette_items::fortress_palette);
-                _tiles_item = bn::regular_bg_tiles_items::fortress_torch.tiles_ref();
-                break;
-            }
-            case Global::Jungle:{
-                tiles.set_tiles_ref(bn::regular_bg_tiles_items::jungle_tiles);
-                _tiled_bg.set_palette(bn::bg_palette_items::jungle_palette);
-                _tiles_item = bn::regular_bg_tiles_items::jungle_vines.tiles_ref();
-                break;
-            }
-            default:{
-                BN_ERROR("Invalid Environment id: ", Global::environment_id);
-                break;
-            }
-        }
-        _bg_animation[0] = jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 89, _tiles_item, 0, 2, 0, 4);
-        _bg_animation[1] = jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5);
-    }
 
     void update(){
         bn::fixed_point cam_target;
@@ -863,7 +894,7 @@ int start_scene(bn::random& randomizer){
         #if DEV_ENABLED
         text_generator.generate(64, -70, "Dev. Mode", menu_sprts);
         text_generator.generate(-110, y_offset + 8, "Block test", menu_sprts);
-        text_generator.generate(-110, y_offset + 16,"Tile test", menu_sprts);
+        //text_generator.generate(-110, y_offset + 16,"Tile test", menu_sprts);
         #else
         bn::string<16> line = "V ";
         line.append(Version);
@@ -875,10 +906,10 @@ int start_scene(bn::random& randomizer){
     }
 
     #if DEV_ENABLED
-    bn::string_view explain_text[3][5] = {
+    bn::string_view explain_text[2][5] = {
         {"", "A: Interact", "B: Attack", "L: Log tile", "SELECT: Debug menu"},
         {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
-        {"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
+        //{"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
     };
     #else
     bn::string_view explain_text[3][5] = {
@@ -905,7 +936,7 @@ int start_scene(bn::random& randomizer){
     // Selecting a scene
     while(!bn::keypad::a_pressed()){
         #if DEV_ENABLED
-        if(bn::keypad::down_pressed() && option < 2){
+        if(bn::keypad::down_pressed() && option < 1){
             option++;
             cursor.set_y(cursor.y() + 8);
             explain_sprts.clear();

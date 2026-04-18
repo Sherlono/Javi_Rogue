@@ -33,7 +33,7 @@ namespace jv{
             target_y = y;
             break;
         default:
-            BN_ASSERT(false, "Invalid direction", direction);
+            BN_ERROR("Invalid direction: ", direction);
             return false;
     }
     return Global::Map().cell(target_x, target_y) <= WTILES_COUNT;
@@ -53,7 +53,7 @@ void Actor::load_graphics(const bn::sprite_item& item, int wait_frames){
 bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction){
     switch(direction){
         case NORTH:{
-            bn::point p(x, y - 8);
+            bn::point p(x, y - 6);
             for(int i = 0; i < _enemies_ref->size(); i++){
                 if(_enemies_ref->data()[i]->rect().contains(p)){
                     return false;
@@ -62,7 +62,7 @@ bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction)
             break;
         }
         case SOUTH:{
-            bn::point p(x, y + 8);
+            bn::point p(x, y + 6);
             for(int i = 0; i < _enemies_ref->size(); i++){
                 if(_enemies_ref->data()[i]->rect().contains(p)){
                     return false;
@@ -89,7 +89,7 @@ bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction)
             break;
         }
         default:
-            BN_ASSERT(false, "Invalid direction", direction);
+            BN_ERROR("Invalid direction: ", direction);
             break;
     }
     return true;
@@ -99,7 +99,7 @@ void Player::_movement(bool noClip){
     if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
         _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
 
-        int coll_x = x()>>3, coll_y = (y() + 4)>>3;
+        int coll_x = x()>>3, coll_y = y()>>3;
 
         // Move if dir not obstructed
         if(bn::keypad::up_held() && (noClip || (map_obstacle(coll_x, coll_y, NORTH) && _enemy_obstacle(x(), y(), NORTH)))){         // Up

@@ -10,14 +10,14 @@
 class GameMap;
 
 namespace jv{
-class Item;
-class Player;
-class Enemy;
 class NPC;
+class Item;
+class Enemy;
+class Player;
 class Projectile;
 
-using projectiles_vector_ptr_t = bn::ivector<jv::Projectile*>*;
-using projectiles_vector_ref_t = bn::ivector<jv::Projectile*>&;
+using projectiles_ptr_t = bn::ivector<jv::Projectile*>*;
+using projectiles_ref_t = bn::ivector<jv::Projectile*>&;
 
 struct Global{
 public:
@@ -39,7 +39,7 @@ public:
     [[nodiscard]] static jv::Player& Player();
     [[nodiscard]] static GameMap& Map();
     [[nodiscard]] static bn::random& Random();
-    [[nodiscard]] static projectiles_vector_ref_t Projectiles();
+    [[nodiscard]] static projectiles_ref_t Projectiles();
     [[nodiscard]] static bn::point cam_pos();
 
     static uint8_t environment_id;
@@ -48,7 +48,7 @@ private:
     static GameMap* _map;
     static jv::Player* _player;
     static bn::random* _randomizer;
-    inline static projectiles_vector_ptr_t _projectiles;
+    inline static projectiles_ptr_t _projectiles;
     static bn::point cam_position;
 };
 

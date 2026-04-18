@@ -16,7 +16,7 @@ bn::point Global::cam_position;
 uint8_t Global::environment_id = Environments::Fortress;
 
 
-void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player, bn::random* randomizer, projectiles_vector_ptr_t projectiles){
+void Global::initialize(bn::camera_ptr* camera, GameMap* map, jv::Player* player, bn::random* randomizer, projectiles_ptr_t projectiles){
     _camera = camera;
     _player = player;
     _map = map;
@@ -45,7 +45,7 @@ void Global::create_projectile(int x, int y, uint8_t option){
             break;
         }
         default:
-            BN_ASSERT(false, "Invalid Projectile id");
+            BN_ERROR("Invalid Projectile id: ", option);
             break;
     }
 }
@@ -63,7 +63,7 @@ void Global::create_projectile(int x, int y, uint8_t option){
 [[nodiscard]] bn::random& Global::Random(){
     return *_randomizer;
 }
-[[nodiscard]] projectiles_vector_ref_t Global::Projectiles(){
+[[nodiscard]] projectiles_ref_t Global::Projectiles(){
     return *_projectiles;
 }
 

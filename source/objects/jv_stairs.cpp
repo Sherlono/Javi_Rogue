@@ -33,6 +33,7 @@ void stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){
                 tiles = bn::regular_bg_tiles_items::jungle_stairs.tiles_ref();
                 break;}
             default:
+                BN_ERROR("Missing stairs graphics.");
                 break;
         }
     }else{
@@ -44,6 +45,7 @@ void stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){
                 tiles = bn::regular_bg_tiles_items::jungle_tiles.tiles_ref();
                 break;}
             default:
+                BN_ERROR("Missing stairs graphics.");
                 break;
         }
     }

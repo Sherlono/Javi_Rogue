@@ -149,10 +149,10 @@ public:
     Graphics graphics;
 protected:
     struct basic_stats{
-        constexpr basic_stats(const uint8_t att, const uint8_t def, const short maxhp, const bn::fixed spe):
+        constexpr basic_stats(const uint8_t att, const uint8_t def, const uint8_t maxhp, const bn::fixed spe):
             attack(att), defense(def), max_hp(maxhp), speed(spe){}
         uint8_t attack, defense;
-        short max_hp;
+        uint8_t max_hp;
         bn::fixed speed;
     };
     
@@ -191,12 +191,12 @@ public:
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] uint8_t get_attack() const { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() const { return _stats.defense;}
-    [[nodiscard]] short  get_maxhp() const { return _stats.max_hp;}
-    [[nodiscard]] short  get_hp() const { return _hp;}
+    [[nodiscard]] uint8_t  get_maxhp() const { return _stats.max_hp;}
+    [[nodiscard]] uint8_t  get_hp() const { return _hp;}
     [[nodiscard]] bn::rect& get_hitbox() { return _hitbox;}
 
-    [[nodiscard]] short* get_hp_ptr() { return &_hp;}
-    [[nodiscard]] short* get_maxhp_ptr() { return &_stats.max_hp;}
+    [[nodiscard]] uint8_t* get_hp_ptr() { return &_hp;}
+    [[nodiscard]] uint8_t* get_maxhp_ptr() { return &_stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
@@ -277,7 +277,7 @@ private:
     uint8_t _state = State::NORMAL;
     uint8_t _prev_dir = Direction::SOUTH;
     int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
-    short _hp;
+    uint8_t _hp;
     basic_stats _stats;
     bn::rect _hitbox;
     bn::ivector<Enemy*>* _enemies_ref;
@@ -286,7 +286,7 @@ private:
 class Enemy: public Actor{
 public:
     ~Enemy(){ graphics.reset();}
-    Enemy(short max_hp, bn::point position): Actor(bn::rect(position.x(), position.y(), 16, 16)), hp(max_hp) {}
+    Enemy(uint8_t max_hp, bn::point position): Actor(bn::rect(position.x(), position.y(), 16, 16)), hp(max_hp) {}
 
     // Getters
     [[nodiscard]] bool alive() const { return _state != State::DEAD;}
@@ -295,7 +295,7 @@ public:
         return _attack_cooldown == duration;
     }
     [[nodiscard]] uint8_t get_state() const { return _state;}
-    [[nodiscard]] short get_hp() const { return hp;}
+    [[nodiscard]] uint8_t get_hp() const { return hp;}
     [[nodiscard]] bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
         uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
         bool up = y() > cam.y() - y_offset, down = y() < cam.y() + y_offset;
@@ -329,7 +329,7 @@ public:
     }
     
 protected:
-    short hp;
+    uint8_t hp;
     uint8_t _state = State::NORMAL;
     int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
     uint8_t _idle_time = 0;
@@ -356,7 +356,7 @@ public:
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() { return _stats.defense;}
-    [[nodiscard]] short get_maxhp() { return _stats.max_hp;}
+    [[nodiscard]] uint8_t get_maxhp() { return _stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
@@ -367,8 +367,9 @@ public:
     void got_hit(int damage){
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
-        hp -= damage/_stats.defense;
-        if(hp <= 0){
+        const uint8_t dmg = damage/_stats.defense;
+        hp = dmg > hp ? 0 : hp - dmg;
+        if(hp == 0){
             _state = State::DEAD;
         }else{
             _state = State::HURTING;
@@ -426,7 +427,7 @@ public:
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() { return _stats.defense;}
-    [[nodiscard]] short get_maxhp() { return _stats.max_hp;}
+    [[nodiscard]] uint8_t get_maxhp() { return _stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
@@ -437,8 +438,9 @@ public:
     void got_hit(int damage){
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
-        hp -= damage/_stats.defense;
-        if(hp <= 0){
+        const uint8_t dmg = damage/_stats.defense;
+        hp = dmg > hp ? 0 : hp - dmg;
+        if(hp == 0){
             _state = State::DEAD;
         }else{
             _state = State::HURTING;
@@ -495,7 +497,7 @@ public:
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() { return _stats.defense;}
-    [[nodiscard]] short get_maxhp() { return _stats.max_hp;}
+    [[nodiscard]] uint8_t get_maxhp() { return _stats.max_hp;}
 
     // Setters
     void set_state(int s){ _state = s;}
@@ -506,8 +508,9 @@ public:
     void got_hit(int damage){
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
-        hp -= damage/_stats.defense;
-        if(hp <= 0){
+        const uint8_t dmg = damage/_stats.defense;
+        hp = dmg > hp ? 0 : hp - dmg;
+        if(hp == 0){
             _state = State::DEAD;
         }else{
             _state = State::HURTING;
