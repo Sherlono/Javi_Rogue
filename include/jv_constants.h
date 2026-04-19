@@ -9,7 +9,7 @@
  * Tile: 8x8 pixel background tile  *
  * Block: 4x4 tile array            */
 
-#define DEV_ENABLED true    // Turns all dev exclusive functionality on/off
+#define DEV_ENABLED false    // Turns all dev exclusive functionality on/off
 
 #define FADE_IN true
 #define FADE_OUT false
@@ -18,8 +18,8 @@ namespace {
     constexpr bn::string_view Version = "0.1.2";
     constexpr uint8_t WTILES_COUNT = 76;        // Number of Walkable Tiles
 
-    constexpr uint8_t MAX_ROOM_ROWS = 8;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 8;
+    constexpr uint8_t MAX_ROOM_ROWS = 7;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 7;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     constexpr uint16_t MAX_ENEMIES = MAX_ROOMS*3;
     

@@ -20,6 +20,7 @@ public:
 
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
     GameMap(uint16_t x, uint16_t y): _data(std::make_unique<cell_type[]>(x*y)), _width(x), _height(y){}
+    GameMap(bn::point p): _data(std::make_unique<cell_type[]>(p.x()*p.y())), _width(p.x()), _height(p.y()){}
 
     // Getters
     [[nodiscard]] uint16_t width() const {return _width;}
