@@ -222,8 +222,14 @@ public:
             _attack_cooldown = 0;
             _prev_attack_cooldown = 0;
 
-            if(ignoreDef){ _hp -= damage;}
-            else{ _hp -= damage/_stats.defense;}
+            uint8_t dmg;
+            if(ignoreDef){
+                dmg = damage;
+            }
+            else{
+                dmg = damage/_stats.defense;
+            }
+            _hp = dmg > _hp ? 0 : _hp - dmg;
 
             if(_hp <= 0){
                 bn::sound_items::death.play(0.5);

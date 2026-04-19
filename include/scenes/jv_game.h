@@ -630,7 +630,7 @@ private:
     void enemies_update(){
         for(int i = 0; i < _v_enemies.size(); i++){
             _v_enemies[i]->update();
-            objective = objective && !_v_enemies[i]->alive();
+            //objective = objective && !_v_enemies[i]->alive();
             if(_v_enemies[i]->get_state() == Actor::State::DEAD) [[unlikely]] {
                 int item_check = Global::Random().get_int(0, 3);
                 if(item_check == 1){
