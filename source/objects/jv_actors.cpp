@@ -12,7 +12,7 @@
 #endif
 
 namespace jv{
-// ************ Actor ************
+// ************** Actor *************
 [[nodiscard]] bool Actor::map_obstacle(const int  x, const int  y, const uint8_t direction){
     int target_x, target_y;
     switch(direction){
@@ -49,7 +49,7 @@ void Actor::load_graphics(const bn::sprite_item& item, int wait_frames){
     graphics.set_animation(_dir, animation::Walk, item.tiles_item(), wait_frames);
 }
 
-// ************ Player ************
+// ************* Player *************
 bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction){
     switch(direction){
         case NORTH:{
@@ -161,7 +161,7 @@ void Player::update(bool noClip){
     }
 }
 
-// ************ Enemy ************
+// ************** Enemy *************
 /*[[nodiscard]] bool Enemy::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
     uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
     bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
@@ -268,7 +268,7 @@ void BadCat::update(){
     }
 }
 
-// ************* PaleTongue *************
+// *********** PaleTongue ***********
 void PaleTongue::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - graphics.position());
     int coll_x = x()>>3, coll_y = (y() + 4)>>3;
@@ -368,7 +368,7 @@ void PaleTongue::update(){
     }
 }
 
-// ************* PaleFinger *************
+// *********** PaleFinger **********
 void PaleFinger::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - bn::point(x(), y() - 8));
     int coll_x = x()>>3, coll_y = (y() + 4)>>3;
@@ -477,7 +477,7 @@ void PaleFinger::update(){
 }
 
 // ************** NPC **************
-void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
+void NPC::update(tiled_bg& bg, bool objective){
     if(on_screen(Global::Camera())){
         if(!graphics.sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
@@ -486,8 +486,7 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
             builder.set_bg_priority(1);
             
             graphics.sprite = builder.release_build();
-            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8,
-                                    bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
+            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
         }
 
         if(Global::Player().graphics.y() > sprite().y()){
@@ -501,12 +500,12 @@ void NPC::update(jv::stairs& stairs, tiled_bg& bg, bool objective){
             if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
                 if(!objective){
                     jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
+                }else if(!Global::Stairs().isOpen){
+                    jv::Dialog::init("Thanks for finding me!", "The stairs are open now!");
+                    Global::Stairs().set_open(bg.tiles(), true);
+                    bg.init();
                 }else{
-                    jv::Dialog::init("Thanks for getting rid of the evil", "creatures! The stairs are open now!");
-                    if(!stairs.isOpen){
-                        stairs.set_open(bg.tiles(), true);
-                        bg.init();
-                    }
+                    jv::Dialog::init("Find the stairs! They're open!");
                 }
                 Global::Player().set_interact_token(false);
             }

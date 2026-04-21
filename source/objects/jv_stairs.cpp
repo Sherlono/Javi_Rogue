@@ -14,14 +14,14 @@
 #include "bn_regular_bg_tiles_items_jungle_stairs.h"
 
 namespace jv{
-void stairs::set_position(bn::point p){
+void Stairs::set_position(bn::point p){
     _rect.set_position(p);
     bn::point top_left((_rect.position().x()>>3)-2, (_rect.position().y()>>3)-2);
     
     Global::Map().insert_data(4, 4, jv::blocks::get_block(32), top_left);
 }
 
-void stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){
+void Stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){
     bn::span<const bn::tile> tiles;
     isOpen = open;
     if(open){
@@ -65,7 +65,7 @@ void stairs::set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open){
     }
 }
 
-bool stairs::climb(){
+bool Stairs::climb(){
     bool isOnStairs = Global::Player().rect().intersects(_rect) && bn::keypad::a_pressed();
     if(isOpen && Global::Player().get_state() == Actor::State::NORMAL && isOnStairs){
         return true;

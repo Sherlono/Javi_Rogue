@@ -30,8 +30,6 @@
 class GameMap;
 
 namespace jv{
-class Enemy;
-struct stairs;
 class tiled_bg;
 
 using animation_type = bn::span<const uint16_t>;
@@ -166,11 +164,10 @@ class Player: public Actor{
 public:
     ~Player(){ graphics.reset();};
     // Constructor
-    Player(bn::point position, bn::camera_ptr& camera, bn::ivector<Enemy*>* enemies):
+    Player(bn::point position, bn::camera_ptr& camera):
         Actor(bn::rect(position.x(), position.y(), 16, 16)),
         _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
-        _hitbox(bn::rect(position.x(), position.y(), 10, 10)),
-        _enemies_ref(enemies)
+        _hitbox(bn::rect(position.x(), position.y(), 10, 10))
         {
             _hp = _stats.max_hp;
             bn::sprite_builder builder(bn::sprite_items::good_cat);
@@ -200,6 +197,7 @@ public:
 
     // Setters
     void set_state(int s){ _state = s;}
+    void set_enemies_ptr(bn::ivector<Enemy*>* enemies) { _enemies_ref = enemies;}
 
     // Functionality
     void reset(){
@@ -223,24 +221,19 @@ public:
             _prev_attack_cooldown = 0;
 
             uint8_t dmg;
-            if(ignoreDef){
-                dmg = damage;
-            }
-            else{
-                dmg = damage/_stats.defense;
-            }
+            if(ignoreDef) dmg = damage;
+            else dmg = damage/_stats.defense;
             _hp = dmg > _hp ? 0 : _hp - dmg;
 
-            if(_hp <= 0){
+            if(_hp > 0) [[likely]] {
+                sprite().set_horizontal_flip(_dir == Direction::WEST);
+                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
+            }else{
                 bn::sound_items::death.play(0.5);
                 _state = State::DEAD;
                 sprite().set_horizontal_flip(false);
                 sprite().set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(23));
                 _hitbox.set_position(_rect.position());
-            }else{
-                //bn::sound_items::death.play(0.5);
-                sprite().set_horizontal_flip(_dir == Direction::WEST);
-                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
             }
         }
     }
@@ -375,12 +368,12 @@ public:
         _prev_attack_cooldown = 0;
         const uint8_t dmg = damage/_stats.defense;
         hp = dmg > hp ? 0 : hp - dmg;
-        if(hp == 0){
-            _state = State::DEAD;
-        }else{
+        if(hp > 0) [[likely]] {
             _state = State::HURTING;
             sprite().set_horizontal_flip(_dir == Direction::WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::bad_cat.tiles_item(), animation::hurt);
+        }else{
+            _state = State::DEAD;
         }
     }
     
@@ -446,12 +439,12 @@ public:
         _prev_attack_cooldown = 0;
         const uint8_t dmg = damage/_stats.defense;
         hp = dmg > hp ? 0 : hp - dmg;
-        if(hp == 0){
-            _state = State::DEAD;
-        }else{
+        if(hp > 0) [[likely]] {
             _state = State::HURTING;
             sprite().set_horizontal_flip(_dir == Direction::WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::hurt);
+        }else{
+            _state = State::DEAD;
         }
     }
     
@@ -516,12 +509,12 @@ public:
         _prev_attack_cooldown = 0;
         const uint8_t dmg = damage/_stats.defense;
         hp = dmg > hp ? 0 : hp - dmg;
-        if(hp == 0){
-            _state = State::DEAD;
-        }else{
+        if(hp > 0) [[likely]] {
             _state = State::HURTING;
             sprite().set_horizontal_flip(_dir == Direction::WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::hurt);
+        }else{
+            _state = State::DEAD;
         }
     }
     
@@ -577,7 +570,7 @@ public:
     // Setters
 
     // Functionality
-    void update(jv::stairs& stairs, tiled_bg& bg, bool objective);
+    void update(tiled_bg& bg, bool objective);
     
 private:
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}

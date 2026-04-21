@@ -141,7 +141,7 @@ void blocks_scene(){
 
         Fortress.set_camera(cam);
 
-        jv::Global::initialize(&cam, &Fortress.game_map(), nullptr, nullptr, nullptr);
+        jv::Global::initialize(&cam, &Fortress.game_map());
         jv::dev::GenerateDevLevel(Fortress.game_map());
 
         Fortress.init();
@@ -198,7 +198,7 @@ void blocks_scene(){
     }
 }
 
-void tile_scene(){
+/*void tile_scene(){
     bn::vector<bn::sprite_ptr, 64> numbers;
     bn::vector<bn::sprite_ptr, 1> tile_index_sprite;
     bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
@@ -237,7 +237,7 @@ void tile_scene(){
         text_generator.remove_camera();
         text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_index_sprite);
 
-        jv::Global::initialize(&cam, &Fortress.game_map(), nullptr, nullptr, nullptr);
+        jv::Global::initialize(&cam, &Fortress.game_map());
         jv::dev::GenerateDevLevel(Fortress.game_map());
 
         Fortress.init();
@@ -318,7 +318,7 @@ void tile_scene(){
         jv::Interface::resetcombo();
         bn::core::update();
     }
-}
+}*/
 
 }
 
