@@ -11,8 +11,12 @@ inline int bamod(int n, int d){
 }
 
 inline bn::fixed lerp(bn::fixed a, int b, bn::fixed t) {
-    return a + (b-a) * t;
+    return a + (b - a)*t;
 }
+inline bn::fixed_point lerp(bn::fixed_point pa, bn::fixed_point pb, bn::fixed t) {
+    return pa + (pb - pa)*t;
+}
+
 
 inline const bn::fixed_point normalize(const bn::fixed_point vector){
     bn::fixed length = bn::sqrt(vector.x()*vector.x()+vector.y()*vector.y());

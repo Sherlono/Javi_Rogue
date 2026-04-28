@@ -13,33 +13,46 @@
 
 namespace jv{
 // ************** Actor *************
-[[nodiscard]] bool Actor::map_obstacle(const int  x, const int  y, const uint8_t direction){
-    int target_x, target_y;
+[[nodiscard]] bool Actor::_map_obstacle(const uint8_t direction){
+    bn::point point_1, point_2;
+    int aux;
     switch(direction){
         case NORTH:
-            target_x = x;
-            target_y = y - 1;
+            aux = ((y() + 3)>>3) - 1;
+            point_1.set_x((x() - 5)>>3);
+            point_1.set_y(aux);
+            point_2.set_x((x() + 5)>>3);
+            point_2.set_y(aux);
             break;
         case SOUTH:
-            target_x = x;
-            target_y = y + 1;
+            aux = ((y() + 3)>>3) + 1;
+            point_1.set_x((x() - 5)>>3);
+            point_1.set_y(aux);
+            point_2.set_x((x() + 5)>>3);
+            point_2.set_y(aux);
             break;
         case WEST:
-            target_x = x - 1;
-            target_y = y;
+            aux = (x()>>3) - 1;
+            point_1.set_x(aux);
+            point_1.set_y(y()>>3);
+            point_2.set_x(aux);
+            point_2.set_y((y() + 6)>>3);
             break;
         case EAST:
-            target_x = x + 1;
-            target_y = y;
+            aux = (x()>>3) + 1;
+            point_1.set_x(aux);
+            point_1.set_y(y()>>3);
+            point_2.set_x(aux);
+            point_2.set_y((y() + 6)>>3);
             break;
         default:
             BN_ERROR("Invalid direction: ", direction);
             return false;
     }
-    return Global::Map().cell(target_x, target_y) <= WTILES_COUNT;
+    return Global::Tiled_Bg().game_map().cell(point_1) <= WTILES_COUNT && Global::Tiled_Bg().game_map().cell(point_2) <= WTILES_COUNT;
 }
 
-void Actor::load_graphics(const bn::sprite_item& item, int wait_frames){
+void Actor::_load_graphics(const bn::sprite_item& item, int wait_frames){
     bn::sprite_builder builder(item);
     builder.set_position(x(), y() - _sprite_y_offset());
     builder.set_camera(Global::Camera());
@@ -95,35 +108,38 @@ bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction)
     return true;
 }
 
-void Player::_movement(bool noClip){
-    if(bn::keypad::up_held() || bn::keypad::down_held() || bn::keypad::left_held() || bn::keypad::right_held()){
-        _dir = bn::keypad::up_held() + 2*bn::keypad::down_held() + 3*bn::keypad::left_held() + 6*bn::keypad::right_held();
+void Player::_movement(){
+    bool up_held = bn::keypad::up_held(),
+         down_held = bn::keypad::down_held(),
+         left_held = bn::keypad::left_held(),
+         right_held = bn::keypad::right_held();
 
-        int coll_x = x()>>3, coll_y = y()>>3;
+    if(up_held || down_held || left_held || right_held){
+        _dir = 1*up_held + 2*down_held + 3*left_held + 6*right_held;
 
         // Move if dir not obstructed
-        if(bn::keypad::up_held() && (noClip || (map_obstacle(coll_x, coll_y, NORTH) && _enemy_obstacle(x(), y(), NORTH)))){         // Up
-            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+        if(up_held && (noClip || (_map_obstacle(NORTH) && _enemy_obstacle(x(), y(), NORTH)))){         // Up
+            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(left_held || right_held);
             bn::fixed target_y = graphics.y() - _stats.speed*diagonal;
             set_position(graphics.x(), target_y);
-        }else if(bn::keypad::down_held() && (noClip || (map_obstacle(coll_x, coll_y, SOUTH) && _enemy_obstacle(x(), y(), SOUTH)))){ // Down
-            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::left_held() || bn::keypad::right_held());
+        }else if(down_held && (noClip || (_map_obstacle(SOUTH) && _enemy_obstacle(x(), y(), SOUTH)))){ // Down
+            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(left_held || right_held);
             bn::fixed target_y = graphics.y() + _stats.speed*diagonal;
             set_position(graphics.x(), target_y);
         }
-        if(bn::keypad::left_held() && (noClip || (map_obstacle(coll_x, coll_y, WEST) && _enemy_obstacle(x(), y(), WEST)))){         // Left
-            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+        if(left_held && (noClip || (_map_obstacle(WEST) && _enemy_obstacle(x(), y(), WEST)))){         // Left
+            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(up_held || down_held);
             bn::fixed target_x = graphics.x() - _stats.speed*diagonal;
             set_position(target_x, graphics.y());
-        }else if(bn::keypad::right_held() && (noClip || (map_obstacle(coll_x, coll_y, EAST) && _enemy_obstacle(x(), y(), EAST)))){  // Right
-            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(bn::keypad::up_held() || bn::keypad::down_held());
+        }else if(right_held && (noClip || (_map_obstacle(EAST) && _enemy_obstacle(x(), y(), EAST)))){  // Right
+            bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(up_held || down_held);
             bn::fixed target_x = graphics.x() + _stats.speed*diagonal;
             set_position(target_x, graphics.y());
         }
         _hitbox.set_position(x() - 10*(_dir == NORTHWEST || _dir == SOUTHWEST) + 10*(_dir == NORTHEAST || _dir == SOUTHEAST) - 16*(_dir == WEST) + 16*(_dir == EAST),
                             y() - 10*(_dir == NORTH || _dir == NORTHWEST || _dir == NORTHEAST) + 10*(_dir == SOUTH || _dir == SOUTHWEST || _dir == SOUTHEAST));
     }
-
+    
     if(_state == State::NORMAL){
         if(_prev_dir != _dir){
             graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
@@ -132,10 +148,10 @@ void Player::_movement(bool noClip){
     }
 }
 
-void Player::update(bool noClip){
+void Player::update(){
     #ifdef DEV_ENABLED
     if(bn::keypad::l_pressed()) [[unlikely]] {
-        int value = jv::Global::Map().cell(x()>>3, (y()+4)>>3);
+        int value = jv::Global::Tiled_Bg().game_map().cell(x()>>3, (y()+4)>>3);
         BN_LOG("x: ", x()>>3, " y: ", (y()+4)>>3, " Value: ", value);
     }
     #endif
@@ -150,7 +166,7 @@ void Player::update(bool noClip){
                 graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
             }
         }else if(!is_attacking()) [[likely]] {
-            _movement(noClip);
+            _movement();
         }
         if(!graphics.animation->done()) [[likely]] { graphics.animation->update();}
 
@@ -172,7 +188,6 @@ void Player::update(bool noClip){
 // ************* BadCat *************
 void BadCat::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - graphics.position());
-    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
     
     // Player within range
     if(in_range(Global::Player().position(), 18)){
@@ -191,10 +206,10 @@ void BadCat::_movement(){
         }
         bn::fixed target_x = graphics.x();
         bn::fixed target_y = graphics.y();
-        if((player_direction.x() > 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() < 0 && map_obstacle(coll_x, coll_y, WEST))){
+        if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
             target_x += player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() > 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(coll_x, coll_y, NORTH))){
+        if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
             target_y += player_direction.y()*_stats.speed;
         }
 
@@ -212,7 +227,7 @@ void BadCat::_movement(){
             _idle_time = 0;
         }
 
-        displace(coll_x, coll_y, _stats.speed);
+        displace(_stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -226,7 +241,7 @@ void BadCat::_movement(){
 void BadCat::update(){
     if(on_screen(Global::Camera())){
         if(!graphics.sprite.has_value()){
-            load_graphics(bn::sprite_items::bad_cat, 4);
+            _load_graphics(bn::sprite_items::bad_cat, 4);
         }
 
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
@@ -271,7 +286,6 @@ void BadCat::update(){
 // *********** PaleTongue ***********
 void PaleTongue::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - graphics.position());
-    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
         
     // Player within range
     if(in_range(Global::Player().position(), 20)){
@@ -291,10 +305,10 @@ void PaleTongue::_movement(){
         }
         bn::fixed target_x = graphics.x(), target_y = graphics.y();
         
-        if((player_direction.x() > 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() < 0 && map_obstacle(coll_x, coll_y, WEST))){
+        if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
             target_x += player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() > 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() < 0 && map_obstacle(coll_x, coll_y, NORTH))){
+        if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
             target_y += player_direction.y()*_stats.speed;
         }
 
@@ -312,7 +326,7 @@ void PaleTongue::_movement(){
             _idle_time = 0;
         }
 
-        displace(coll_x, coll_y, _stats.speed);
+        displace(_stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -326,7 +340,7 @@ void PaleTongue::_movement(){
 void PaleTongue::update(){
     if(on_screen(Global::Camera())){
         if(!graphics.sprite.has_value()){
-            load_graphics(bn::sprite_items::pale_tongue, 8);
+            _load_graphics(bn::sprite_items::pale_tongue, 8);
         }
 
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
@@ -371,7 +385,6 @@ void PaleTongue::update(){
 // *********** PaleFinger **********
 void PaleFinger::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().graphics.position() - bn::point(x(), y() - 8));
-    int coll_x = x()>>3, coll_y = (y() + 4)>>3;
         
     // Player within range
     if(in_range(Global::Player().position(), 40)){
@@ -382,10 +395,10 @@ void PaleFinger::_movement(){
         }
         bn::fixed target_x = graphics.x(), target_y = graphics.y();
 
-        if((player_direction.x() < 0 && map_obstacle(coll_x, coll_y, EAST)) || (player_direction.x() > 0 && map_obstacle(coll_x, coll_y, WEST))){
+        if((player_direction.x() < 0 && _map_obstacle(EAST)) || (player_direction.x() > 0 && _map_obstacle(WEST))){
             target_x -= player_direction.x()*_stats.speed;
         }
-        if((player_direction.y() < 0 && map_obstacle(coll_x, coll_y, SOUTH)) || (player_direction.y() > 0 && map_obstacle(coll_x, coll_y, NORTH))){
+        if((player_direction.y() < 0 && _map_obstacle(SOUTH)) || (player_direction.y() > 0 && _map_obstacle(NORTH))){
             target_y -= player_direction.y()*_stats.speed;
         }
 
@@ -416,7 +429,7 @@ void PaleFinger::_movement(){
         }
 
         // If direction is valid
-        displace(coll_x, coll_y, _stats.speed);
+        displace(_stats.speed);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
@@ -438,7 +451,7 @@ void PaleFinger::_start_attack(){
 void PaleFinger::update(){
     if(on_screen(Global::Camera(), 32, 58)){
         if(!graphics.sprite.has_value()){
-            load_graphics(bn::sprite_items::pale_finger, 8);
+            _load_graphics(bn::sprite_items::pale_finger, 8);
         }
 
         if(Global::Player().graphics.y() > sprite().y() + 8){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
@@ -477,7 +490,7 @@ void PaleFinger::update(){
 }
 
 // ************** NPC **************
-void NPC::update(tiled_bg& bg, bool objective){
+void NPC::update(bool objective){
     if(on_screen(Global::Camera())){
         if(!graphics.sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
@@ -502,8 +515,8 @@ void NPC::update(tiled_bg& bg, bool objective){
                     jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
                 }else if(!Global::Stairs().isOpen){
                     jv::Dialog::init("Thanks for finding me!", "The stairs are open now!");
-                    Global::Stairs().set_open(bg.tiles(), true);
-                    bg.init();
+                    Global::Stairs().set_open(true);
+                    Global::Tiled_Bg().init();
                 }else{
                     jv::Dialog::init("Find the stairs! They're open!");
                 }

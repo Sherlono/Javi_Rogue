@@ -99,8 +99,6 @@ public:
         int delta_x = position.x() - x(), delta_y = position.y() - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
-    [[nodiscard]] bool map_obstacle(int x, int y, const uint8_t direction);
-
     // Setters
     void set_position(const bn::fixed x, const bn::fixed y){
         sprite().set_position(x, y);
@@ -115,8 +113,6 @@ public:
     }
 
     // For actions with direction
-    void load_graphics(const bn::sprite_item& item, int wait_frames);
-
     void look_at(bn::fixed_point& xyVector){
         bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
         if(xyVector.y() < -0.5){
@@ -154,8 +150,11 @@ protected:
         bn::fixed speed;
     };
     
+    [[nodiscard]] bool _map_obstacle(const uint8_t direction);
     [[nodiscard]] virtual int _sprite_y_offset() const = 0;
     
+    void _load_graphics(const bn::sprite_item& item, int wait_frames);
+
     uint8_t _prev_dir = Direction::SOUTH, _dir = Direction::SOUTH;
     bn::rect _rect;
 };
@@ -208,7 +207,7 @@ public:
         graphics.animation->update();
     }
     
-    void update(bool noClip = false);
+    void update();
 
     void heal(int h){
         _hp = bn::min(_hp + h, int(_stats.max_hp));
@@ -242,13 +241,13 @@ public:
         _interact_token = t;
     }
 
-    bool invulnerable = false;
+    bool invulnerable = false, noClip = false;
     Inventory playerInventory;
 
 private:
     bool _enemy_obstacle(const int x, const int y, const uint8_t direction);
     
-    void _movement(bool noClip = false);
+    void _movement();
     
     void _start_attack(){
         if(!is_attacking() && _state != State::HURTING){
@@ -306,21 +305,21 @@ public:
     // Functionality
     virtual void update() = 0;
 
-    void displace(const int x, const int y, const bn::fixed speed){
+    void displace(const bn::fixed speed){
         // If direction is valid
         if(_dir != Direction::NEUTRAL && _dir < 9){
             // Move if dir not obstructed
-            if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && map_obstacle(x, y, NORTH)){          // UP
+            if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && _map_obstacle( NORTH)){          // UP
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
                 set_position(graphics.x(), graphics.y() - speed*diagonal); 
-            }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, SOUTH)){  // DOWN
+            }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && _map_obstacle(SOUTH)){  // DOWN
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
                 set_position(graphics.x(), graphics.y() + speed*diagonal);
             }
-            if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && map_obstacle(x, y, WEST)){  // LEFT
+            if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && _map_obstacle(WEST)){  // LEFT
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
                 set_position(graphics.x() - speed*diagonal, graphics.y());
-            }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && map_obstacle(x, y, EAST)){ // RIGHT
+            }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && _map_obstacle(EAST)){ // RIGHT
                 bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
                 set_position(graphics.x() + speed*diagonal, graphics.y());
             }
@@ -570,7 +569,7 @@ public:
     // Setters
 
     // Functionality
-    void update(tiled_bg& bg, bool objective);
+    void update(bool objective);
     
 private:
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}

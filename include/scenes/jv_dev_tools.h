@@ -23,7 +23,7 @@
 
 namespace jv::dev{
 void GenerateDevLevel(GameMap& map){
-    map.reset();
+    map.clear();
     const int width = 12, height = 10;
 
     for(int y = 0; y < height; y++){
@@ -141,7 +141,7 @@ void blocks_scene(){
 
         Fortress.set_camera(cam);
 
-        jv::Global::initialize(&cam, &Fortress.game_map());
+        jv::Global::initialize(&cam, &Fortress);
         jv::dev::GenerateDevLevel(Fortress.game_map());
 
         Fortress.init();

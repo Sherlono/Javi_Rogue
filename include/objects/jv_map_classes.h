@@ -19,8 +19,8 @@ public:
     using cell_type = uint16_t;
 
     ~GameMap(){ bn::memory::clear(size(), _data[0]);}
-    GameMap(uint16_t x, uint16_t y): _data(std::make_unique<cell_type[]>(x*y)), _width(x), _height(y){}
-    GameMap(bn::point p): _data(std::make_unique<cell_type[]>(p.x()*p.y())), _width(p.x()), _height(p.y()){}
+    GameMap(const uint16_t x, const uint16_t y): _data(std::make_unique<cell_type[]>(x*y)), _width(x), _height(y) {}
+    GameMap(const bn::point p): _data(std::make_unique<cell_type[]>(p.x()*p.y())), _width(p.x()), _height(p.y()) {}
 
     // Getters
     [[nodiscard]] uint16_t width() const {return _width;}
@@ -45,15 +45,15 @@ public:
     }
     
     // Setters
-    void set_cell(const int x, const int y, int value){
+    inline void set_cell(const int x, const int y, int value){
         _data[x + y*_width] = value;
     }
-    void set_cell(const int index, int value){
+    inline void set_cell(const int index, int value){
         _data[index] = value;
     }
     
     void set_horizontal_flip(int index, bool f){
-        if(f == true){
+        if(f == true) [[unlikely]] {
             if(horizontal_flip(index) == false){
                 _data[index] += FLPTHD;
             }
@@ -80,7 +80,7 @@ public:
         }
     }
 
-    void reset(){
+    inline void clear(){
         bn::memory::clear(size(), _data[0]);
     }
 

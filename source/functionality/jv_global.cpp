@@ -6,29 +6,23 @@
 #include "jv_items.h"
 #include "jv_stairs.h"
 #include "jv_actors.h"
+#include "jv_tiled_bg.h"
 #include "jv_projectile.h"
 #include "jv_game_assets.h"
 #include "jv_map_classes.h"
 
 namespace jv{
 bn::camera_ptr* Global::_cam = nullptr;
-GameMap* Global::_map = nullptr;
+jv::tiled_bg* Global::_tiled_bg = nullptr;
 GameAssets* Global::_assets = nullptr;
 bn::point Global::cam_position;
 uint8_t Global::environment_id = Environments::Fortress;
 
 
-void Global::initialize(bn::camera_ptr* cam, GameMap* map, GameAssets* assets){
+void Global::initialize(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
     _cam = cam;
-    _map = map;
+    _tiled_bg = t_bg;
     _assets = assets;
-    environment_id = 0;
-}
-
-void Global::reset(){
-    _cam = nullptr;
-    _map = nullptr;
-    _assets = nullptr;
     environment_id = 0;
 }
 
@@ -63,8 +57,8 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 [[nodiscard]] jv::Fog<MAX_ROOMS>& Global::Fog(){
     return _assets->fog;
 }
-[[nodiscard]] GameMap& Global::Map(){
-    return *_map;
+[[nodiscard]] jv::tiled_bg& Global::Tiled_Bg(){
+    return *_tiled_bg;
 }
 [[nodiscard]] bn::random& Global::Random(){
     return _assets->randomizer;

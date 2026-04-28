@@ -10,7 +10,7 @@ GameAssets::GameAssets(bn::camera_ptr& c, bn::random& r): randomizer(r), cat(bn:
 void GameAssets::enemies_update(){
     for(int i = 0; i < v_enemies.size(); i++){
         v_enemies[i]->update();
-        //objective = objective && !_v_enemies[i]->alive();
+        
         if(v_enemies[i]->get_state() == Actor::State::DEAD) [[unlikely]] {
             int item_check = Global::Random().get_int(0, 3);
             if(item_check == 1){

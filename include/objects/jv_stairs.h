@@ -14,7 +14,7 @@ struct Stairs{
 
     // Setters
     void set_position(bn::point p);
-    void set_open(const bn::regular_bg_tiles_ptr& t_ptr, bool open);
+    void set_open(bool open);
     bool climb();
     
     bool isOpen;
