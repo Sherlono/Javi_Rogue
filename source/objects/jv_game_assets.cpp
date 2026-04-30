@@ -2,8 +2,7 @@
 
 namespace jv{
     
-GameAssets::GameAssets(bn::camera_ptr& c, bn::random& r): randomizer(r), cat(bn::point(0, 0), c)
-{
+GameAssets::GameAssets(bn::camera_ptr& c, bn::random& r): randomizer(r), cat(bn::point(0, 0), c){
     cat.set_enemies_ptr(&v_enemies);
 }
 
@@ -21,6 +20,12 @@ void GameAssets::enemies_update(){
             delete v_enemies[i];
             v_enemies.erase(v_enemies.begin() + i);
         }
+    }
+}
+
+void GameAssets::npcs_update(){
+    for(int i = 0; i < v_npcs.size(); i++){
+        v_npcs[i]->update();
     }
 }
 

@@ -12,7 +12,7 @@
     #define MAX_BODY_LINES 20
 #endif
 
-namespace jv::scenes{
+namespace jv::Scenes{
 constexpr bn::string_view Header[SECTION_TOTAL] = {
     "Director",
     "Programming",

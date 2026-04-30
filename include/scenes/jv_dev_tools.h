@@ -141,7 +141,7 @@ void blocks_scene(){
 
         Fortress.set_camera(cam);
 
-        jv::Global::initialize(&cam, &Fortress);
+        jv::Global::init(&cam, &Fortress);
         jv::dev::GenerateDevLevel(Fortress.game_map());
 
         Fortress.init();
@@ -237,7 +237,7 @@ void blocks_scene(){
         text_generator.remove_camera();
         text_generator.generate(x_offset, y_offset, bn::to_string<3>(current_tile), tile_index_sprite);
 
-        jv::Global::initialize(&cam, &Fortress.game_map());
+        jv::Global::init(&cam, &Fortress.game_map());
         jv::dev::GenerateDevLevel(Fortress.game_map());
 
         Fortress.init();

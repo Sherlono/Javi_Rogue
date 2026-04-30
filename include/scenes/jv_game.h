@@ -24,7 +24,6 @@
 #include "jv_global.h"
 #include "jv_tiled_bg.h"
 #include "jv_constants.h"
-#include "jv_healthbar.h"
 #include "jv_interface.h"
 #include "jv_projectile.h"
 #include "jv_blocks_data.h"
@@ -88,9 +87,9 @@ private:
             }else{
                 for(int i = 0; i < 16; i++) arr[i] = span[i];
             }
-            Global::Tiled_Bg().game_map().insert_data(4, 4, arr, blockConfig.top_left);
+            Global::Map().insert_data(4, 4, arr, blockConfig.top_left);
         }else{
-            Global::Tiled_Bg().game_map().insert_data(4, 4, jv::blocks::get_block(block_index), blockConfig.top_left, blockFlip);
+            Global::Map().insert_data(4, 4, jv::blocks::get_block(block_index), blockConfig.top_left, blockFlip);
         }
     }
 
@@ -124,26 +123,23 @@ private:
             int index = Global::Random().get_int(v_walkBlocks.size());
 
             switch(entity_checks[1][i]){
-                case EntityTag::Cat:{
+                case EntityTag::Cat:
                     Global::Player().set_position(v_walkBlocks[index]);
                     Global::Player().reset();
                     Global::Camera().set_position(Global::Player().get_hitbox().position());
                     Global::update();
                     spawnEnemies = false;
                     break;
-                }
-                case EntityTag::Cow:{
-                    Global::NPCs().push_back(jv::NPC(v_walkBlocks[index], Global::Camera()));
+                case EntityTag::Cow:
+                    Global::NPCs().push_back(new jv::Cow(v_walkBlocks[index], Global::Camera()));
                     break;
-                }
                 case EntityTag::Stairs:{
                     Global::Stairs().set_position(v_walkBlocks[index]);
                     break;
                 }
-                default:{
+                default:
                     BN_ERROR("Invalid entity tag: ", entity_checks[1][i]);
                     break;
-                }
             }
             v_walkBlocks.erase(v_walkBlocks.begin() + index);
             entity_checks[1].erase(entity_checks[1].begin() + i);
@@ -326,7 +322,7 @@ private:
                 for(int x = 0; x < 2; x++){
                     x_equals_1 = x == 1;
                     bn::point top_left = {roomConfig.top_left.x()*4 + (x_equals_1 ? 6 : 0), (2 + roomConfig.top_left.y())*4 - 2};
-                    Global::Tiled_Bg().game_map().insert_data(2, 2, auxBlockArr, top_left, x_equals_1);
+                    Global::Map().insert_data(2, 2, auxBlockArr, top_left, x_equals_1);
                 }
                 break;
             }
@@ -358,11 +354,11 @@ private:
     }
 
     void generate_rooms(){
-        using rooms_type = bn::vector<uint8_t, prefab_map::ROOM_PREFAB_COUNT>;
+        using rooms_type = bn::vector<uint8_t, jv::prefab_map::ROOM_PREFAB_COUNT>;
         rooms_type validRooms;
         uint8_t emptyCount = 0;
 
-        Global::Tiled_Bg().game_map().clear();
+        Global::clear_bg_map();
         Global::Fog().reset();
         
         // Choosing room shape and location
@@ -450,7 +446,7 @@ private:
                 for(int x = 0; x < zone.width(); x++){
                     const int next_cell_x = (2 + x*7)*4, next_cell_y = (7 + y*7)*4 + 1, halfway_cell_y = (6 + y*7)*4 + 1;
                     // Cell not occupied   // No room exists in the next cell.                     Something between current and next cell
-                    if(!zone.cell(x, y) || !Global::Tiled_Bg().game_map().cell(next_cell_x, next_cell_y) || Global::Tiled_Bg().game_map().cell(next_cell_x, halfway_cell_y)) [[unlikely]]{
+                    if(!zone.cell(x, y) || !Global::Map().cell(next_cell_x, next_cell_y) || Global::Map().cell(next_cell_x, halfway_cell_y)) [[unlikely]]{
                         continue;
                     }
                     roomConfig = NumPoint{V_Corr, bn::point(2 + x*7, 5 + y*7)};
@@ -472,7 +468,7 @@ private:
                     uint8_t x_times_7 = x*7, y_times_7 = y*7;
                     int next_cell_x = (7 + x_times_7)*4 + 1, next_cell_y = (2 + y_times_7)*4, halfway_cell_x = (6 + x_times_7)*4 + 1;
                     // Cell not occupied   // No room exists in the next cell.        Something between current and next cell
-                    if(!zone.cell(x, y) || !Global::Tiled_Bg().game_map().cell(next_cell_x, next_cell_y) || Global::Tiled_Bg().game_map().cell(halfway_cell_x, next_cell_y)) [[unlikely]] {
+                    if(!zone.cell(x, y) || !Global::Map().cell(next_cell_x, next_cell_y) || Global::Map().cell(halfway_cell_x, next_cell_y)) [[unlikely]] {
                         continue;
                     }
 
@@ -483,14 +479,14 @@ private:
                     bn::point checkPoint(22 + x_times_28, 18 + y_times_28);
                     bn::point targetPoint(checkPoint.x(), 16 + y_times_28);
 
-                    bool cellCheck = Global::Tiled_Bg().game_map().cell(checkPoint) == 140;
-                    if(cellCheck || Global::Tiled_Bg().game_map().cell(checkPoint) == 147) Global::Tiled_Bg().game_map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint, true);
+                    bool cellCheck = Global::Map().cell(checkPoint) == 140;
+                    if(cellCheck || Global::Map().cell(checkPoint) == 147) Global::Map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint, true);
                     
                     checkPoint.set_x(29 + x_times_28);
                     targetPoint.set_x(28 + x_times_28);
                     
-                    cellCheck = Global::Tiled_Bg().game_map().cell(checkPoint) == 140;
-                    if(cellCheck || Global::Tiled_Bg().game_map().cell(checkPoint) == 147)  Global::Tiled_Bg().game_map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint);
+                    cellCheck = Global::Map().cell(checkPoint) == 140;
+                    if(cellCheck || Global::Map().cell(checkPoint) == 147)  Global::Map().insert_data(2, 2, auxBlockArr[cellCheck], targetPoint);
                 }
             }
         }
@@ -502,10 +498,14 @@ private:
     GameMap zone;
 };
 
-namespace scenes{
+namespace Scenes{
 class MainGame{
-    static constexpr bn::fixed cam_lerp_value = bn::fixed(0.16);
 public:
+    static void Start(bn::random& r){
+        MainGame instance(r);
+    }
+private:
+    ~MainGame(){Global::reset();}
     MainGame(bn::random& r):
         _cam(bn::camera_ptr::create(0, 0)),
         text_generator(common::variable_8x8_sprite_font),
@@ -519,12 +519,14 @@ public:
                       jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5)}
         #if DEV_ENABLED
         ,options{jv::menu_option(&_gameAssets.cat.invulnerable, "Invuln."),
-                 jv::menu_option(&FullHeal, "Fully heal"),
+                 jv::menu_option(&FullHeal, "FullHeal"),
                  jv::menu_option(&_gameAssets.cat.noClip, "Noclip"),
-                 jv::menu_option(&next_level, "Next level"),
+                 jv::menu_option(&next_level, "NextFloor"),
                  jv::menu_option(&Die, "Die"),
                  jv::menu_option(&Clear, "Clear"),
-                 jv::menu_option(&NoFog, "No Fog"),}
+                 jv::menu_option(&NoFog, "NoFog"),
+                 jv::menu_option(&openStairs, "OpenStairs"),
+                 /*jv::menu_option(&some_fixed, "SomeFixed"),*/}
         #endif
         {
             bn::music_items::cyberrid.play(0.2);
@@ -535,26 +537,27 @@ public:
             bn::sprites::set_blending_bottom_enabled(false);
             bn::blending::set_transparency_alpha(0.8);
             
-            Global::initialize(&_cam, &_tiled_bg, &_gameAssets);
+            Global::init(&_cam, &_tiled_bg, &_gameAssets);
             
-            _healthbar.init();
+            _gameAssets.healthbar.init();
             text_generator.generate(64, -70, "Floor", _txt_sprts);
 
             #if DEV_ENABLED
-                _gameAssets.cat.invulnerable = true;
-                text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
-                cpu_sprts[0].set_bg_priority(0);
+            _gameAssets.cat.invulnerable = true;
+            text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
+            cpu_sprts[0].set_bg_priority(0);
             #endif
 
             while(!game_over){
+                level_start();
                 update();
+                level_end();
             }
 
             bn::sprites::set_blending_bottom_enabled(true);
             bn::music::stop();
         }
 
-private:
     void fade(const bool fadeIn, const uint8_t speed, const bool fademusic){
         bn::fixed progress;
         bn::color black = bn::colors::black;
@@ -602,7 +605,6 @@ private:
     }
 
     void set_all_visible(bool visible){
-        _healthbar.set_visible(visible);
         _backdrop.set_visible(visible);
         _tiled_bg.set_visible(visible);
         _gameAssets.set_all_visible(visible);
@@ -637,17 +639,15 @@ private:
         _bg_animation[1] = jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5);
     }
 
-    void update(){
-        bn::fixed_point cam_target;
-        bn::point prev_cam_pos, prev_cat_pos;
-        bool cameraMoved = false, catMoved = false;
-        uint8_t gameover_delay = 0;
+    void level_start(){
+        gameover_delay = 0;
         next_level = false;
 
         _gameAssets.fog.set_visible(Global::environment_id == Global::Jungle);
         
-        LevelGenerator::Generate(3 + Global::Random().get_int(MAX_ROOM_COLUMNS - 3),
-                                 3 + Global::Random().get_int(MAX_ROOM_ROWS - 3));
+        /*LevelGenerator::Generate(3 + Global::Random().get_int(MAX_ROOM_COLUMNS - 3),
+                                 3 + Global::Random().get_int(MAX_ROOM_ROWS - 3));*/
+        LevelGenerator::Generate(3, 3);
 
         // Initialize level visuals
         _tiled_bg.init();
@@ -664,36 +664,51 @@ private:
 
         text_generator.generate(94, -70, bn::to_string<3>(floor), _txt_sprts);
         fade(FADE_IN, fadespeed::MEDIUM, false);
+    }
 
+    void level_end(){
+        const bool FADE_MUSIC = ! _gameAssets.cat.alive();
+        int fade_speed = _gameAssets.cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
+        fade(FADE_OUT, fade_speed, FADE_MUSIC);
+        
+        floor--;
+        //Global::environment_id = DEV_ENABLED ? bn::abs(floor)%2 : (bn::abs(floor)/3)%2;
+        Global::environment_id = bn::abs(floor)%2;
+        
+        load_bg_assets();
+
+        // Flush and reset objects
+        _gameAssets.clear_objects();
+        _gameAssets.fog.clear();
+        _txt_sprts.erase(_txt_sprts.begin() + 1);
+
+        #if DEV_ENABLED
+        while(cpu_sprts.size() > 1) cpu_sprts.erase(cpu_sprts.end() - 1);
+        #endif
+    }
+
+    void update(){
         while(!next_level){
-            prev_cam_pos = Global::cam_pos();
-            cam_target = lerp(_cam.position(), _gameAssets.cat.get_hitbox().position() + bn::point(0, 4), cam_lerp_value);
-            _cam.set_position(cam_target);
-            
             Global::update();
-            cameraMoved = prev_cam_pos != Global::cam_pos();
 
-            if(cameraMoved) _tiled_bg.update();
+            // Bg stuff
+            if(Global::cam_moved()) _tiled_bg.update();
+            _bg_animation[0].update();
+            _bg_animation[1].update();
             
             // Player update
-            prev_cat_pos = _gameAssets.cat.position();
             _gameAssets.cat.update();
-            catMoved = prev_cat_pos != _gameAssets.cat.position();
 
-            if(catMoved){
-                _backdrop.set_position(_backdrop.x() + (prev_cat_pos.x() - _gameAssets.cat.x())*bn::fixed(0.15),
-                                       _backdrop.y() + (prev_cat_pos.y() - _gameAssets.cat.y())*bn::fixed(0.15));
-            }
-            
-            if(_gameAssets.fog.visible() && cameraMoved) _gameAssets.fog.update();
-            
             if(_gameAssets.cat.alive()) [[likely]] {
                 next_level = _gameAssets.stairs.climb();
                 _gameAssets.scene_items_update();
 
-                // Debug menu
+                // Debug Stuff
                 #if DEV_ENABLED
-                if(bn::keypad::select_pressed()) [[unlikely]] {
+                if(bn::keypad::l_pressed()) [[unlikely]] {
+                    int value = jv::Global::Map().cell(_gameAssets.cat.x()>>3, (_gameAssets.cat.y()+4)>>3);
+                    BN_LOG("x: ", _gameAssets.cat.x()>>3, " y: ", (_gameAssets.cat.x()+4)>>3, " Value: ", value);
+                }else if(bn::keypad::select_pressed()) [[unlikely]] {
                     set_all_visible(false);
                     jv::Debug::Start(options.data(), options.size());
                     set_all_visible(true);
@@ -707,7 +722,7 @@ private:
                         _gameAssets.cat.got_hit( _gameAssets.cat.get_hp(), true);
                     }
                     if(Clear){
-                        _gameAssets.clear_objects();
+                        _gameAssets.clear_objects(false);
                         Clear = false;
                     }
                     if(Global::environment_id != Global::Fortress){
@@ -716,6 +731,10 @@ private:
                         }else{
                             if(!_gameAssets.fog.visible()) _gameAssets.fog.set_visible(true);
                         }
+                    }
+                    if(openStairs){
+                        _gameAssets.stairs.set_open(true);
+                        openStairs = false;
                     }
                 }
                 #endif
@@ -728,17 +747,13 @@ private:
                 gameover_delay++;
             }
 
-            objective = true;
-            _gameAssets.enemies_update();
-            _gameAssets.projectiles_update();
-            for(int i = 0; i < _gameAssets.v_npcs.size(); i++){
-                _gameAssets.v_npcs[i].update(objective);
-                // Other NPC updates
+            if(_gameAssets.cat.moved()){    // Backdrop movement
+                _backdrop.set_position(_backdrop.x() + (_gameAssets.cat.prev_position().x() - _gameAssets.cat.x())*bn::fixed(0.15),
+                                       _backdrop.y() + (_gameAssets.cat.prev_position().y() - _gameAssets.cat.y())*bn::fixed(0.15));
             }
-            _healthbar.update();
+            if(_gameAssets.fog.visible() && Global::cam_moved()) _gameAssets.fog.update();
             
-            _bg_animation[0].update();
-            _bg_animation[1].update();
+            _gameAssets.update();
             
             #if DEV_ENABLED
             while(cpu_sprts.size() > 1){
@@ -747,40 +762,25 @@ private:
             text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
             #endif
 
+            if(bn::keypad::r_held()) for(int i = 0; i < 8; i++) bn::core::update(); // Slow down game
+
             jv::Interface::resetcombo();
             bn::core::update();
         }
-
-        const bool FADE_MUSIC = ! _gameAssets.cat.alive();
-        int fade_speed = _gameAssets.cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
-        fade(FADE_OUT, fade_speed, FADE_MUSIC);
-        
-        floor--;
-        //Global::environment_id = DEV_ENABLED ? bn::abs(floor)%2 : (bn::abs(floor)/3)%2;
-        Global::environment_id = bn::abs(floor)%2;
-        
-        load_bg_assets();
-
-        // Flush and reset objects
-        _gameAssets.clear_objects();
-        _gameAssets.v_npcs.clear();
-        _gameAssets.fog.clear();
-        _txt_sprts.erase(_txt_sprts.begin() + 1);
-
-        #if DEV_ENABLED
-        while(cpu_sprts.size() > 1) cpu_sprts.erase(cpu_sprts.end() - 1);
-        #endif
     }
 
     bn::camera_ptr _cam;
     bn::sprite_text_generator text_generator;
     bn::vector<bn::sprite_ptr, 2> _txt_sprts;
     
-    jv::healthbar _healthbar;
     jv::GameAssets _gameAssets;
+
+    // Metadata
+    uint8_t gameover_delay = 0;
     int floor = 0;
-    bool game_over = false, objective = true, next_level = false;
-    
+    bool game_over = false, next_level = false;
+
+    // Bg Graphics
     bn::regular_bg_ptr _backdrop;
     jv::tiled_bg _tiled_bg;
     jv::tile_span _tiles_item;
@@ -788,8 +788,9 @@ private:
 
     #if DEV_ENABLED
     bn::vector<bn::sprite_ptr, 3> cpu_sprts;
-    bn::array<jv::menu_option, 7> options;
-    bool FullHeal = false, Die = false, Clear = false, NoFog = false;
+    bn::array<jv::menu_option, 8> options;
+    bool FullHeal = false, Die = false, Clear = false, NoFog = false, openStairs = false;
+    //bn::fixed some_fixed = 0.5;
     #endif
 };
 

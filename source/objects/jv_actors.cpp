@@ -13,6 +13,13 @@
 
 namespace jv{
 // ************** Actor *************
+[[nodiscard]] bool Actor::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
+    uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
+    bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
+    bool left = x() > Global::cam_pos().x() - x_offset, right = x() < Global::cam_pos().x() + x_offset;
+    return left && right && up && down;
+}
+
 [[nodiscard]] bool Actor::_map_obstacle(const uint8_t direction){
     bn::point point_1, point_2;
     int aux;
@@ -49,7 +56,7 @@ namespace jv{
             BN_ERROR("Invalid direction: ", direction);
             return false;
     }
-    return Global::Tiled_Bg().game_map().cell(point_1) <= WTILES_COUNT && Global::Tiled_Bg().game_map().cell(point_2) <= WTILES_COUNT;
+    return Global::Map().cell(point_1) <= WTILES_COUNT && Global::Map().cell(point_2) <= WTILES_COUNT;
 }
 
 void Actor::_load_graphics(const bn::sprite_item& item, int wait_frames){
@@ -149,13 +156,6 @@ void Player::_movement(){
 }
 
 void Player::update(){
-    #ifdef DEV_ENABLED
-    if(bn::keypad::l_pressed()) [[unlikely]] {
-        int value = jv::Global::Tiled_Bg().game_map().cell(x()>>3, (y()+4)>>3);
-        BN_LOG("x: ", x()>>3, " y: ", (y()+4)>>3, " Value: ", value);
-    }
-    #endif
-    
     if(alive()) [[likely]] {
         _interact_token = true;
         
@@ -168,6 +168,10 @@ void Player::update(){
         }else if(!is_attacking()) [[likely]] {
             _movement();
         }
+        
+        _moved = _prev_pos != position();
+        _prev_pos = position();
+
         if(!graphics.animation->done()) [[likely]] { graphics.animation->update();}
 
         // Combat
@@ -178,12 +182,6 @@ void Player::update(){
 }
 
 // ************** Enemy *************
-/*[[nodiscard]] bool Enemy::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
-    uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-    bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
-    bool left = x() > Global::cam_pos().x() - x_offset, right = x() < Global::cam_pos().x() + x_offset;
-    return left && right && up && down;
-}*/
 
 // ************* BadCat *************
 void BadCat::_movement(){
@@ -239,7 +237,7 @@ void BadCat::_movement(){
 }
 
 void BadCat::update(){
-    if(on_screen(Global::Camera())){
+    if(on_screen()){
         if(!graphics.sprite.has_value()){
             _load_graphics(bn::sprite_items::bad_cat, 4);
         }
@@ -338,7 +336,7 @@ void PaleTongue::_movement(){
 }
 
 void PaleTongue::update(){
-    if(on_screen(Global::Camera())){
+    if(on_screen()){
         if(!graphics.sprite.has_value()){
             _load_graphics(bn::sprite_items::pale_tongue, 8);
         }
@@ -449,7 +447,7 @@ void PaleFinger::_start_attack(){
 }
 
 void PaleFinger::update(){
-    if(on_screen(Global::Camera(), 32, 58)){
+    if(on_screen(32, 58)){
         if(!graphics.sprite.has_value()){
             _load_graphics(bn::sprite_items::pale_finger, 8);
         }
@@ -490,8 +488,8 @@ void PaleFinger::update(){
 }
 
 // ************** NPC **************
-void NPC::update(bool objective){
-    if(on_screen(Global::Camera())){
+void Cow::update(){
+    if(on_screen()){
         if(!graphics.sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::cow);
             builder.set_position(x(), y());
@@ -511,9 +509,7 @@ void NPC::update(bool objective){
         if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()) [[likely]] {
             // Dialog
             if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
-                if(!objective){
-                    jv::Dialog::init("Bitch I'm a cow. Bitch I'm a cow.", "I'm not a cat. I don't go meow.", "...Unlike you.");
-                }else if(!Global::Stairs().isOpen){
+                if(!Global::Stairs().isOpen){
                     jv::Dialog::init("Thanks for finding me!", "The stairs are open now!");
                     Global::Stairs().set_open(true);
                     Global::Tiled_Bg().init();

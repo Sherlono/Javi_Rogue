@@ -99,6 +99,8 @@ public:
         int delta_x = position.x() - x(), delta_y = position.y() - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
+    [[nodiscard]] bool on_screen(uint8_t halfWidth = 16, uint8_t halfHeight = 16) const;
+
     // Setters
     void set_position(const bn::fixed x, const bn::fixed y){
         sprite().set_position(x, y);
@@ -183,6 +185,8 @@ public:
     [[nodiscard]] bool is_attacking() { return _attack_cooldown > 0;}
     [[nodiscard]] inline bool attack_ended() { return !is_attacking() && _prev_attack_cooldown != _attack_cooldown;}
     [[nodiscard]] bool can_interact() const { return _interact_token;}
+    [[nodiscard]] bool moved() const { return _moved;}
+    [[nodiscard]] bn::point prev_position() const { return _prev_pos;}
 
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] uint8_t get_attack() const { return _stats.attack;}
@@ -202,6 +206,7 @@ public:
     void reset(){
         _prev_dir = Direction::NEUTRAL;
         _dir = Direction::SOUTH;
+        _moved = false;
         _hitbox.set_position(x(), y());
         graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
         graphics.animation->update();
@@ -271,12 +276,13 @@ private:
     
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
 
-    bool _interact_token = true;
+    bool _interact_token = true, _moved = false;
     uint8_t _state = State::NORMAL;
     uint8_t _prev_dir = Direction::SOUTH;
     int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
     uint8_t _hp;
     basic_stats _stats;
+    bn::point _prev_pos;
     bn::rect _hitbox;
     bn::ivector<Enemy*>* _enemies_ref;
 };
@@ -294,13 +300,6 @@ public:
     }
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] uint8_t get_hp() const { return hp;}
-    [[nodiscard]] bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
-        uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-        bool up = y() > cam.y() - y_offset, down = y() < cam.y() + y_offset;
-        bool left = x() > cam.x() - x_offset, right = x() < cam.x() + x_offset;
-        return left && right && up && down;
-    }
-    
 
     // Functionality
     virtual void update() = 0;
@@ -339,7 +338,7 @@ public:
     // Constructor
     BadCat(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            if(on_screen(cam)){
+            if(on_screen()){
                 bn::sprite_builder builder(bn::sprite_items::bad_cat);
                 builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
@@ -410,7 +409,7 @@ public:
     // Constructor
     PaleTongue(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            if(on_screen(cam)){
+            if(on_screen()){
                 bn::sprite_builder builder(bn::sprite_items::pale_tongue);
                 builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
@@ -480,7 +479,7 @@ public:
     // Constructor
     PaleFinger(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
         {
-            if(on_screen(cam, 32, 58)){
+            if(on_screen(32, 58)){
                 bn::sprite_builder builder(bn::sprite_items::pale_finger);
                 builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
@@ -542,10 +541,23 @@ class NPC: public Actor{
 public:
     ~NPC(){}
     // Constructor
-    NPC(bn::point position, bn::camera_ptr cam):
-        Actor(bn::rect(position.x(), position.y() + 8, 20, 20))
+    NPC(bn::rect r): Actor(r) {}
+
+    // Functionality
+    virtual void update();
+    
+private:
+
+};
+
+class Cow: public NPC{
+public:
+    ~Cow(){}
+    // Constructor
+    Cow(bn::point position, bn::camera_ptr cam):
+        NPC(bn::rect(position.x(), position.y() + 8, 20, 20))
         {
-            if(on_screen(cam)){
+            if(on_screen()){
                 bn::sprite_builder builder(bn::sprite_items::cow);
                 builder.set_position(position.x(), position.y() - _sprite_y_offset());
                 builder.set_camera(cam);
@@ -557,23 +569,11 @@ public:
             }
         }
     
-    // Getters
-    [[nodiscard]] inline bool on_screen(bn::camera_ptr cam) const {
-        const uint8_t halfWidth = 16, halfHeight = 16;
-        constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-        bool up = y() > cam.y() - y_offset, down = y() < cam.y() + y_offset;
-        bool left = x() > cam.x() - x_offset, right = x() < cam.x() + x_offset;
-        return left && right && up && down;
-    }
-
-    // Setters
-
     // Functionality
-    void update(bool objective);
+    void update() override;
     
 private:
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
-
 };
 
 }

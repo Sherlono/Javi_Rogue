@@ -15,21 +15,21 @@ int main()
     bn::random randomizer;
     
     #if !DEV_ENABLED
-        jv::scenes::intro_scene();
-        {jv::scenes::IntroMovie Start;}
+        jv::Scenes::intro_scene();
+        {jv::Scenes::IntroMovie Start;}
     #endif
     while(true){
-        switch(jv::scenes::start_scene(randomizer)){
+        switch(jv::Scenes::start_scene(randomizer)){
             case 0:{
-                jv::scenes::MainGame Start(randomizer);
+                jv::Scenes::MainGame::Start(randomizer);
                 break;
             }
             #if !DEV_ENABLED
             case 1:
-                jv::scenes::credits_scene();
+                jv::Scenes::credits_scene();
                 break;
             case 2:{
-                jv::scenes::IntroMovie Start;
+                jv::Scenes::IntroMovie Start;
                 break;
             }
             #else

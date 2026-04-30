@@ -8,25 +8,30 @@
 #include "jv_fog.h"
 #include "jv_actors.h"
 #include "jv_stairs.h"
+#include "jv_healthbar.h"
 #include "jv_projectile.h"
 #include "jv_constants.h"
 
 namespace jv{
 struct GameAssets{
-    using NPCs_vector_t = bn::vector<NPC, 1>;
+    using NPCs_vector_t = bn::vector<NPC*, 2>;
     using enemies_vector_t = bn::vector<Enemy*, MAX_ENEMIES>;
     using items_vector_t = bn::vector<Item*, MAX_ENEMIES>;
     using projectiles_vector_t = bn::vector<Projectile*, MAX_ENEMIES>;
 
     GameAssets(bn::camera_ptr& c, bn::random& r);
     
-    void clear_objects(){
+    void clear_objects(bool clear_npcs = true){
         for(auto enemy : v_enemies) delete enemy;
         v_enemies.clear();
         for(auto item : v_scene_items) delete item;
         v_scene_items.clear();
         for(auto projectile : v_projectiles) delete projectile;
         v_projectiles.clear();
+        if(clear_npcs){
+            for(auto npc : v_npcs) delete npc;
+            v_npcs.clear();
+        }
     }
 
     void scene_items_update(){
@@ -41,6 +46,7 @@ struct GameAssets{
     }
 
     void enemies_update();
+    void npcs_update();
     void projectiles_update(){
         for(int i = 0; i < v_projectiles.size(); i++){
             if(v_projectiles[i]->update()){
@@ -51,7 +57,7 @@ struct GameAssets{
     }
 
     inline void npcs_set_visible(bool visible){
-        for(auto npc : v_npcs) npc.set_visible(visible);
+        for(auto npc : v_npcs) npc->set_visible(visible);
     }
     inline void enemies_set_visible(bool visible){
         for(auto enemy : v_enemies) enemy->set_visible(visible);
@@ -65,10 +71,18 @@ struct GameAssets{
 
     void set_all_visible(bool visible){
         cat.set_visible(visible);
+        healthbar.set_visible(visible);
         npcs_set_visible(visible);
         enemies_set_visible(visible);
         items_set_visible(visible);
         projectiles_set_visible(visible);
+    }
+
+    void update(){
+        enemies_update();
+        projectiles_update();
+        npcs_update();
+        healthbar.update();
     }
 
     //bn::camera_ptr cam;
@@ -77,6 +91,7 @@ struct GameAssets{
     Player cat;
     Stairs stairs;
     Fog<MAX_ROOMS> fog;
+    Healthbar healthbar;
 
     NPCs_vector_t v_npcs;
     enemies_vector_t v_enemies;

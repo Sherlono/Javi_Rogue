@@ -12,7 +12,7 @@
 #include "bn_sprite_items_intro_shot_3_sprites.h"
 #include "bn_sprite_items_intro_movie_big_bush.h"
 
-namespace jv::scenes{
+namespace jv::Scenes{
 class IntroMovie{
 public:
     IntroMovie(): _interrupted(false)

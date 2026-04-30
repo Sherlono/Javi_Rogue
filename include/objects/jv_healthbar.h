@@ -10,8 +10,8 @@
 namespace jv{
 class Player;
 
-struct healthbar{
-    healthbar();
+struct Healthbar{
+    Healthbar();
     
     // Getters
     bn::array<bn::sprite_ptr, 4>& sprites(){ return _sprites;}

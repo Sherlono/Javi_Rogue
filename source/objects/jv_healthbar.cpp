@@ -9,7 +9,7 @@
 
 namespace jv{
 class Player;
-healthbar::healthbar():
+Healthbar::Healthbar():
     _sprites( {bn::sprite_items::healthbar_hud.create_sprite(-104, HB_Y_OFFSET, 0), 
                bn::sprite_items::healthbar_hud.create_sprite(-72, HB_Y_OFFSET, 1),
                bn::sprite_items::healthbar.create_sprite(-99, HB_Y_OFFSET),
@@ -21,7 +21,7 @@ healthbar::healthbar():
         _sprites[2].set_horizontal_scale(2.0);
     }
 
-void healthbar::init(){
+void Healthbar::init(){
     max_value = Global::Player().get_maxhp_ptr();
     value = Global::Player().get_hp_ptr();
 }

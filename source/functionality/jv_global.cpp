@@ -12,23 +12,40 @@
 #include "jv_map_classes.h"
 
 namespace jv{
+bool Global::_cam_moved;
+uint8_t Global::environment_id = Environments::Fortress;
 bn::camera_ptr* Global::_cam = nullptr;
 jv::tiled_bg* Global::_tiled_bg = nullptr;
-GameAssets* Global::_assets = nullptr;
-bn::point Global::cam_position;
-uint8_t Global::environment_id = Environments::Fortress;
+jv::GameAssets* Global::_assets = nullptr;
+bn::point Global::_cam_position, Global::_prev_cam_pos;
+bn::fixed_point Global::_cam_target;
 
-
-void Global::initialize(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
+void Global::init(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
     _cam = cam;
     _tiled_bg = t_bg;
     _assets = assets;
     environment_id = 0;
 }
 
+void Global::reset(){
+    _assets->clear_objects();
+    _assets->fog.clear();
+    _cam = nullptr;
+    _tiled_bg = nullptr;
+    _assets = nullptr;
+    environment_id = 0;
+    _cam_moved = 0;
+}
+
 void Global::update(){
-    if(_assets != nullptr){
-        cam_position = bn::point(_cam->position().x().floor_integer(), _cam->position().y().floor_integer());
+    if(_cam != nullptr){
+        _prev_cam_pos = _cam_position;
+
+        _cam_target = lerp(Camera().position(), Player().get_hitbox().position() + bn::point(0, 4), _cam_lerp_value);
+        _cam->set_position(_cam_target);
+        _cam_position = bn::point(_cam->position().x().floor_integer(), _cam->position().y().floor_integer());
+        
+        _cam_moved = _prev_cam_pos != _cam_position;
     }
     /* Other possible code */
 }
@@ -43,6 +60,10 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
             BN_ERROR("Invalid Projectile id: ", option);
             break;
     }
+}
+
+void Global::clear_bg_map(){
+    _tiled_bg->game_map().clear();
 }
 
 [[nodiscard]] bn::camera_ptr& Global::Camera(){
@@ -60,6 +81,9 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 [[nodiscard]] jv::tiled_bg& Global::Tiled_Bg(){
     return *_tiled_bg;
 }
+[[nodiscard]] jv::GameMap& Global::Map(){
+    return *_tiled_bg->game_map_ptr();
+}
 [[nodiscard]] bn::random& Global::Random(){
     return _assets->randomizer;
 }
@@ -72,10 +96,6 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 }
 [[nodiscard]] projectiles_ref_t Global::Projectiles(){
     return _assets->v_projectiles;
-}
-
-[[nodiscard]] bn::point Global::cam_pos(){
-    return cam_position;
 }
 
 }

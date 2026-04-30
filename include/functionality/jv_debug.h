@@ -25,7 +25,6 @@
 #endif
 
 namespace jv{
-
 struct menu_option{
     enum {isInt, isFloat, isBool};
     menu_option(int* d, bn::string_view t):_text(t),  _i(d), _type(isInt){}
@@ -95,83 +94,101 @@ private:
     char _type;
 };
 
-namespace Debug{
-void debug_update(jv::menu_option* options, uint8_t const options_size, bn::ivector<bn::sprite_ptr>& v_text, bn::sprite_text_generator& text_generator, const int  index, const bool increase){
-    if(increase){ options[index].increase();}
-    else{ options[index].decrease();}
-
-    v_text.clear();
-    for(int i = 0; i < options_size; i++){
-        text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
-        options[i].print(-50, -70 + 9*i, v_text, text_generator);
+class Debug{
+public:
+    static void Start(jv::menu_option* options, uint8_t const options_size){
+        Debug instance(options, options_size);
     }
-}
+private:
+    static int index;
+    ~Debug() = default;
+    Debug(jv::menu_option* o, uint8_t const o_size): 
+    options(o), options_size(o_size),
+    text_generator(common::variable_8x8_sprite_font),
+    cursor(bn::sprite_items::cursor.create_sprite(36 + X_OFFSET, -70 + 9*index))
+    {
+        for(int i = 0; i < options_size; i++){
+            maxStringSize = maxStringSize < options[i].text().length() ? options[i].text().length() : maxStringSize;
+        }
 
-void Start(jv::menu_option* options, uint8_t const options_size){
-    static int index = 0;
-    uint8_t hold = 0;
+        text_generator.set_bg_priority(0);
+        cursor.set_bg_priority(0);
+        cursor.set_x(cursor.x() + 8*maxStringSize);
 
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    text_generator.set_bg_priority(0);
-    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-20, -70 + 9*index);
-    cursor.set_bg_priority(0);
-    bn::vector<bn::sprite_ptr, 32> v_text;
+        for(int i = 0; i < options_size; i++){
+            text_generator.generate(14 + X_OFFSET, -70 + 9*i, options[i].text(), v_text);
+            options[i].print(X_OFFSET + 8*maxStringSize, -70 + 9*i, v_text, text_generator);
+        }
 
-    for(int i = 0; i < options_size; i++){
-        text_generator.generate(-110, -70 + 9*i, options[i].text(), v_text);
-        options[i].print(-50, -70 + 9*i, v_text, text_generator);
-    }
+        bn::core::update();
 
-    bn::core::update();
-
-    while(!bn::keypad::select_pressed()){
-        if(bn::keypad::down_pressed()){
-            if(index < options_size - 1){
-                index++;
-                cursor.set_position(cursor.x(), cursor.y() + 9);
+        while(!bn::keypad::select_pressed()){
+            if(bn::keypad::down_pressed()){
+                if(index < options_size - 1){
+                    index++;
+                    cursor.set_position(cursor.x(), cursor.y() + 9);
+                }
+            }else if(bn::keypad::up_pressed()){
+                if(index > 0){
+                    index--;
+                    cursor.set_position(cursor.x(), cursor.y() - 9);
+                }
             }
-        }else if(bn::keypad::up_pressed()){
-            if(index > 0){
-                index--;
-                cursor.set_position(cursor.x(), cursor.y() - 9);
+            
+            if(bn::keypad::a_pressed()){ debug_update(true);}
+            else if(bn::keypad::b_pressed()){ debug_update(false);}
+
+            if(bn::keypad::a_held() && !options[index].is_Bool()){
+                hold++;
+                if(hold > 6){
+                    debug_update(true);
+                    hold = 0;
+                }
+            }else if(bn::keypad::b_held() && !options[index].is_Bool()){
+                hold++;
+                if(hold > 6){
+                    debug_update(false);
+                    hold = 0;
+                }
             }
+
+
+            if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
+
+            jv::Interface::resetcombo();
+            bn::core::update();
         }
         
-        if(bn::keypad::a_pressed()){ debug_update(options, options_size, v_text, text_generator, index, true);}
-        else if(bn::keypad::b_pressed()){ debug_update(options, options_size, v_text, text_generator, index, false);}
-
-        if(bn::keypad::a_held() && !options[index].is_Bool()){
-            hold++;
-            if(hold > 6){
-                debug_update(options, options_size, v_text, text_generator, index, true);
-                hold = 0;
-            }
-        }else if(bn::keypad::b_held() && !options[index].is_Bool()){
-            hold++;
-            if(hold > 6){
-                debug_update(options, options_size, v_text, text_generator, index, false);
-                hold = 0;
-            }
-        }
-
-
-        if(bn::keypad::a_released() || bn::keypad::b_released()){hold = 0;}
-
-        jv::Interface::resetcombo();
-        bn::core::update();
-    }
-    
-    // Print debug values
-    /*#if DEV_ENABLED
-        for(int i = 0; i < options_size; i++){
+        // Print debug values
+        /*for(int i = 0; i < options_size; i++){
             if(options[i].is_Int()){ BN_LOG(options[i].text(), ": ", options[i].getInt());}
             else if(options[i].is_Float()){ BN_LOG(options[i].text(), ": ", options[i].getFloat());}
             else if(options[i].is_Bool()){ BN_LOG(options[i].text(), ": ", options[i].getBool());}
-        }
-    #endif*/
-}
+        }*/
+    }
+    
+    void debug_update(const bool increase){
+        if(increase){ options[index].increase();}
+        else{ options[index].decrease();}
 
-}
+        v_text.clear();
+        for(int i = 0; i < options_size; i++){
+            text_generator.generate(14 + X_OFFSET, -70 + 9*i, options[i].text(), v_text);
+            options[i].print(X_OFFSET + 8*maxStringSize, -70 + 9*i, v_text, text_generator);
+        }
+    }
+    static constexpr int8_t X_OFFSET = -124;
+    int maxStringSize = 0;
+    jv::menu_option* options;
+
+    uint8_t hold = 0, options_size;
+
+    bn::sprite_text_generator text_generator;
+    bn::sprite_ptr cursor;
+    bn::vector<bn::sprite_ptr, 32> v_text;
+};
+
+int Debug::index = 0;
 }
 
 #endif

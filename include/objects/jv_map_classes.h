@@ -13,6 +13,7 @@
 #include "bn_regular_bg_map_ptr.h"
 #include "bn_regular_bg_map_cell_info.h"
 
+namespace jv{
 // For big tile maps for tiled bgs or other purposes
 class GameMap{
 public:
@@ -90,39 +91,6 @@ private:
     const uint16_t _width, _height;
 };
 
-// Tile data for tiled regular bgs
-struct bg_map
-{
-    static constexpr int columns = 32;
-    static constexpr int rows = 32;
-    static constexpr int cells_count = columns * rows;
-
-    alignas(int) bn::regular_bg_map_cell cells[cells_count];
-    bn::regular_bg_map_item map_item;
-
-    bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
-
-    // Getters
-    int cell(const int x, const int y){ return cells[x + y*32];}
-
-    // Setters
-    void set_cell(const int x, const int y, GameMap::cell_type value, bool flip = false){
-        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
-        bn::regular_bg_map_cell_info current_cell_info(current_cell);
-
-        if(current_cell_info.cell() != value){
-            current_cell_info.set_tile_index(value);
-            if(current_cell_info.horizontal_flip() != flip){ current_cell_info.set_horizontal_flip(flip);}
-        }
-        //current_cell_info.set_palette_id(0);
-        current_cell = current_cell_info.cell();
-    }
-
-    void reset(){
-        bn::memory::clear(cells_count, cells[0]);
-    }
-};
-
 // Meant for room prefab data stored in rom
 struct prefab_map{
     static constexpr uint8_t ROOM_PREFAB_COUNT = 9;    // Number of Room Prefabs
@@ -141,6 +109,40 @@ struct prefab_map{
     const uint8_t width, height;
     const bn::point zones;
     const bn::span<const uint8_t> cell_data;
+};
+}
+
+// Tile data for tiled regular bgs
+struct bg_map
+{
+    static constexpr int columns = 32;
+    static constexpr int rows = 32;
+    static constexpr int cells_count = columns * rows;
+
+    alignas(int) bn::regular_bg_map_cell cells[cells_count];
+    bn::regular_bg_map_item map_item;
+
+    bg_map(): map_item(cells[0], bn::size(bg_map::columns, bg_map::rows)){ reset();}
+
+    // Getters
+    int cell(const int x, const int y){ return cells[x + y*32];}
+
+    // Setters
+    void set_cell(const int x, const int y, jv::GameMap::cell_type value, bool flip = false){
+        bn::regular_bg_map_cell& current_cell = cells[map_item.cell_index(x, y)];
+        bn::regular_bg_map_cell_info current_cell_info(current_cell);
+
+        if(current_cell_info.cell() != value){
+            current_cell_info.set_tile_index(value);
+            if(current_cell_info.horizontal_flip() != flip){ current_cell_info.set_horizontal_flip(flip);}
+        }
+        //current_cell_info.set_palette_id(0);
+        current_cell = current_cell_info.cell();
+    }
+
+    void reset(){
+        bn::memory::clear(cells_count, cells[0]);
+    }
 };
 
 #endif
