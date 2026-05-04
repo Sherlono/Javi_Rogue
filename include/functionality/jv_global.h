@@ -9,8 +9,6 @@
 #include "jv_fog.h"
 #include "jv_constants.h"
 
-class GameMap;
-
 namespace jv{
 class tiled_bg;
 class NPC;
@@ -40,6 +38,7 @@ public:
     static void reset();
     static void update();   // Must be called at the start of any game loop
     static void create_projectile(const int x, const  int y, const uint8_t option);
+    static void update_entity_animations();
     static void clear_bg_map();
     
     // Getters
@@ -63,16 +62,17 @@ public:
         return _cam_moved;
     }
 
+    static bool autoCamControl;
 private:
+    static constexpr bn::fixed _cam_lerp_value = bn::fixed(0.16);
+    
     static bool _cam_moved;
     static bn::point _cam_position, _prev_cam_pos;
     static bn::fixed_point _cam_target;
 
     static bn::camera_ptr* _cam;
-    static jv::tiled_bg* _tiled_bg;
     static jv::GameAssets* _assets;
-
-    static constexpr bn::fixed _cam_lerp_value = bn::fixed(0.16);
+    static jv::tiled_bg* _tiled_bg;
 };
 
 }

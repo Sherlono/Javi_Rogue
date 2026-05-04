@@ -13,68 +13,45 @@
 #endif
 
 namespace jv::Scenes{
-constexpr bn::string_view Header[SECTION_TOTAL] = {
-    "Director",
-    "Programming",
-    "Writing",
-    "Game Design",
-    "Graphic Design",
-    "Character Design",
-    "Background Design",
-    "Composers",
-    "Audio Design",
-    "Playtesters",
-    "Special Thanks"};
-
-constexpr bn::string_view Body[SECTION_TOTAL][MAX_SECTION_SIZE] = {
-    {"Javier Sánchez"},
-    {"Javier Sánchez"},
-    {"Javier Sánchez"},
-    {"Javier Sánchez"},
-    {"Javier Sánchez", "Demian"},
-    {"Javier Sánchez"},
-    {"Javier Sánchez"},
-    {"Looking"},
-    {"Looking"},
-    {"Javier Sánchez"},
-    {"Claudia Andrade", "Freddy Sánchez", "And you!"}};
-
-void generate_credits(bn::sprite_text_generator& text_gen, auto& header_sprts, auto& body_sprts, int section, const int y_offset){
-    for(int i = 0; i < MAX_HEAD_LINES; i++){
-        if(header_sprts[i].empty()){
-            text_gen.generate(0, y_offset, Header[section], header_sprts[i]);
-            break;
-        }
+struct CreditsScene{
+    static void Start(){
+        CreditsScene instance;
     }
-    
-    for(int i = 0; i < MAX_SECTION_SIZE; i++){
-        if(Body[section][i] == ""){ break;}
-        for(int j = 0; j < MAX_BODY_LINES; j++){
-            if(body_sprts[j].empty()){
-                text_gen.generate(0, y_offset + (i+2)*8, Body[section][i], body_sprts[j]);
+private:
+    CreditsScene():
+        text_generator(common::variable_8x8_sprite_font)//,
+        {
+            text_generator.set_alignment(bn::sprite_text_generator::alignment_type::CENTER);
+            bn::bg_palettes::set_fade(bn::colors::black, 0);
+            bn::sprite_palettes::set_fade(bn::colors::black, 0);
+
+            while(!done){
+                update();
+            }
+        }
+
+    void generate_credits(const int y_offset){
+        for(int i = 0; i < MAX_HEAD_LINES; i++){
+            if(header_sprts[i].empty()){
+                text_generator.generate(0, y_offset, Header[section], header_sprts[i]);
                 break;
             }
         }
-    }
-}
-
-void credits_scene(){
-    bn::sprite_text_generator text_generator(common::variable_8x8_sprite_font);
-    bn::vector<bn::sprite_ptr, 4> header_sprts[MAX_HEAD_LINES];
-    bn::vector<bn::sprite_ptr, 4> body_sprts[MAX_BODY_LINES];
-    const bn::fixed scrollSpeed = 0.2;
-    int lowestLine, section = 0;
-    bool done = false;
-
-    {// Configs
-        text_generator.set_alignment(bn::sprite_text_generator::alignment_type::CENTER);
-        bn::bg_palettes::set_fade(bn::colors::black, 0);
-        bn::sprite_palettes::set_fade(bn::colors::black, 0);
+        
+        for(int i = 0; i < MAX_SECTION_SIZE; i++){
+            if(Body[section][i] == ""){ break;}
+            for(int j = 0; j < MAX_BODY_LINES; j++){
+                if(body_sprts[j].empty()){
+                    text_generator.generate(0, y_offset + (i+2)*8, Body[section][i], body_sprts[j]);
+                    break;
+                }
+            }
+        }
     }
     
-    while(!done){
+    void update(){
         lowestLine = 0;
-
+        
         if(section != 0){
             for(int line = 0; line < MAX_HEAD_LINES; line++){
                 if(!header_sprts[line].empty()){
@@ -108,7 +85,7 @@ void credits_scene(){
 
         if(section < SECTION_TOTAL){
             if(lowestLine < 50){
-                generate_credits(text_generator, header_sprts, body_sprts, section, 90);
+                generate_credits(90);
                 section++;
             }
         }else{
@@ -124,8 +101,39 @@ void credits_scene(){
         bn::core::update();
     }
 
-}
-
+    bool done = false;
+    int lowestLine, section = 0;
+    static constexpr bn::fixed scrollSpeed = 0.2;
+    
+    bn::sprite_text_generator text_generator;
+    bn::vector<bn::sprite_ptr, 4> header_sprts[MAX_HEAD_LINES];
+    bn::vector<bn::sprite_ptr, 4> body_sprts[MAX_BODY_LINES];
+    
+    static constexpr bn::string_view Header[SECTION_TOTAL] = {
+        "Director",
+        "Programming",
+        "Writing",
+        "Game Design",
+        "Graphic Design",
+        "Character Design",
+        "Background Design",
+        "Composers",
+        "Audio Design",
+        "Playtesters",
+        "Special Thanks"};
+    static constexpr bn::string_view Body[SECTION_TOTAL][MAX_SECTION_SIZE] = {
+        {"Javier Sánchez"},
+        {"Javier Sánchez"},
+        {"Javier Sánchez"},
+        {"Javier Sánchez"},
+        {"Javier Sánchez", "Demian"},
+        {"Javier Sánchez"},
+        {"Javier Sánchez"},
+        {"Looking"},
+        {"Looking"},
+        {"Javier Sánchez"},
+        {"Claudia Andrade", "Freddy Sánchez", "And you!"}};
+};
 }
 
 #endif

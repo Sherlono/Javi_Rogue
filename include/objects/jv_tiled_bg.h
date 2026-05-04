@@ -16,6 +16,7 @@ struct itiled_bg{
 
 class tiled_bg: private itiled_bg, public bn::regular_bg_ptr{
 public:
+    ~tiled_bg() {_bg_m_ptr.reset();}
     tiled_bg(const bn::regular_bg_tiles_item& tiles_item, const bn::bg_palette_item& palette_item, int x, int y):
         bn::regular_bg_ptr(bn::regular_bg_item(tiles_item, palette_item, itiled_bg::_bg_m_ptr->map_item).create_bg(0, 0)),
         _map(x, y),

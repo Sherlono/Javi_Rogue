@@ -31,7 +31,7 @@ void Item::update(){
         if(jv::Global::Player().get_state() == Actor::State::NORMAL && !jv::Global::Player().is_attacking()){
             if(bn::keypad::a_pressed() && jv::Global::Player().rect().contains(_point) && jv::Global::Player().can_interact()){
                 get_item();
-                jv::Global::Player().set_interact_token(false);
+                jv::Global::Player().spend_interact_token();
             }
         }
 

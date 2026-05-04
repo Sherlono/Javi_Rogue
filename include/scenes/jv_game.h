@@ -74,7 +74,7 @@ private:
 
     enum RoomTag {Empty, Small1, Tall1, Tall2, Tall3, Wide1, Wide2, Big1, Big2};
     enum CorridorTag {V_Corr, H_Corr};
-    static constexpr uint8_t UNIQUECOUNT = 3;   // Count of unique entities to place in the level
+    static constexpr uint8_t UNIQUECOUNT = 4;   // Count of unique entities to place in the level
 
     void block_factory(const bool blockFlip){
         const int block_index = (blockConfig.option < BLOCK_TOTAL) ? blockConfig.option : 0;
@@ -116,9 +116,9 @@ private:
     }
 
     void populate(bn::ivector<bn::point>& v_walkBlocks, bool spawnEnemies = true){
-        enum EntityTag {Cat, Cow, Stairs};
+        enum EntityTag {Cat, Cow, Fox, Stairs};
         
-        // Populate Other entities
+        // Populate unique entities
         for(int i = 0; i < entity_checks[1].size(); i++){
             int index = Global::Random().get_int(v_walkBlocks.size());
 
@@ -129,12 +129,27 @@ private:
                     Global::Camera().set_position(Global::Player().get_hitbox().position());
                     Global::update();
                     spawnEnemies = false;
+                    #if DEV_ENABLED
+                    BN_LOG("Player was positioned.");
+                    #endif
                     break;
                 case EntityTag::Cow:
-                    Global::NPCs().push_back(new jv::Cow(v_walkBlocks[index], Global::Camera()));
+                    Global::NPCs().push_back(new jv::Cow(v_walkBlocks[index]));
+                    #if DEV_ENABLED
+                    BN_LOG("Cow was created.");
+                    #endif
+                    break;
+                case EntityTag::Fox:
+                    Global::NPCs().push_back(new jv::Fox(v_walkBlocks[index]));
+                    #if DEV_ENABLED
+                    BN_LOG("Fox was created.");
+                    #endif
                     break;
                 case EntityTag::Stairs:{
                     Global::Stairs().set_position(v_walkBlocks[index]);
+                    #if DEV_ENABLED
+                    BN_LOG("Stairs were positioned.");
+                    #endif
                     break;
                 }
                 default:
@@ -152,13 +167,13 @@ private:
 
                 int rand = Global::Random().get_int(128);
                 if(rand < 16){
-                    Global::Enemies().push_back(new jv::BadCat(v_walkBlocks[i], Global::Camera()));
+                    Global::Enemies().push_back(new jv::BadCat(v_walkBlocks[i]));
                     v_walkBlocks.erase(v_walkBlocks.begin() + i);
                 }else if(rand < 24){
-                    Global::Enemies().push_back(new jv::PaleTongue(v_walkBlocks[i], Global::Camera()));
+                    Global::Enemies().push_back(new jv::PaleTongue(v_walkBlocks[i]));
                     v_walkBlocks.erase(v_walkBlocks.begin() + i);
                 }else if(rand < 28){
-                    Global::Enemies().push_back(new jv::PaleFinger(v_walkBlocks[i], Global::Camera()));
+                    Global::Enemies().push_back(new jv::PaleFinger(v_walkBlocks[i]));
                     v_walkBlocks.erase(v_walkBlocks.begin() + i);
                 }
             }
@@ -426,10 +441,10 @@ private:
         for(uint8_t i = 0; i < UNIQUECOUNT; i++) { entity_checks[0].push_back(i);}
         
         for(int k = 0; k < v_roomConfigs.size(); k++){
-            for(uint8_t i = 0; i < entity_checks[0].size(); i++) {
-                const uint8_t value = entity_checks[0][i];
+            for(uint8_t i = 0; i < entity_checks[0].size(); i++){
+                const uint8_t entity_index = entity_checks[0][i];
                 if(Global::Random().get_int(v_roomConfigs.size() - k) == 0){
-                    entity_checks[1].push_back(value);
+                    entity_checks[1].push_back(entity_index);
                     entity_checks[0].erase(entity_checks[0].begin() + i);
                 }
             }
@@ -493,23 +508,23 @@ private:
     }
 
     NumPoint roomConfig, blockConfig;
-    bn::vector<uint8_t, 3> entity_checks[2]; // Indexes for Player, Stairs, NPCs and other planned unique entities.
+    bn::vector<uint8_t, 4> entity_checks[2]; // Indexes for Player, Stairs, NPCs and other planned unique entities.
     bn::vector<NumPoint, MAX_ROOMS> v_roomConfigs;
     GameMap zone;
 };
 
 namespace Scenes{
-class MainGame{
-public:
+enum class Tag {Restart, Main, Credits, Blocks, Tiles};
+struct MainGame{
     static void Start(bn::random& r){
         MainGame instance(r);
     }
 private:
-    ~MainGame(){Global::reset();}
+    ~MainGame() = default;
     MainGame(bn::random& r):
         _cam(bn::camera_ptr::create(0, 0)),
         text_generator(common::variable_8x8_sprite_font),
-        _gameAssets(_cam, r),
+        _gameAssets(r),
         _backdrop(bn::regular_bg_items::bg.create_bg(0, 0)),
         _tiled_bg(bn::regular_bg_tiles_items::fortress_tiles,
                   bn::bg_palette_items::fortress_palette,
@@ -521,12 +536,11 @@ private:
         ,options{jv::menu_option(&_gameAssets.cat.invulnerable, "Invuln."),
                  jv::menu_option(&FullHeal, "FullHeal"),
                  jv::menu_option(&_gameAssets.cat.noClip, "Noclip"),
-                 jv::menu_option(&next_level, "NextFloor"),
+                 jv::menu_option(&_next_level, "NextFloor"),
                  jv::menu_option(&Die, "Die"),
                  jv::menu_option(&Clear, "Clear"),
                  jv::menu_option(&NoFog, "NoFog"),
-                 jv::menu_option(&openStairs, "OpenStairs"),
-                 /*jv::menu_option(&some_fixed, "SomeFixed"),*/}
+                 jv::menu_option(&openStairs, "OpenStairs"),}
         #endif
         {
             bn::music_items::cyberrid.play(0.2);
@@ -539,6 +553,7 @@ private:
             
             Global::init(&_cam, &_tiled_bg, &_gameAssets);
             
+            _gameAssets.cat.set_camera(_cam);
             _gameAssets.healthbar.init();
             text_generator.generate(64, -70, "Floor", _txt_sprts);
 
@@ -547,8 +562,8 @@ private:
             text_generator.generate(-32, -70, "CPU: ", cpu_sprts);
             cpu_sprts[0].set_bg_priority(0);
             #endif
-
-            while(!game_over){
+            
+            while(!_game_over){
                 level_start();
                 update();
                 level_end();
@@ -556,6 +571,7 @@ private:
 
             bn::sprites::set_blending_bottom_enabled(true);
             bn::music::stop();
+            Global::reset();
         }
 
     void fade(const bool fadeIn, const uint8_t speed, const bool fademusic){
@@ -640,14 +656,14 @@ private:
     }
 
     void level_start(){
-        gameover_delay = 0;
-        next_level = false;
+        _gameover_delay = 0;
+        _next_level = false;
 
         _gameAssets.fog.set_visible(Global::environment_id == Global::Jungle);
         
-        /*LevelGenerator::Generate(3 + Global::Random().get_int(MAX_ROOM_COLUMNS - 3),
-                                 3 + Global::Random().get_int(MAX_ROOM_ROWS - 3));*/
-        LevelGenerator::Generate(3, 3);
+        LevelGenerator::Generate(4 + Global::Random().get_int(MAX_ROOM_COLUMNS - 3),
+                                 4 + Global::Random().get_int(MAX_ROOM_ROWS - 3));
+        /*LevelGenerator::Generate(4, 4);*/
 
         // Initialize level visuals
         _tiled_bg.init();
@@ -662,7 +678,7 @@ private:
         jv::Interface::Log_skipped_frames();
         #endif
 
-        text_generator.generate(94, -70, bn::to_string<3>(floor), _txt_sprts);
+        text_generator.generate(94, -70, bn::to_string<3>(_floor), _txt_sprts);
         fade(FADE_IN, fadespeed::MEDIUM, false);
     }
 
@@ -671,9 +687,9 @@ private:
         int fade_speed = _gameAssets.cat.alive() ? fadespeed::MEDIUM : fadespeed::SLOW;
         fade(FADE_OUT, fade_speed, FADE_MUSIC);
         
-        floor--;
-        //Global::environment_id = DEV_ENABLED ? bn::abs(floor)%2 : (bn::abs(floor)/3)%2;
-        Global::environment_id = bn::abs(floor)%2;
+        _floor--;
+        //Global::environment_id = DEV_ENABLED ? bn::abs(_floor)%2 : (bn::abs(_floor)/3)%2;
+        Global::environment_id = bn::abs(_floor)%2;
         
         load_bg_assets();
 
@@ -687,12 +703,11 @@ private:
         #endif
     }
 
-    void update(){
-        while(!next_level){
+    void update(){ // Main gameplay loop
+        while(!_next_level){
             Global::update();
 
             // Bg stuff
-            if(Global::cam_moved()) _tiled_bg.update();
             _bg_animation[0].update();
             _bg_animation[1].update();
             
@@ -700,7 +715,7 @@ private:
             _gameAssets.cat.update();
 
             if(_gameAssets.cat.alive()) [[likely]] {
-                next_level = _gameAssets.stairs.climb();
+                _next_level = _gameAssets.stairs.climb();
                 _gameAssets.scene_items_update();
 
                 // Debug Stuff
@@ -740,11 +755,11 @@ private:
                 #endif
 
             }else{  // Death sequence
-                if(gameover_delay == 120){
-                    game_over = true;
+                if(_gameover_delay == 120){
+                    _game_over = true;
                     break;
                 }
-                gameover_delay++;
+                _gameover_delay++;
             }
 
             if(_gameAssets.cat.moved()){    // Backdrop movement
@@ -776,9 +791,9 @@ private:
     jv::GameAssets _gameAssets;
 
     // Metadata
-    uint8_t gameover_delay = 0;
-    int floor = 0;
-    bool game_over = false, next_level = false;
+    uint8_t _gameover_delay = 0;
+    int _floor = 0;
+    bool _game_over = false, _next_level = false;
 
     // Bg Graphics
     bn::regular_bg_ptr _backdrop;
@@ -790,11 +805,10 @@ private:
     bn::vector<bn::sprite_ptr, 3> cpu_sprts;
     bn::array<jv::menu_option, 8> options;
     bool FullHeal = false, Die = false, Clear = false, NoFog = false, openStairs = false;
-    //bn::fixed some_fixed = 0.5;
     #endif
 };
 
-void intro_scene(){
+void IntroScene(){
     bn::regular_bg_ptr intro1_bg = bn::regular_bg_items::intro1.create_bg(0, 0);
     
     jv::Interface::fade(FADE_IN, fadespeed::MEDIUM, false);
@@ -805,8 +819,7 @@ void intro_scene(){
     jv::Interface::fade(FADE_OUT, fadespeed::MEDIUM, false);
 }
 
-int start_scene(bn::random& randomizer){
-    enum {Start_game, Start_credits, Start_intro};
+Tag StartScene(bn::random& randomizer){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, -54);
     
@@ -814,10 +827,9 @@ int start_scene(bn::random& randomizer){
     bn::vector<bn::sprite_ptr, 15> menu_sprts;
     bn::vector<bn::sprite_ptr, 30> explain_sprts;
     
-    int option = 0;
-    int x_offset = -32, y_offset = 46;
-    [[maybe_unused]] int idle = 0;
-    [[maybe_unused]] const int  idle_limit = 600;
+    int x_offset = -32, y_offset = 46, option = 0;
+    [[maybe_unused]] int idle_time = 0;
+    [[maybe_unused]] const int  idle_limit = 600, max_options = 1;
 
     bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-44, y_offset);
     
@@ -874,14 +886,14 @@ int start_scene(bn::random& randomizer){
 
     // Selecting a scene
     while(!bn::keypad::a_pressed()){
-        #if DEV_ENABLED
-        if(bn::keypad::down_pressed() && option < 1){
+        if(bn::keypad::down_pressed() && option < max_options){
             option++;
             cursor.set_y(cursor.y() + 8);
             explain_sprts.clear();
             for(int i = 0; i < 5; i++){
                 text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
             }
+            idle_time = 0;
         }else if(bn::keypad::up_pressed() && option > 0){
             option--;
             cursor.set_y(cursor.y() - 8);
@@ -889,28 +901,12 @@ int start_scene(bn::random& randomizer){
             for(int i = 0; i < 5; i++){
                 text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
             }
+            idle_time = 0;
         }
-        #else
-        if(bn::keypad::down_pressed() && option < 1){
-            option++;
-            cursor.set_y(cursor.y() + 8);
-            explain_sprts.clear();
-            for(int i = 0; i < 5; i++){
-                text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
-            }
-        }else if(bn::keypad::up_pressed() && option > 0){
-            option--;
-            cursor.set_y(cursor.y() - 8);
-            explain_sprts.clear();
-            for(int i = 0; i < 5; i++){
-                text_generator.generate(x_offset, y_offset + i*8, explain_text[int(option)][i], explain_sprts);
-            }
-        }
-        #endif
 
         #if !DEV_ENABLED
-        idle++;
-        if(idle == idle_limit) break;
+        idle_time++;
+        if(idle_time == idle_limit) break;
         #endif
 
         jv::Interface::resetcombo();
@@ -930,14 +926,28 @@ int start_scene(bn::random& randomizer){
         jv::Interface::resetcombo();
         bn::core::update();
     }
+
     #if DEV_ENABLED
-    return option;
+    if(option == 0){
+        return Tag::Main;
+    }else if (option == 1){
+        return Tag::Blocks;
+    }else{
+        return Tag::Tiles;
+    }
     #else
-    return idle == idle_limit ? Start_intro : option;
+    if(idle_time == idle_limit){
+        return Tag::Restart;
+    }else{
+        if(option == 0){
+            return Tag::Main;
+        }else{
+            return Tag::Credits;
+        }
+    }
     #endif
 }
 
 }
 }
-
 #endif

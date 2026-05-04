@@ -16,6 +16,7 @@
 #include "jv_inventory.h"
 
 #include "bn_sprite_items_cow.h"
+#include "bn_sprite_items_fox.h"
 #include "bn_sprite_items_bad_cat.h"
 #include "bn_sprite_items_good_cat.h"
 #include "bn_sprite_items_pale_tongue.h"
@@ -52,16 +53,16 @@ public:
 
         void set_animation(const uint8_t dir, const uint8_t option, const bn::sprite_tiles_item& tiles, const uint8_t wait_frames = 4){
             animation_type frames;
-            if(dir == Direction::NORTH || dir == Direction::NORTHWEST || dir == Direction::NORTHEAST){        // UP
+            if(dir == NORTH || dir == NORTHWEST || dir == NORTHEAST){        // UP
                 sprite->set_horizontal_flip(false);
                 frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_up) : animation_type(animation::Attack_up);
-            }else if(dir == Direction::SOUTH || dir == Direction::SOUTHWEST || dir == Direction::SOUTHEAST){  // DOWN
+            }else if(dir == SOUTH || dir == SOUTHWEST || dir == SOUTHEAST){  // DOWN
                 sprite->set_horizontal_flip(false);
                 frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_do) : animation_type(animation::Attack_do);
-            }else if(dir == Direction::WEST){                            // LEFT
+            }else if(dir == WEST){                            // LEFT
                 sprite->set_horizontal_flip(true);
                 frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_ho) : animation_type(animation::Attack_ho);
-            }else if(dir == Direction::EAST){                            // RIGHT
+            }else if(dir == EAST){                            // RIGHT
                 sprite->set_horizontal_flip(false);
                 frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_ho) : animation_type(animation::Attack_ho);
             }else{
@@ -113,31 +114,34 @@ public:
     void set_visible(bool visible){
         if(graphics.sprite.has_value()){ sprite().set_visible(visible);};
     }
+    void set_camera(bn::camera_ptr& c){
+        graphics.sprite->set_camera(c);
+    }
 
     // For actions with direction
     void look_at(bn::fixed_point& xyVector){
         bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
         if(xyVector.y() < -0.5){
             if(abs_y > abs_x){
-                _dir = Direction::NORTH;
+                _dir = NORTH;
             }else if(xyVector.x() > 0){
-                _dir = Direction::NORTHEAST;
+                _dir = NORTHEAST;
             }else{
-                _dir = Direction::NORTHWEST;
+                _dir = NORTHWEST;
             }
         }else if(xyVector.y() > 0.5){
             if(abs_y > abs_x){
-                _dir = Direction::SOUTH;
+                _dir = SOUTH;
             }else if(xyVector.x() > 0){
-                _dir = Direction::SOUTHEAST;
+                _dir = SOUTHEAST;
             }else{
-                _dir = Direction::SOUTHWEST;
+                _dir = SOUTHWEST;
             }
         }else{
             if(xyVector.x() > 0){
-                _dir = Direction::EAST;
+                _dir = EAST;
             }else{
-                _dir = Direction::WEST;
+                _dir = WEST;
             }
         }
     }
@@ -157,7 +161,7 @@ protected:
     
     void _load_graphics(const bn::sprite_item& item, int wait_frames);
 
-    uint8_t _prev_dir = Direction::SOUTH, _dir = Direction::SOUTH;
+    uint8_t _prev_dir = SOUTH, _dir = SOUTH;
     bn::rect _rect;
 };
 
@@ -165,21 +169,8 @@ class Player: public Actor{
 public:
     ~Player(){ graphics.reset();};
     // Constructor
-    Player(bn::point position, bn::camera_ptr& camera):
-        Actor(bn::rect(position.x(), position.y(), 16, 16)),
-        _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
-        _hitbox(bn::rect(position.x(), position.y(), 10, 10))
-        {
-            _hp = _stats.max_hp;
-            bn::sprite_builder builder(bn::sprite_items::good_cat);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(camera);
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 4, bn::sprite_items::good_cat.tiles_item(), animation::idle);
-        }
-    
+    Player(bn::point position);
+
     // Getters
     [[nodiscard]] bool alive() { return _state != State::DEAD;}
     [[nodiscard]] bool is_attacking() { return _attack_cooldown > 0;}
@@ -191,6 +182,7 @@ public:
     [[nodiscard]] uint8_t get_state() const { return _state;}
     [[nodiscard]] uint8_t get_attack() const { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() const { return _stats.defense;}
+    [[nodiscard]] bn::fixed  get_speed() const { return _stats.speed;}
     [[nodiscard]] uint8_t  get_maxhp() const { return _stats.max_hp;}
     [[nodiscard]] uint8_t  get_hp() const { return _hp;}
     [[nodiscard]] bn::rect& get_hitbox() { return _hitbox;}
@@ -204,8 +196,8 @@ public:
 
     // Functionality
     void reset(){
-        _prev_dir = Direction::NEUTRAL;
-        _dir = Direction::SOUTH;
+        _prev_dir = NEUTRAL;
+        _dir = SOUTH;
         _moved = false;
         _hitbox.set_position(x(), y());
         graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
@@ -230,7 +222,7 @@ public:
             _hp = dmg > _hp ? 0 : _hp - dmg;
 
             if(_hp > 0) [[likely]] {
-                sprite().set_horizontal_flip(_dir == Direction::WEST);
+                sprite().set_horizontal_flip(_dir == WEST);
                 graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
             }else{
                 bn::sound_items::death.play(0.5);
@@ -242,8 +234,8 @@ public:
         }
     }
     
-    void set_interact_token(const bool t){
-        _interact_token = t;
+    void spend_interact_token(){
+        _interact_token = false;
     }
 
     bool invulnerable = false, noClip = false;
@@ -278,7 +270,7 @@ private:
 
     bool _interact_token = true, _moved = false;
     uint8_t _state = State::NORMAL;
-    uint8_t _prev_dir = Direction::SOUTH;
+    uint8_t _prev_dir = SOUTH;
     int8_t _prev_attack_cooldown = 0, _attack_cooldown = 0;
     uint8_t _hp;
     basic_stats _stats;
@@ -304,22 +296,22 @@ public:
     // Functionality
     virtual void update() = 0;
 
-    void displace(const bn::fixed speed){
+    void displace(const bn::fixed speed){   
         // If direction is valid
-        if(_dir != Direction::NEUTRAL && _dir < 9){
+        if(_dir != NEUTRAL && _dir < 9){
             // Move if dir not obstructed
-            if((_dir == Direction::NORTH || _dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST) && _map_obstacle( NORTH)){          // UP
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::NORTHEAST);
+            if((_dir == NORTH || _dir == NORTHWEST || _dir == NORTHEAST) && _map_obstacle( NORTH)){          // UP
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHWEST || _dir == NORTHEAST);
                 set_position(graphics.x(), graphics.y() - speed*diagonal); 
-            }else if((_dir == Direction::SOUTH || _dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST) && _map_obstacle(SOUTH)){  // DOWN
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::SOUTHWEST || _dir == Direction::SOUTHEAST);
+            }else if((_dir == SOUTH || _dir == SOUTHWEST || _dir == SOUTHEAST) && _map_obstacle(SOUTH)){  // DOWN
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == SOUTHWEST || _dir == SOUTHEAST);
                 set_position(graphics.x(), graphics.y() + speed*diagonal);
             }
-            if((_dir == Direction::WEST || _dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST) && _map_obstacle(WEST)){  // LEFT
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHWEST || _dir == Direction::SOUTHWEST);
+            if((_dir == WEST || _dir == NORTHWEST || _dir == SOUTHWEST) && _map_obstacle(WEST)){  // LEFT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHWEST || _dir == SOUTHWEST);
                 set_position(graphics.x() - speed*diagonal, graphics.y());
-            }else if((_dir == Direction::EAST || _dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST) && _map_obstacle(EAST)){ // RIGHT
-                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == Direction::NORTHEAST || _dir == Direction::SOUTHEAST);
+            }else if((_dir == EAST || _dir == NORTHEAST || _dir == SOUTHEAST) && _map_obstacle(EAST)){ // RIGHT
+                bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHEAST || _dir == SOUTHEAST);
                 set_position(graphics.x() + speed*diagonal, graphics.y());
             }
         }
@@ -336,20 +328,8 @@ class BadCat: public Enemy{
 public:
     ~BadCat(){ graphics.reset();}
     // Constructor
-    BadCat(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
-        {
-            if(on_screen()){
-                bn::sprite_builder builder(bn::sprite_items::bad_cat);
-                builder.set_position(position.x(), position.y() - _sprite_y_offset());
-                builder.set_camera(cam);
-                builder.set_bg_priority(1);
-                
-                graphics.sprite = builder.release_build();
-                
-                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 4, bn::sprite_items::bad_cat.tiles_item(), animation::idle);
-            }
-        }
-    
+    BadCat(bn::point position);
+
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() { return _stats.defense;}
@@ -368,7 +348,7 @@ public:
         hp = dmg > hp ? 0 : hp - dmg;
         if(hp > 0) [[likely]] {
             _state = State::HURTING;
-            sprite().set_horizontal_flip(_dir == Direction::WEST);
+            sprite().set_horizontal_flip(_dir == WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::bad_cat.tiles_item(), animation::hurt);
         }else{
             _state = State::DEAD;
@@ -407,19 +387,7 @@ class PaleTongue: public Enemy{
 public:
     ~PaleTongue(){ graphics.reset();}
     // Constructor
-    PaleTongue(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
-        {
-            if(on_screen()){
-                bn::sprite_builder builder(bn::sprite_items::pale_tongue);
-                builder.set_position(position.x(), position.y() - _sprite_y_offset());
-                builder.set_camera(cam);
-                builder.set_bg_priority(1);
-                
-                graphics.sprite = builder.release_build();
-                
-                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::idle);
-            }
-        }
+    PaleTongue(bn::point position);
     
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
@@ -439,7 +407,7 @@ public:
         hp = dmg > hp ? 0 : hp - dmg;
         if(hp > 0) [[likely]] {
             _state = State::HURTING;
-            sprite().set_horizontal_flip(_dir == Direction::WEST);
+            sprite().set_horizontal_flip(_dir == WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::hurt);
         }else{
             _state = State::DEAD;
@@ -477,20 +445,8 @@ class PaleFinger: public Enemy{
 public:
     ~PaleFinger(){ graphics.reset();}
     // Constructor
-    PaleFinger(bn::point position, bn::camera_ptr cam): Enemy(_stats.max_hp, position)
-        {
-            if(on_screen(32, 58)){
-                bn::sprite_builder builder(bn::sprite_items::pale_finger);
-                builder.set_position(position.x(), position.y() - _sprite_y_offset());
-                builder.set_camera(cam);
-                builder.set_bg_priority(1);
-                
-                graphics.sprite = builder.release_build();
-                
-                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::idle);
-            }
-        }
-    
+    PaleFinger(bn::point position);
+
     // Getters
     [[nodiscard]] uint8_t get_attack() { return _stats.attack;}
     [[nodiscard]] uint8_t get_defense() { return _stats.defense;}
@@ -509,7 +465,7 @@ public:
         hp = dmg > hp ? 0 : hp - dmg;
         if(hp > 0) [[likely]] {
             _state = State::HURTING;
-            sprite().set_horizontal_flip(_dir == Direction::WEST);
+            sprite().set_horizontal_flip(_dir == WEST);
             graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::hurt);
         }else{
             _state = State::DEAD;
@@ -554,20 +510,20 @@ class Cow: public NPC{
 public:
     ~Cow(){}
     // Constructor
-    Cow(bn::point position, bn::camera_ptr cam):
-        NPC(bn::rect(position.x(), position.y() + 8, 20, 20))
-        {
-            if(on_screen()){
-                bn::sprite_builder builder(bn::sprite_items::cow);
-                builder.set_position(position.x(), position.y() - _sprite_y_offset());
-                builder.set_camera(cam);
-                builder.set_bg_priority(1);
-                
-                graphics.sprite = builder.release_build();
-                constexpr uint16_t arr[4] = {0, 1, 2, 3};
-                graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::cow.tiles_item(), arr);
-            }
-        }
+    Cow(bn::point position);
+
+    // Functionality
+    void update() override;
+    
+private:
+    [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+};
+
+class Fox: public NPC{
+public:
+    ~Fox(){}
+    // Constructor
+    Fox(bn::point position);
     
     // Functionality
     void update() override;

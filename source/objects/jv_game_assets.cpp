@@ -2,7 +2,7 @@
 
 namespace jv{
     
-GameAssets::GameAssets(bn::camera_ptr& c, bn::random& r): randomizer(r), cat(bn::point(0, 0), c){
+GameAssets::GameAssets(bn::random& r): randomizer(r), cat(bn::point(0, 0)){
     cat.set_enemies_ptr(&v_enemies);
 }
 

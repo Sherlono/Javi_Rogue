@@ -3,7 +3,6 @@
 
 #include "bn_vector.h"
 #include "bn_random.h"
-#include "bn_camera_ptr.h"
 
 #include "jv_fog.h"
 #include "jv_actors.h"
@@ -19,19 +18,19 @@ struct GameAssets{
     using items_vector_t = bn::vector<Item*, MAX_ENEMIES>;
     using projectiles_vector_t = bn::vector<Projectile*, MAX_ENEMIES>;
 
-    GameAssets(bn::camera_ptr& c, bn::random& r);
+    GameAssets(bn::random& r);
     
     void clear_objects(bool clear_npcs = true){
+        if(clear_npcs){
+            for(auto npc : v_npcs) delete npc;
+            v_npcs.clear();
+        }
         for(auto enemy : v_enemies) delete enemy;
         v_enemies.clear();
         for(auto item : v_scene_items) delete item;
         v_scene_items.clear();
         for(auto projectile : v_projectiles) delete projectile;
         v_projectiles.clear();
-        if(clear_npcs){
-            for(auto npc : v_npcs) delete npc;
-            v_npcs.clear();
-        }
     }
 
     void scene_items_update(){
@@ -85,13 +84,12 @@ struct GameAssets{
         healthbar.update();
     }
 
-    //bn::camera_ptr cam;
     bn::random& randomizer;
     
     Player cat;
     Stairs stairs;
-    Fog<MAX_ROOMS> fog;
     Healthbar healthbar;
+    Fog<MAX_ROOMS> fog;
 
     NPCs_vector_t v_npcs;
     enemies_vector_t v_enemies;

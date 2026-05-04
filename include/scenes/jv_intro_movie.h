@@ -13,15 +13,17 @@
 #include "bn_sprite_items_intro_movie_big_bush.h"
 
 namespace jv::Scenes{
-class IntroMovie{
-public:
+struct IntroMovie{
+    static void Start(){
+        IntroMovie instance;
+    }
+private:
     IntroMovie(): _interrupted(false)
         {
             {Shot_1 start_1(_interrupted);}
             if(!_interrupted){Shot_2 start_2(_interrupted);}
             if(!_interrupted){Shot_3 start_3(_interrupted);}
         }
-private:
     class Shot_1{
     public:
         Shot_1(bool& interrupted):
@@ -37,8 +39,7 @@ private:
             {
                 start(interrupted);
             }
-        
-
+    
     private:
         void update(){
             for(bn::sprite_ptr sprite : cat_sprites) sprite.set_x(sprite.x() + bn::fixed(0.15));
@@ -249,7 +250,6 @@ private:
                 start(interrupted);
             }
         
-
     private:
         void update(){
             if(_frame > 80 && _frame < _duration - 260){

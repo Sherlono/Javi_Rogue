@@ -12,13 +12,15 @@
 #include "jv_map_classes.h"
 
 namespace jv{
-bool Global::_cam_moved;
+bool Global::_cam_moved = false;
+bool Global::autoCamControl = true;
 uint8_t Global::environment_id = Environments::Fortress;
-bn::camera_ptr* Global::_cam = nullptr;
-jv::tiled_bg* Global::_tiled_bg = nullptr;
-jv::GameAssets* Global::_assets = nullptr;
-bn::point Global::_cam_position, Global::_prev_cam_pos;
+bn::point Global::_cam_position = {0, 0}, Global::_prev_cam_pos = {0, 0};
 bn::fixed_point Global::_cam_target;
+
+bn::camera_ptr* Global::_cam = nullptr;
+jv::GameAssets* Global::_assets = nullptr;
+jv::tiled_bg* Global::_tiled_bg = nullptr;
 
 void Global::init(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
     _cam = cam;
@@ -28,25 +30,37 @@ void Global::init(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
 }
 
 void Global::reset(){
-    _assets->clear_objects();
-    _assets->fog.clear();
+    if(_assets != nullptr){
+        _assets->clear_objects();
+        _assets->fog.clear();
+        _assets = nullptr;
+    }
     _cam = nullptr;
     _tiled_bg = nullptr;
-    _assets = nullptr;
+
     environment_id = 0;
-    _cam_moved = 0;
+    autoCamControl = true;
+    _cam_moved = false;
+    _cam_position = {0, 0};
+    _prev_cam_pos = {0, 0};
+    _cam_target = {0, 0};
+    
+    bn::core::update();
 }
 
 void Global::update(){
     if(_cam != nullptr){
         _prev_cam_pos = _cam_position;
 
-        _cam_target = lerp(Camera().position(), Player().get_hitbox().position() + bn::point(0, 4), _cam_lerp_value);
-        _cam->set_position(_cam_target);
+        if(autoCamControl){
+            _cam_target = lerp(Camera().position(), Player().get_hitbox().position() + bn::point(0, 4), _cam_lerp_value);
+            _cam->set_position(_cam_target);
+        }
         _cam_position = bn::point(_cam->position().x().floor_integer(), _cam->position().y().floor_integer());
         
         _cam_moved = _prev_cam_pos != _cam_position;
     }
+    if(_cam_moved) Global::Tiled_Bg().update();
     /* Other possible code */
 }
 
@@ -60,6 +74,12 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
             BN_ERROR("Invalid Projectile id: ", option);
             break;
     }
+}
+
+void Global::update_entity_animations(){
+    Global::update();
+    if(!_assets->cat.graphics.animation->done()) _assets->cat.graphics.animation->update();
+    for(auto npc : _assets->v_npcs) if(npc->on_screen() && !npc->graphics.animation->done()) npc->graphics.animation->update();
 }
 
 void Global::clear_bg_map(){

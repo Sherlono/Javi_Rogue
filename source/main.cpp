@@ -6,7 +6,7 @@
 #include "jv_intro_movie.h"
 
 #if DEV_ENABLED
-    #include "jv_dev_tools.h"
+#include "jv_dev_tools.h"
 #endif
 
 int main()
@@ -15,35 +15,41 @@ int main()
     bn::random randomizer;
     
     #if !DEV_ENABLED
-        jv::Scenes::intro_scene();
-        {jv::Scenes::IntroMovie Start;}
+    jv::Scenes::IntroScene();
+    jv::Scenes::IntroMovie::Start();
     #endif
+
     while(true){
-        switch(jv::Scenes::start_scene(randomizer)){
-            case 0:{
+        switch(jv::Scenes::StartScene(randomizer)){
+            case jv::Scenes::Tag::Main:{
                 jv::Scenes::MainGame::Start(randomizer);
                 break;
             }
-            #if !DEV_ENABLED
-            case 1:
-                jv::Scenes::credits_scene();
-                break;
-            case 2:{
-                jv::Scenes::IntroMovie Start;
+            #if DEV_ENABLED
+            case jv::Scenes::Tag::Blocks:{
+                jv::Scenes::BlocksScene::Start();
                 break;
             }
-            #else
-            case 1:
-                jv::dev::blocks_scene();
-                break;
-            /*case 2:
+            /*jv::Scenes::Tag::Tiles:{
                 jv::dev::tile_scene();
-                break;*/
+                break;
+            }*/
+            #else
+            case jv::Scenes::Tag::Credits:{
+                jv::Scenes::CreditsScene::Start();
+                break;
+            }
+            case jv::Scenes::Tag::Restart:{
+                jv::Scenes::IntroMovie::Start();
+                break;
+            }
             #endif
 
-            default:
+            default:{
                 BN_ERROR("Invalid Scene.");
                 break;
+            }
         }
+        bn::core::update();
     }
 }

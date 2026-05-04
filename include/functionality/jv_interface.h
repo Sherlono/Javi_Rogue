@@ -3,10 +3,8 @@
 
 #include "bn_core.h"
 #include "bn_vector.h"
-#include "bn_random.h"
 #include "bn_keypad.h"
 #include "bn_colors.h"
-#include "bn_memory.h"
 #include "bn_sprite_ptr.h"
 #include "bn_bg_palettes.h"
 #include "bn_music_actions.h"
@@ -14,7 +12,8 @@
 #include "bn_sprite_palettes.h"
 #include "bn_blending_actions.h"
 
-#include "jv_global.h"
+#include "jv_constants.h"
+#include "jv_map_classes.h"
 
 #if DEV_ENABLED
     #include "bn_log.h"
