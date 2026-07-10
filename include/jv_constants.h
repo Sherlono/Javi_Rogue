@@ -28,7 +28,7 @@ namespace {
 
 namespace jv::animation{
     constexpr int MAX_FRAMES = 8;
-    enum Id {Walk, Attack, Die};
+    enum Id {Walk, Attack, Die, Idle, Loop};
     
     constexpr bn::array<uint16_t, 4> Walk_up = {6, 7, 6, 8};
     constexpr bn::array<uint16_t, 4> Walk_ho = {3, 4, 3, 5};
@@ -39,6 +39,7 @@ namespace jv::animation{
     
     constexpr bn::array<uint16_t, 4> idle = {18, 19, 18, 20};     // Idle down
     constexpr bn::array<uint16_t, 5> hurt = {21, 22, 21, 22, 22}; // Hurt down
+    constexpr bn::array<uint16_t, 4> loop = {0, 1, 2, 3};
 }
 
 #endif

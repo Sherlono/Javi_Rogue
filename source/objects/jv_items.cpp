@@ -6,7 +6,7 @@
 
 namespace jv{
 
-[[nodiscard]] bool Item::on_screen() const {
+[[nodiscard]] bool Item::is_on_screen() const {
     const uint8_t halfWidth = 8, halfHeight = 8;
     constexpr uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
     bool up = y() > jv::Global::cam_pos().y() - y_offset, down = y() < jv::Global::cam_pos().y() + y_offset;
@@ -15,7 +15,7 @@ namespace jv{
 }
 
 void Item::update(){
-    if(!_gotten && on_screen()){
+    if(!_gotten && is_on_screen()){
         if(!_sprite.has_value()){
             bn::sprite_builder builder(bn::sprite_items::scene_items, get_id());
             builder.set_position(x(), y());

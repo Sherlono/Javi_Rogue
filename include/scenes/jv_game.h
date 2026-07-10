@@ -64,7 +64,9 @@ private:
             generate_corridors();
             
             jv::Interface::Log_zone_layout(zone);
+            #if DEV_ENABLED
             BN_LOG("Enemies percentage: ", 100*bn::fixed(Global::Enemies().size())/Global::Enemies().max_size());
+            #endif
         }
     
     struct NumPoint {
@@ -665,10 +667,11 @@ private:
                                  4 + Global::Random().get_int(MAX_ROOM_ROWS - 3));
         /*LevelGenerator::Generate(4, 4);*/
 
-        // Initialize level visuals
+        // Initialize visuals
         _tiled_bg.init();
         _gameAssets.stairs.set_open(false);
         if(_gameAssets.fog.visible()) _gameAssets.fog.update();
+        for(auto enemy : _gameAssets.v_enemies) if(enemy->is_on_screen() && !enemy->graphics.sprite.has_value()) enemy->load_graphics(animation::Id::Walk);
         
         #if DEV_ENABLED
         //jv::Interface::Log_resources();

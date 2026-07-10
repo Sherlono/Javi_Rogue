@@ -7,7 +7,10 @@
 #include "bn_regular_bg_ptr.h"
 #include "bn_rect_window_boundaries_hbe_ptr.h"
 
-#include "bn_regular_bg_items_darkness.h"
+#include "jv_map_classes.h"
+
+#include "bn_regular_bg_tiles_items_darkness.h"
+#include "bn_bg_palette_items_fortress_palette.h"
 
 namespace jv{
 
@@ -26,12 +29,14 @@ public:
 
     iFog(bn::rect& data, int max_size):
         _shapes(&data),
+        _current_room(-1), _x(0), _y(0), _width(0), _height(0), _size(0),
         _max_size(max_size),
-        current_room(-1), _x(0), _y(0), _width(0), _height(0),
         _window(bn::window::internal()),
         _internal_window(bn::rect_window::internal()),
         _horizontal_boundaries_hbe(bn::rect_window_boundaries_hbe_ptr::create_horizontal(_internal_window, _horizontal_boundaries)),
-        _fog_bg(bn::regular_bg_items::darkness.create_bg(0, 0))
+        _bg_map_ptr(new bg_map()),
+        _bg_item(bn::regular_bg_tiles_items::darkness, bn::bg_palette_items::fortress_palette, _bg_map_ptr->map_item),
+        _fog_bg(_bg_item.create_bg(0, 0))
     {
         _fog_bg.set_priority(0);
         _fog_bg.set_blending_enabled(true);
@@ -92,7 +97,7 @@ public:
     }
 
     void reset(){
-        current_room = -1;
+        _current_room = -1;
         clear();
     }
 
@@ -136,17 +141,18 @@ protected:
     }
 
     bn::rect* _shapes;
-    int _size = 0;
-    int _max_size;
+    int8_t _current_room;
+
+    int _x, _y, _width, _height, _size, _max_size;
     
-    int8_t current_room;
-    int _x, _y;
-    int _width, _height;
     bn::window _window;
     bn::rect_window _internal_window;
     bn::rect_window_boundaries_hbe_ptr _horizontal_boundaries_hbe;
-    bn::regular_bg_ptr _fog_bg;
     h_bounds_type _horizontal_boundaries;
+    
+    bn::unique_ptr<bg_map> _bg_map_ptr;
+    bn::regular_bg_item _bg_item;
+    bn::regular_bg_ptr _fog_bg;
     
     static constexpr int half_display_height = bn::display::height()>>1;
 };
@@ -158,8 +164,7 @@ public:
     ~Fog(){ clear();}
     
     Fog():
-        iFog(*reinterpret_cast<bn::rect*>(_storage_buffer), MaxSize)
-        {}
+        iFog(*reinterpret_cast<bn::rect*>(_storage_buffer), MaxSize) {}
         
 private:
     alignas(bn::rect) char _storage_buffer[sizeof(bn::rect) * MaxSize];

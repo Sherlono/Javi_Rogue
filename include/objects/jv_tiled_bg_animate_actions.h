@@ -20,7 +20,6 @@ public:
 
     itiled_bg_animate_action& operator=(const itiled_bg_animate_action& other)
     {
-        //BN_LOG("= 1");
         if(this != &other)
         {
             BN_ASSERT(other.graphics_indexes().size() <= graphics_indexes().max_size(),
@@ -38,7 +37,6 @@ public:
 
     itiled_bg_animate_action& operator=(itiled_bg_animate_action&& other) noexcept
     {
-        //BN_LOG("= 2");
         if(this != &other)
         {
             BN_ASSERT(other.graphics_indexes().size() <= graphics_indexes().max_size(),
@@ -64,13 +62,11 @@ public:
         }
         else
         {
-            //BN_LOG("...1");
             const bn::ivector<uint16_t>& graphics_indexes = this->graphics_indexes();
             int current_graphics_indexes_index = _current_graphics_indexes_index;
             int current_graphics_index = graphics_indexes[current_graphics_indexes_index];
             _current_wait_updates = _wait_updates;
 
-            //BN_LOG("...2");
             if(current_graphics_indexes_index == 0 ||
                     graphics_indexes[current_graphics_indexes_index - 1] != current_graphics_index)
             {
@@ -78,7 +74,6 @@ public:
                 _tiles_ref->overwrite_tile(_tile_index, tile);
             }
 
-            //BN_LOG("...3");
             if(_forever && current_graphics_indexes_index == graphics_indexes.size() - 1)
             {
                 _current_graphics_indexes_index = 0;
@@ -87,7 +82,6 @@ public:
             {
                 ++_current_graphics_indexes_index;
             }
-            //BN_LOG("...4");
         }
     }
 

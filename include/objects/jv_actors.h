@@ -15,12 +15,12 @@
 
 #include "jv_inventory.h"
 
-#include "bn_sprite_items_cow.h"
-#include "bn_sprite_items_fox.h"
-#include "bn_sprite_items_bad_cat.h"
 #include "bn_sprite_items_good_cat.h"
+#include "bn_sprite_items_bad_cat.h"
 #include "bn_sprite_items_pale_tongue.h"
 #include "bn_sprite_items_pale_finger.h"
+#include "bn_sprite_items_cow.h"
+#include "bn_sprite_items_fox.h"
 
 #if DEV_ENABLED
     #include "bn_log.h"
@@ -65,11 +65,14 @@ public:
             }else if(dir == EAST){                            // RIGHT
                 sprite->set_horizontal_flip(false);
                 frames = (option == animation::Id::Walk) ? animation_type(animation::Walk_ho) : animation_type(animation::Attack_ho);
-            }else{
+            }else if(option == animation::Id::Idle){
                 sprite->set_horizontal_flip(false);
                 frames = animation_type(animation::idle);
+            }else{
+                sprite->set_horizontal_flip(false);
+                frames = animation_type(animation::Walk_do);
             }
-
+            
             if(option != animation::Attack){
                 animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite.value(), wait_frames, tiles, frames);
             }else{
@@ -92,16 +95,15 @@ public:
     [[nodiscard]] bn::point position() const { return _rect.position();}
     [[nodiscard]] bn::rect& rect() { return _rect;}
     [[nodiscard]] bn::sprite_ptr& sprite() { return graphics.sprite.value();}
-    [[nodiscard]] bool in_range(const int point_x, const int point_y, const int r) const {
+    [[nodiscard]] bool is_in_range(const int point_x, const int point_y, const int r) const {
         int delta_x = point_x - x(), delta_y = point_y - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
-    [[nodiscard]] bool in_range(const bn::point position, const int r) const {
+    [[nodiscard]] bool is_in_range(const bn::point position, const int r) const {
         int delta_x = position.x() - x(), delta_y = position.y() - y();
         return  delta_x*delta_x + delta_y*delta_y <= r*r;
     }
-    [[nodiscard]] bool on_screen(uint8_t halfWidth = 16, uint8_t halfHeight = 16) const;
-
+    [[nodiscard]] bool is_on_screen(uint8_t halfWidth = 16, uint8_t halfHeight = 16) const;
     // Setters
     void set_position(const bn::fixed x, const bn::fixed y){
         sprite().set_position(x, y);
@@ -118,33 +120,35 @@ public:
         graphics.sprite->set_camera(c);
     }
 
-    // For actions with direction
-    void look_at(bn::fixed_point& xyVector){
-        bn::fixed abs_x = bn::abs(xyVector.x()), abs_y = bn::abs(xyVector.y());
-        if(xyVector.y() < -0.5){
+    void look_at(bn::fixed_point normalizedVector){
+        bn::fixed abs_x = bn::abs(normalizedVector.x()), abs_y = bn::abs(normalizedVector.y());
+        _prev_dir = _dir;
+        if(normalizedVector.y() < -0.5){
             if(abs_y > abs_x){
                 _dir = NORTH;
-            }else if(xyVector.x() > 0){
+            }else if(normalizedVector.x() > 0){
                 _dir = NORTHEAST;
             }else{
                 _dir = NORTHWEST;
             }
-        }else if(xyVector.y() > 0.5){
+        }else if(normalizedVector.y() > 0.5){
             if(abs_y > abs_x){
                 _dir = SOUTH;
-            }else if(xyVector.x() > 0){
+            }else if(normalizedVector.x() > 0){
                 _dir = SOUTHEAST;
             }else{
                 _dir = SOUTHWEST;
             }
         }else{
-            if(xyVector.x() > 0){
+            if(normalizedVector.x() > 0){
                 _dir = EAST;
             }else{
                 _dir = WEST;
             }
         }
     }
+    
+    void load_graphics(const uint8_t option);
 
     Graphics graphics;
 protected:
@@ -158,9 +162,9 @@ protected:
     
     [[nodiscard]] bool _map_obstacle(const uint8_t direction);
     [[nodiscard]] virtual int _sprite_y_offset() const = 0;
+    [[nodiscard]] virtual int _wait_frames() const = 0;
+    [[nodiscard]] virtual const bn::sprite_item& _sprite_item() = 0;
     
-    void _load_graphics(const bn::sprite_item& item, int wait_frames);
-
     uint8_t _prev_dir = SOUTH, _dir = SOUTH;
     bn::rect _rect;
 };
@@ -267,6 +271,8 @@ private:
     }
     
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+    [[nodiscard]] int _wait_frames() const override { return 4;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::good_cat;}
 
     bool _interact_token = true, _moved = false;
     uint8_t _state = State::NORMAL;
@@ -378,8 +384,10 @@ private:
     }
     
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+    [[nodiscard]] int _wait_frames() const override { return 4;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::bad_cat;}
 
-    static constexpr basic_stats _stats = {1, 1, 3, bn::fixed(0.4)};
+    static constexpr basic_stats _stats = {1, 1, 3, bn::fixed(1.3)};
 
 };
 
@@ -437,6 +445,8 @@ private:
     }
     
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+    [[nodiscard]] int _wait_frames() const override { return 8;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::pale_tongue;}
 
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
@@ -489,6 +499,8 @@ private:
     }
     
     [[nodiscard]] int _sprite_y_offset() const override { return 24;}
+    [[nodiscard]] int _wait_frames() const override { return 8;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::pale_finger;}
 
     static constexpr basic_stats _stats = {2, 1, 5, bn::fixed(0.3)};
 };
@@ -517,6 +529,8 @@ public:
     
 private:
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+    [[nodiscard]] int _wait_frames() const override { return 8;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::cow;}
 };
 
 class Fox: public NPC{
@@ -526,10 +540,14 @@ public:
     Fox(bn::point position);
     
     // Functionality
+    void force_move_player();
+    void present_choice();
     void update() override;
     
 private:
     [[nodiscard]] int _sprite_y_offset() const override { return 8;}
+    [[nodiscard]] int _wait_frames() const override { return 8;}
+    [[nodiscard]] const bn::sprite_item& _sprite_item() override { return bn::sprite_items::fox;}
 };
 
 }

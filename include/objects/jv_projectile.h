@@ -27,12 +27,7 @@ public:
     [[nodiscard]] bn::fixed x() const { return _sprite->x();}
     [[nodiscard]] bn::fixed y() const { return _sprite->y();}
     [[nodiscard]] bn::fixed_point position() const { return _point;}
-    [[nodiscard]] inline bool on_screen(bn::camera_ptr& cam, uint8_t halfWidth = 16, uint8_t halfHeight = 16) const {
-        uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
-        bool up = this->y() > cam.y() - y_offset, down = this->y() < cam.y() + y_offset;
-        bool left = this->x() > cam.x() - x_offset, right = this->x() < cam.x() + x_offset;
-        return left && right && up && down;
-    }
+    [[nodiscard]] bool is_on_screen(uint8_t halfWidth = 16, uint8_t halfHeight = 16) const;
 
     // Setters
     void set_position(bn::fixed x, bn::fixed y){

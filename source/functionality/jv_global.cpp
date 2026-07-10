@@ -79,7 +79,7 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 void Global::update_entity_animations(){
     Global::update();
     if(!_assets->cat.graphics.animation->done()) _assets->cat.graphics.animation->update();
-    for(auto npc : _assets->v_npcs) if(npc->on_screen() && !npc->graphics.animation->done()) npc->graphics.animation->update();
+    for(auto npc : _assets->v_npcs) if(npc->is_on_screen() && !npc->graphics.animation->done()) npc->graphics.animation->update();
 }
 
 void Global::clear_bg_map(){

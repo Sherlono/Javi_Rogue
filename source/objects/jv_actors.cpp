@@ -15,7 +15,7 @@
 
 namespace jv{
 // ************** Actor *************
-[[nodiscard]] bool Actor::on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
+[[nodiscard]] bool Actor::is_on_screen(uint8_t halfWidth, uint8_t halfHeight) const {
     uint8_t x_offset = 120 + halfWidth, y_offset = halfHeight + 80;
     bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
     bool left = x() > Global::cam_pos().x() - x_offset, right = x() < Global::cam_pos().x() + x_offset;
@@ -61,18 +61,18 @@ namespace jv{
     return Global::Map().cell(point_1) <= WTILES_COUNT && Global::Map().cell(point_2) <= WTILES_COUNT;
 }
 
-void Actor::_load_graphics(const bn::sprite_item& item, int wait_frames){
-    bn::sprite_builder builder(item);
+void Actor::load_graphics(const uint8_t option){
+    bn::sprite_builder builder(_sprite_item());
     builder.set_position(x(), y() - _sprite_y_offset());
     builder.set_camera(Global::Camera());
     builder.set_bg_priority(1);
     
     graphics.sprite = builder.release_build();
-    graphics.set_animation(_dir, animation::Walk, item.tiles_item(), wait_frames);
+    graphics.set_animation(_dir, option, _sprite_item().tiles_item(), _wait_frames());
 }
 
 // ************* Player *************
-Player::Player(bn::point position):
+Player::Player(bn::point position): // Constructor
     Actor(bn::rect(position.x(), position.y(), 16, 16)),
     _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
     _hitbox(bn::rect(position.x(), position.y(), 10, 10))
@@ -166,14 +166,14 @@ void Player::_movement(){
     
     if(_state == State::NORMAL){
         if(_prev_dir != _dir){
-            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item());
         }
         _prev_dir = _dir;
     }
 }
 
 void Player::update(){
-    if(alive()) [[likely]] {
+    if(alive()) /*Heh*/ [[likely]] {
         _interact_token = true;
         _prev_pos = position();
         
@@ -181,7 +181,7 @@ void Player::update(){
         if(get_state() == State::HURTING) [[unlikely]] {
             if(graphics.animation->done()) [[unlikely]] {
                 set_state(State::NORMAL);
-                graphics.set_animation(_dir, animation::Walk, bn::sprite_items::good_cat.tiles_item());
+                graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item());
             }
         }else if(!is_attacking()) [[likely]] {
             _movement();
@@ -200,26 +200,17 @@ void Player::update(){
 
 // ************** Enemy *************
 // ************* BadCat *************
-BadCat::BadCat(bn::point position):
+BadCat::BadCat(bn::point position): // Constructor
     Enemy(_stats.max_hp, position)
     {
-        if(on_screen()){
-            bn::sprite_builder builder(bn::sprite_items::bad_cat);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 4, bn::sprite_items::bad_cat.tiles_item(), animation::idle);
-        }
+        //if(is_on_screen()) load_graphics();
     }
 
 void BadCat::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
     
     // Player within range
-    if(in_range(Global::Player().position(), 18)){
+    if(is_in_range(Global::Player().position(), 18)){
         look_at(player_direction);
         _start_attack();
         
@@ -228,7 +219,7 @@ void BadCat::_movement(){
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().position(), 46)){
+    }else if(is_in_range(Global::Player().position(), 46)){
         look_at(player_direction);
         if(_idle_time <= 2*60){
             _idle_time++;
@@ -255,22 +246,20 @@ void BadCat::_movement(){
             _idle_time = 0;
         }
 
-        displace(_stats.speed);
+        displace(bn::fixed(0.5));
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::bad_cat.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item());
         }
         _prev_dir = _dir;
     }
 }
 
 void BadCat::update(){
-    if(on_screen()){
-        if(!graphics.sprite.has_value()){
-            _load_graphics(bn::sprite_items::bad_cat, 4);
-        }
+    if(is_on_screen()){
+        if(!graphics.sprite.has_value()) load_graphics(animation::Id::Walk);
 
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
         else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
@@ -282,10 +271,8 @@ void BadCat::update(){
             if(get_state() == State::HURTING){
                 if(graphics.animation->done()){
                     set_state(State::NORMAL);
-                    if(!_idle_time){
-                        _dir = 0;
-                    }
-                    graphics.set_animation(_dir, animation::Walk, bn::sprite_items::bad_cat.tiles_item());
+                    if(!_idle_time) _dir = NEUTRAL;
+                    graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item());
                 }
             }else if(!is_attacking(40)){
                 _movement();
@@ -298,7 +285,7 @@ void BadCat::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().position(), 25);
+                bool attack_connected_player = get_state() == State::ATTACKING && is_in_range(Global::Player().position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
@@ -312,26 +299,17 @@ void BadCat::update(){
 }
 
 // *********** PaleTongue ***********
-PaleTongue::PaleTongue(bn::point position):
+PaleTongue::PaleTongue(bn::point position): // Constructor
     Enemy(_stats.max_hp, position)
     {
-        if(on_screen()){
-            bn::sprite_builder builder(bn::sprite_items::pale_tongue);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::pale_tongue.tiles_item(), animation::idle);
-        }
-}
+        //if(is_on_screen()) load_graphics();
+    }
 
 void PaleTongue::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - position());
         
     // Player within range
-    if(in_range(Global::Player().position(), 20)){
+    if(is_in_range(Global::Player().position(), 20)){
         look_at(player_direction);
         _start_attack();
         
@@ -340,7 +318,7 @@ void PaleTongue::_movement(){
         }else{
             _idle_time = 0;
         }
-    }else if(in_range(Global::Player().position(), 46) && !is_attacking(40)){
+    }else if(is_in_range(Global::Player().position(), 46) && !is_attacking(40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
@@ -374,17 +352,15 @@ void PaleTongue::_movement(){
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_tongue.tiles_item());
+            graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item());
         }
         _prev_dir = _dir;
     }
 }
 
 void PaleTongue::update(){
-    if(on_screen()){
-        if(!graphics.sprite.has_value()){
-            _load_graphics(bn::sprite_items::pale_tongue, 8);
-        }
+    if(is_on_screen()){
+        if(!graphics.sprite.has_value()) load_graphics(animation::Id::Walk);
 
         if(Global::Player().graphics.y() > sprite().y()){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
         else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
@@ -396,10 +372,8 @@ void PaleTongue::update(){
             if(get_state() == State::HURTING) [[unlikely]] {
                 if(graphics.animation->done()){
                     set_state(State::NORMAL);
-                    if(!_idle_time){
-                        _dir = 0;
-                    }
-                    graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_tongue.tiles_item(), 8);
+                    if(!_idle_time) _dir = NEUTRAL;
+                    graphics.set_animation(_dir, animation::Walk, _sprite_item().tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
                 _movement();
@@ -412,7 +386,7 @@ void PaleTongue::update(){
                 if(player_attack_connected){
                     got_hit(Global::Player().get_attack());
                 }
-                bool attack_connected_player = get_state() == State::ATTACKING && in_range(Global::Player().position(), 25);
+                bool attack_connected_player = get_state() == State::ATTACKING && is_in_range(Global::Player().position(), 25);
                 if(attack_connected_player){
                     Global::Player().got_hit(get_attack());
                 }
@@ -426,26 +400,17 @@ void PaleTongue::update(){
 }
 
 // *********** PaleFinger **********
-PaleFinger::PaleFinger(bn::point position):
+PaleFinger::PaleFinger(bn::point position): // Constructor
     Enemy(_stats.max_hp, position)
     {
-        if(on_screen(32, 58)){
-            bn::sprite_builder builder(bn::sprite_items::pale_finger);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::pale_finger.tiles_item(), animation::idle);
-        }
+        //if(is_on_screen()) load_graphics();
     }
 
 void PaleFinger::_movement(){
     bn::fixed_point player_direction = jv::normalize(Global::Player().position() - bn::point(x(), y() - 8));
         
     // Player within range
-    if(in_range(Global::Player().position(), 40)){
+    if(is_in_range(Global::Player().position(), 40)){
         look_at(player_direction);
 
         if(_idle_time <= 2*60){
@@ -462,7 +427,7 @@ void PaleFinger::_movement(){
 
         set_position(target_x, target_y);
 
-    }else if(in_range(Global::Player().position(), 70)){
+    }else if(is_in_range(Global::Player().position(), 70)){
         look_at(player_direction);
         
         if(_idle_time == 0){
@@ -507,10 +472,8 @@ void PaleFinger::_start_attack(){
 }
 
 void PaleFinger::update(){
-    if(on_screen(32, 58)){
-        if(!graphics.sprite.has_value()){
-            _load_graphics(bn::sprite_items::pale_finger, 8);
-        }
+    if(is_on_screen(32, 58)){
+        if(!graphics.sprite.has_value()) load_graphics(animation::Id::Walk);
 
         if(Global::Player().graphics.y() > sprite().y() + 8){ sprite().set_z_order(Global::Player().graphics.z_order() + 1);}
         else{ sprite().set_z_order(Global::Player().graphics.z_order() - 1);}
@@ -522,9 +485,7 @@ void PaleFinger::update(){
             if(get_state() == State::HURTING) [[unlikely]] {
                 if(graphics.animation->done()){
                     set_state(State::NORMAL);
-                    if(!_idle_time){
-                        _dir = 0;
-                    }
+                    if(!_idle_time) _dir = NEUTRAL;
                     graphics.set_animation(_dir, animation::Walk, bn::sprite_items::pale_finger.tiles_item(), 8);
                 }
             }else if(!is_attacking(40)){
@@ -548,31 +509,22 @@ void PaleFinger::update(){
 }
 
 // ************* NPCs **************
-Cow::Cow(bn::point position):
+Cow::Cow(bn::point position):   // Constructor
     NPC(bn::rect(position.x(), position.y() + 8, 20, 20))
     {
-        if(on_screen()){
-            bn::sprite_builder builder(bn::sprite_items::cow);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            constexpr uint16_t arr[4] = {0, 1, 2, 3};
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::cow.tiles_item(), arr);
-        }
+        if(is_on_screen()) load_graphics(animation::Id::Loop);
     }
 
 void Cow::update(){
-    if(on_screen()){
+    if(is_on_screen()){
         if(!graphics.sprite.has_value()){
-            bn::sprite_builder builder(bn::sprite_items::cow);
+            bn::sprite_builder builder(_sprite_item());
             builder.set_position(x(), y());
             builder.set_camera(Global::Camera());
             builder.set_bg_priority(1);
             
             graphics.sprite = builder.release_build();
-            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::cow.tiles_item(), 0, 1, 2, 3);
+            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, _sprite_item().tiles_item(), 0, 1, 2, 3);
         }
 
         if(Global::Player().graphics.y() > sprite().y()){
@@ -604,32 +556,80 @@ void Cow::update(){
     
 }
 
-Fox::Fox(bn::point position):
+Fox::Fox(bn::point position):   // Constructor
     NPC(bn::rect(position.x(), position.y() + 8, 20, 20))
     {
-        if(on_screen()){
-            bn::sprite_builder builder(bn::sprite_items::fox);
-            builder.set_position(position.x(), position.y() - _sprite_y_offset());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            constexpr uint16_t arr[4] = {0, 1, 0, 2};
-            graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), arr);
-        }
+        if(is_on_screen()) load_graphics(animation::Id::Walk);
     }
 
-void Fox::update(){
-    if(on_screen()){
-        if(!graphics.sprite.has_value()){
-            bn::sprite_builder builder(bn::sprite_items::fox);
-            builder.set_position(x(), y());
-            builder.set_camera(Global::Camera());
-            builder.set_bg_priority(1);
-            
-            graphics.sprite = builder.release_build();
-            graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 0, 1, 0, 2);
+void Fox::force_move_player(){
+    bn::fixed player_speed = Global::Player().get_speed()/2;
+    bn::fixed_point player_target = this->position() + bn::point(0, 14);
+    bn::fixed_point player_direction = jv::normalize(player_target - Global::Player().graphics.position());
+    
+    while(true){
+        Global::update();
+        bn::fixed target_x = Global::Player().graphics.x(), target_y = Global::Player().graphics.y();
+        if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
+            target_x += player_direction.x()*player_speed;
         }
+        if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
+            target_y += player_direction.y()*player_speed;
+        }
+        Global::Player().set_position(target_x, target_y);
+
+        if(Global::Player().graphics.y() > sprite().y()){
+            sprite().set_z_order(Global::Player().graphics.z_order() + 1);
+        }else{
+            sprite().set_z_order(Global::Player().graphics.z_order() - 1);
+        }
+        
+        Global::Player().graphics.animation->update();
+        this->graphics.animation->update();
+
+        if(player_target.y() - Global::Player().graphics.y() < 0){
+            Global::Player().set_position(player_target);
+            Global::Player().graphics.set_animation(NORTH, animation::Walk, bn::sprite_items::good_cat.tiles_item());
+            break;
+        }
+        bn::core::update();
+    }
+}
+
+void Fox::present_choice(){
+    bn::sprite_text_generator text_gen(common::variable_8x8_sprite_font);
+    bn::vector<bn::sprite_ptr, 9> txt_sprts;
+    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-10, 0);
+
+    text_gen.set_bg_priority(0);
+    text_gen.generate(-64, 0, "Your left     His right", txt_sprts);
+    cursor.set_bg_priority(0);
+
+    bn::core::update();
+
+    while(!bn::keypad::a_pressed()){
+        Global::update();
+        if(bn::keypad::right_pressed()){
+            if(cursor.x() < 0){
+                cursor.set_x(-cursor.x());
+                cursor.set_horizontal_flip(!cursor.horizontal_flip());
+            }
+        }else if(bn::keypad::left_pressed()){
+            if(cursor.x() > 0){
+                cursor.set_x(-cursor.x());
+                cursor.set_horizontal_flip(!cursor.horizontal_flip());
+            }
+        }
+
+        Global::Player().graphics.animation->update();
+        this->graphics.animation->update();
+        bn::core::update();
+    }
+}
+
+void Fox::update(){
+    if(is_on_screen()){
+        if(!graphics.sprite.has_value()) load_graphics(animation::Id::Walk);
 
         if(Global::Player().graphics.y() > sprite().y()){
             sprite().set_z_order(Global::Player().graphics.z_order() + 1);
@@ -641,92 +641,40 @@ void Fox::update(){
             // Dialog
             if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
                 Global::Player().get_hitbox().set_position(this->graphics.x().floor_integer(), this->graphics.y().floor_integer());
-                bn::fixed player_speed = Global::Player().get_speed()/2;
-                bn::fixed_point player_target = this->position() + bn::point(0, 14);
-                bn::fixed_point player_direction = jv::normalize(player_target - Global::Player().graphics.position());
+
+                force_move_player();
                 
-                while(true){
-                    Global::update();
-                    bn::fixed target_x = Global::Player().graphics.x(), target_y = Global::Player().graphics.y();
-                    if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
-                        target_x += player_direction.x()*player_speed;
-                    }
-                    if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
-                        target_y += player_direction.y()*player_speed;
-                    }
-                    Global::Player().set_position(target_x, target_y);
-
-                    if(Global::Player().graphics.y() > sprite().y()){
-                        sprite().set_z_order(Global::Player().graphics.z_order() + 1);
-                    }else{
-                        sprite().set_z_order(Global::Player().graphics.z_order() - 1);
-                    }
-                    
-                    Global::Player().graphics.animation->update();
-                    this->graphics.animation->update();
-
-                    if(player_target.y() - Global::Player().graphics.y() < 0){
-                        Global::Player().set_position(player_target);
-                        Global::Player().graphics.set_animation(NORTH, animation::Walk, bn::sprite_items::good_cat.tiles_item());
-                        Global::Player().graphics.animation->update();
-                        break;
-                    }
-                    bn::core::update();
-                }
-
                 jv::Dialog::init("Kekeke. Hello there delver. I got", "something you might like. All you", "have to do is guess correctly.");
                 
-                this->graphics.animation = bn::create_sprite_animate_action_once(sprite(), 8, bn::sprite_items::fox.tiles_item(), 3, 4, 5, 6, 7);
+                this->graphics.animation = bn::create_sprite_animate_action_once(sprite(), 8, _sprite_item().tiles_item(), 3, 4, 5, 6, 7);
 
                 while(!graphics.animation->done()){
+                    Global::update();
                     Global::Player().graphics.animation->update();
                     graphics.animation->update();
                     bn::core::update();
                 }
-                for(int stall = 0; stall < 30; stall++) bn::core::update();
-
-                jv::Dialog::init("So tell me. Is it in your left or", "my right?.");
-                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 8, 9, 8, 10);
-
-                {
-                    bn::sprite_text_generator text_gen(common::variable_8x8_sprite_font);
-                    bn::vector<bn::sprite_ptr, 9> txt_sprts;
-                    bn::sprite_ptr cursor = bn::sprite_items::cursor.create_sprite(-10, 0);
-
-                    text_gen.set_bg_priority(0);
-                    text_gen.generate(-64, 0, "Your left     His right", txt_sprts);
-                    cursor.set_bg_priority(0);
-
+                for(int stall = 0; stall < 30; stall++){
+                    Global::update();
+                    Global::Player().graphics.animation->update();
                     bn::core::update();
-
-                    while(!bn::keypad::a_pressed()){
-                        if(bn::keypad::right_pressed()){
-                            if(cursor.x() < 0){
-                                cursor.set_x(-cursor.x());
-                                cursor.set_horizontal_flip(!cursor.horizontal_flip());
-                            }
-                        }else if(bn::keypad::left_pressed()){
-                            if(cursor.x() > 0){
-                                cursor.set_x(-cursor.x());
-                                cursor.set_horizontal_flip(!cursor.horizontal_flip());
-                            }
-                        }
-
-                        Global::Player().graphics.animation->update();
-                        this->graphics.animation->update();
-                        bn::core::update();
-                    }
                 }
 
-                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 7, 7, 7);
-                jv::Dialog::init("Sorry pal. Wrong paw. Better luck", "next time ;)");
-                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 0, 1, 0, 2);
+                jv::Dialog::init("So tell me. Is it in your left or", "my right?.");
+                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, _sprite_item().tiles_item(), 8, 9, 8, 10);
 
+                present_choice();
+
+                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, _sprite_item().tiles_item(), 7, 7, 7);
+                jv::Dialog::init("Sorry pal. Wrong paw. Better luck", "next time ;)");
+                this->graphics.animation = bn::create_sprite_animate_action_forever(sprite(), 8, _sprite_item().tiles_item(), 0, 1, 0, 2);
+                
+                Global::Player().look_at({0, -1});
                 Global::Player().spend_interact_token();
             }
         }
 
-        graphics.animation->update();
+        this->graphics.animation->update();
     }else{
         if(graphics.sprite.has_value()){
             graphics.reset();

@@ -43,7 +43,7 @@ public:
 
     void update();
 
-    [[nodiscard]] bool on_screen() const;
+    [[nodiscard]] bool is_on_screen() const;
 
 protected:
     void reset_graphics(){ _sprite.reset();}
