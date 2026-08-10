@@ -1,6 +1,7 @@
 #include "jv_projectile.h"
 
 #include "jv_actors.h"
+#include "jv_global.h"
 
 namespace jv{
 Projectile::Projectile(int x, int y):

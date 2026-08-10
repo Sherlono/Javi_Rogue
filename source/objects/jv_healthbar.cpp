@@ -1,5 +1,7 @@
 #include "jv_healthbar.h"
+
 #include "jv_actors.h"
+#include "jv_global.h"
 
 #include "bn_sprite_items_healthbar_hud.h"
 #include "bn_sprite_items_healthbar.h"
@@ -9,6 +11,7 @@
 
 namespace jv{
 class Player;
+
 Healthbar::Healthbar():
     _sprites( {bn::sprite_items::healthbar_hud.create_sprite(-104, HB_Y_OFFSET, 0), 
                bn::sprite_items::healthbar_hud.create_sprite(-72, HB_Y_OFFSET, 1),

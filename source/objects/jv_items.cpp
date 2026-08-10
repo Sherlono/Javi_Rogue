@@ -3,6 +3,8 @@
 #include "bn_sound_items.h"
 
 #include "jv_actors.h"
+#include "jv_global.h"
+
 
 namespace jv{
 
@@ -25,8 +27,8 @@ void Item::update(){
             _sprite = builder.release_build(); 
         }
 
-        if(jv::Global::Player().graphics.y() > _sprite->y() - 4){ _sprite->set_z_order(jv::Global::Player().graphics.z_order() + 1);}
-        else{ _sprite->set_z_order(jv::Global::Player().graphics.z_order() - 1);}
+        if(jv::Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() > _sprite->y() - 4){ _sprite->set_z_order(jv::Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() + 1);}
+        else{ _sprite->set_z_order(jv::Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() - 1);}
 
         if(jv::Global::Player().get_state() == Actor::State::NORMAL && !jv::Global::Player().is_attacking()){
             if(bn::keypad::a_pressed() && jv::Global::Player().rect().contains(_point) && jv::Global::Player().can_interact()){

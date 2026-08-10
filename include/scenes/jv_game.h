@@ -14,29 +14,18 @@
 #include "bn_blending_actions.h"
 #include "bn_sprite_text_generator.h"
 #include "bn_sprite_palette_actions.h"
-#include "common_variable_8x8_sprite_font.h"
 
 #include "jv_fog.h"
 #include "jv_math.h"
-#include "jv_items.h"
-#include "jv_actors.h"
-#include "jv_stairs.h"
 #include "jv_global.h"
 #include "jv_tiled_bg.h"
-#include "jv_constants.h"
 #include "jv_interface.h"
-#include "jv_projectile.h"
 #include "jv_blocks_data.h"
 #include "jv_game_assets.h"
 #include "jv_tiled_bg_animate_actions.h"
 
-#include "bn_regular_bg_tiles_items_fortress_tiles.h"
-#include "bn_regular_bg_tiles_items_fortress_torch.h"
-#include "bn_bg_palette_items_fortress_palette.h"
-
-#include "bn_regular_bg_tiles_items_jungle_tiles.h"
-#include "bn_bg_palette_items_jungle_palette.h"
-#include "bn_regular_bg_tiles_items_jungle_vines.h"
+#include "jv_tiled_bg_item_fortress_fwd.h"
+#include "jv_tiled_bg_item_jungle_fwd.h"
 
 #include "bn_regular_bg_items_bg.h"
 #include "bn_regular_bg_items_intro1.h"
@@ -44,6 +33,7 @@
 #include "bn_regular_bg_items_intro_card_bg.h"
 
 #include "bn_sprite_items_cursor.h"
+#include "common_variable_8x8_sprite_font.h"
 
 #if DEV_ENABLED
     #include "bn_log.h"
@@ -60,6 +50,7 @@ public:
 private:
     LevelGenerator(const int level_width, const int level_height): zone(level_width, level_height)
         {
+            BN_LOG(Global::environment_id);
             generate_rooms();
             generate_corridors();
             
@@ -119,7 +110,7 @@ private:
 
     void populate(bn::ivector<bn::point>& v_walkBlocks, bool spawnEnemies = true){
         enum EntityTag {Cat, Cow, Fox, Stairs};
-        
+        BN_LOG(Global::environment_id);
         // Populate unique entities
         for(int i = 0; i < entity_checks[1].size(); i++){
             int index = Global::Random().get_int(v_walkBlocks.size());
@@ -136,13 +127,13 @@ private:
                     #endif
                     break;
                 case EntityTag::Cow:
-                    Global::NPCs().push_back(new jv::Cow(v_walkBlocks[index]));
+                    Global::NPCs().push_back(jv::NPC(Actor_data::Id::Cow, v_walkBlocks[index]));
                     #if DEV_ENABLED
                     BN_LOG("Cow was created.");
                     #endif
                     break;
                 case EntityTag::Fox:
-                    Global::NPCs().push_back(new jv::Fox(v_walkBlocks[index]));
+                    Global::NPCs().push_back(jv::NPC(Actor_data::Id::Fox, v_walkBlocks[index]));
                     #if DEV_ENABLED
                     BN_LOG("Fox was created.");
                     #endif
@@ -168,15 +159,31 @@ private:
                 if(Global::Enemies().full()) break;
 
                 int rand = Global::Random().get_int(128);
-                if(rand < 16){
-                    Global::Enemies().push_back(new jv::BadCat(v_walkBlocks[i]));
-                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                }else if(rand < 24){
-                    Global::Enemies().push_back(new jv::PaleTongue(v_walkBlocks[i]));
-                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                }else if(rand < 28){
-                    Global::Enemies().push_back(new jv::PaleFinger(v_walkBlocks[i]));
-                    v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                switch(Global::environment_id){
+                    case Global::Environments::Fortress:{
+                        /**/if(rand < 16){
+                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Bad_Cat, v_walkBlocks[i]));
+                            v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                        }else if(rand < 24){
+                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Pale_Finger, v_walkBlocks[i]));
+                            v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                        }else if(rand < 28){
+                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Pale_Tongue, v_walkBlocks[i]));
+                            v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                        }
+                        break;
+                    }
+                    case Global::Environments::Jungle:{
+                        /**/if(rand < 16){
+                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Snakes, v_walkBlocks[i]));
+                            v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                        }
+                        break;
+                    }
+                    default:{
+                        BN_BASIC_ASSERT("Invalid Environment id", Global::environment_id);
+                        break;
+                    }
                 }
             }
         }
@@ -528,10 +535,10 @@ private:
         text_generator(common::variable_8x8_sprite_font),
         _gameAssets(r),
         _backdrop(bn::regular_bg_items::bg.create_bg(0, 0)),
-        _tiled_bg(bn::regular_bg_tiles_items::fortress_tiles,
-                  bn::bg_palette_items::fortress_palette,
+        _tiled_bg(Global::environment_id == Global::Fortress ? bn::regular_bg_tiles_items::fortress_tiles : bn::regular_bg_tiles_items::jungle_tiles,
+                  Global::environment_id == Global::Fortress ? bn::bg_palette_items::fortress_palette : bn::bg_palette_items::jungle_palette,
                   ((MAX_ROOM_ROWS*7) - 1)*4, ((MAX_ROOM_COLUMNS*7) - 1)*4),
-        _tiles_item(bn::regular_bg_tiles_items::fortress_torch.tiles_ref()),
+        _tiles_item(Global::environment_id == Global::Fortress ? bn::regular_bg_tiles_items::fortress_torch.tiles_ref() : bn::regular_bg_tiles_items::jungle_vines.tiles_ref()),
         _bg_animation{jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 89, _tiles_item, 0, 2, 0, 4),
                       jv::create_tiled_bg_animate_action_forever(_tiled_bg.tiles(), 15, 90, _tiles_item, 1, 3, 1, 5)}
         #if DEV_ENABLED
@@ -671,7 +678,7 @@ private:
         _tiled_bg.init();
         _gameAssets.stairs.set_open(false);
         if(_gameAssets.fog.visible()) _gameAssets.fog.update();
-        for(auto enemy : _gameAssets.v_enemies) if(enemy->is_on_screen() && !enemy->graphics.sprite.has_value()) enemy->load_graphics(animation::Id::Walk);
+        for(auto enemy : _gameAssets.v_enemies) if(enemy.is_on_screen() && !enemy.has_graphics) enemy.update();
         
         #if DEV_ENABLED
         //jv::Interface::Log_resources();
@@ -743,7 +750,7 @@ private:
                         _gameAssets.clear_objects(false);
                         Clear = false;
                     }
-                    if(Global::environment_id != Global::Fortress){
+                    if(Global::environment_id == Global::Jungle){
                         if(NoFog){
                             if(_gameAssets.fog.visible()) _gameAssets.fog.set_visible(false);
                         }else{
@@ -765,7 +772,7 @@ private:
                 _gameover_delay++;
             }
 
-            if(_gameAssets.cat.moved()){    // Backdrop movement
+            if(_gameAssets.cat.get_state() != Actor::State::DEAD && _gameAssets.cat.moved()){    // Backdrop movement
                 _backdrop.set_position(_backdrop.x() + (_gameAssets.cat.prev_position().x() - _gameAssets.cat.x())*bn::fixed(0.15),
                                        _backdrop.y() + (_gameAssets.cat.prev_position().y() - _gameAssets.cat.y())*bn::fixed(0.15));
             }

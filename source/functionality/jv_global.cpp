@@ -5,10 +5,8 @@
 #include "jv_fog.h"
 #include "jv_items.h"
 #include "jv_stairs.h"
-#include "jv_actors.h"
 #include "jv_tiled_bg.h"
 #include "jv_projectile.h"
-#include "jv_game_assets.h"
 #include "jv_map_classes.h"
 
 namespace jv{
@@ -26,7 +24,8 @@ void Global::init(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
     _cam = cam;
     _tiled_bg = t_bg;
     _assets = assets;
-    environment_id = 0;
+
+    _assets->cat.load_graphics(jv::animation::Id::Walk);
 }
 
 void Global::reset(){
@@ -78,13 +77,14 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 
 void Global::update_entity_animations(){
     Global::update();
-    if(!_assets->cat.graphics.animation->done()) _assets->cat.graphics.animation->update();
-    for(auto npc : _assets->v_npcs) if(npc->is_on_screen() && !npc->graphics.animation->done()) npc->graphics.animation->update();
+    Global::_assets->graphics_update();
 }
 
 void Global::clear_bg_map(){
     _tiled_bg->game_map().clear();
 }
+
+
 
 [[nodiscard]] bn::camera_ptr& Global::Camera(){
     return *_cam;
@@ -107,6 +107,10 @@ void Global::clear_bg_map(){
 [[nodiscard]] bn::random& Global::Random(){
     return _assets->randomizer;
 }
+[[nodiscard]] jv::Graphics_Manager& Global::Graphics_Manager(){
+    return _assets->graphicsManager;
+}
+
 
 [[nodiscard]] NPCs_ref_t Global::NPCs(){
     return _assets->v_npcs;

@@ -5,6 +5,7 @@
 #include "bn_keypad.h"
 
 #include "jv_actors.h"
+#include "jv_global.h"
 #include "jv_tiled_bg.h"
 #include "jv_map_classes.h"
 #include "jv_blocks_data.h"

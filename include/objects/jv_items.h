@@ -7,8 +7,6 @@
 #include "bn_sprite_ptr.h"
 #include "bn_sprite_builder.h"
 
-#include "jv_global.h"
-
 #include "bn_sprite_items_scene_items.h"
 
 namespace jv{

@@ -5,8 +5,6 @@
 #include "bn_assert.h"
 #include "bn_sprite_ptr.h"
 
-#include "jv_global.h"
-
 namespace jv{
 class Player;
 
@@ -28,7 +26,6 @@ struct Healthbar{
     void init();
 
     void update(){
-        //BN_ASSERT(*max_value >= *value, "Hp can't surpass MaxHp");
         int target_x = (-147 + 48*((*value)/bn::fixed(*max_value))).floor_integer();
          _sprites[2].set_x(target_x);
     }
