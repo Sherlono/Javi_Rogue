@@ -37,10 +37,9 @@ public:
 
     // Setters
     void set_state(int s){ _state = s;}
-    void set_enemies_ptr(bn::ivector<Enemy>* enemies) { _enemies_ref = enemies;}
 
     // Functionality
-    void reset();
+    void reset_at(bn::point p);
     void got_hit(int damage, bool ignoreDef = false);
     void update();
 
@@ -68,7 +67,6 @@ private:
     basic_stats _stats;
     bn::point _prev_pos;
     bn::rect _hitbox;
-    bn::ivector<Enemy>* _enemies_ref;
 };
 
 }

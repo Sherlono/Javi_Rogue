@@ -20,11 +20,11 @@ namespace {
 
     constexpr uint8_t NPCS_COUNT = 2;
     constexpr uint8_t ACTOR_COUNT = 7;
-    constexpr uint8_t MAX_ROOM_ROWS = 6;
-    constexpr uint8_t MAX_ROOM_COLUMNS = 6;
+    constexpr uint8_t MAX_ROOM_ROWS = 5;
+    constexpr uint8_t MAX_ROOM_COLUMNS = 5;
     constexpr uint8_t MAX_ROOMS = MAX_ROOM_ROWS*MAX_ROOM_COLUMNS;
     constexpr uint16_t MAX_ENEMIES = MAX_ROOMS*3;
-    constexpr uint8_t MAX_ACTORS = 2*2*2*2*2*2*2;
+    constexpr uint8_t MAX_ACTORS = 2*2*2*2*2*2;
     
     constexpr bn::fixed ONEMSQRTTWODTWO = 0.292893;    // 1 - sqrt(2)/2
 }

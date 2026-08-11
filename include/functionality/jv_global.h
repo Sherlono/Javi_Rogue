@@ -23,8 +23,8 @@ class Projectile;
 class GameMap;
 struct GameAssets;
 
-using NPCs_ref_t = bn::ivector<NPC>&;
-using enemy_ref_t = bn::ivector<Enemy>&;
+using NPCs_ref_t = bn::ivector<NPC*>&;
+using enemy_ref_t = bn::ivector<Enemy*>&;
 using projectiles_ref_t = bn::ivector<Projectile*>&;
 using graphics_ref_t = bn::iunordered_map<int, Actor::Graphics>&;
 

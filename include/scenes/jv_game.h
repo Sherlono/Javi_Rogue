@@ -16,6 +16,8 @@
 #include "bn_sprite_palette_actions.h"
 
 #include "jv_fog.h"
+#include "jv_cow.h"
+#include "jv_fox.h"
 #include "jv_math.h"
 #include "jv_global.h"
 #include "jv_tiled_bg.h"
@@ -50,7 +52,6 @@ public:
 private:
     LevelGenerator(const int level_width, const int level_height): zone(level_width, level_height)
         {
-            BN_LOG(Global::environment_id);
             generate_rooms();
             generate_corridors();
             
@@ -90,7 +91,7 @@ private:
         int mapIndex = roomConfig.option - 1;
         bn::point target;
         bool flip;
-
+        
         for(int y = 0; y < prefab_maps::data[mapIndex].height; y++){
             for(int x = 0; x < prefab_maps::data[mapIndex].width; x++){
                 const uint16_t index = x + y*prefab_maps::data[mapIndex].width;
@@ -110,15 +111,16 @@ private:
 
     void populate(bn::ivector<bn::point>& v_walkBlocks, bool spawnEnemies = true){
         enum EntityTag {Cat, Cow, Fox, Stairs};
-        BN_LOG(Global::environment_id);
+        enemy_ref_t enemies_ref = Global::Enemies();
+        NPCs_ref_t npcs_ref = Global::NPCs();
+            
         // Populate unique entities
         for(int i = 0; i < entity_checks[1].size(); i++){
             int index = Global::Random().get_int(v_walkBlocks.size());
 
             switch(entity_checks[1][i]){
                 case EntityTag::Cat:
-                    Global::Player().set_position(v_walkBlocks[index]);
-                    Global::Player().reset();
+                    Global::Player().reset_at(v_walkBlocks[index]);
                     Global::Camera().set_position(Global::Player().get_hitbox().position());
                     Global::update();
                     spawnEnemies = false;
@@ -127,13 +129,13 @@ private:
                     #endif
                     break;
                 case EntityTag::Cow:
-                    Global::NPCs().push_back(jv::NPC(Actor_data::Id::Cow, v_walkBlocks[index]));
+                    npcs_ref.push_back(new jv::Cow(v_walkBlocks[index]));
                     #if DEV_ENABLED
                     BN_LOG("Cow was created.");
                     #endif
                     break;
                 case EntityTag::Fox:
-                    Global::NPCs().push_back(jv::NPC(Actor_data::Id::Fox, v_walkBlocks[index]));
+                    npcs_ref.push_back(new jv::Fox(v_walkBlocks[index]));
                     #if DEV_ENABLED
                     BN_LOG("Fox was created.");
                     #endif
@@ -157,25 +159,24 @@ private:
         if(spawnEnemies){
             for(int i = 0; i < v_walkBlocks.size(); i++){
                 if(Global::Enemies().full()) break;
-
                 int rand = Global::Random().get_int(128);
                 switch(Global::environment_id){
                     case Global::Environments::Fortress:{
-                        /**/if(rand < 16){
-                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Bad_Cat, v_walkBlocks[i]));
+                        if(rand < 16){
+                            enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Bad_Cat, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
                         }else if(rand < 24){
-                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Pale_Finger, v_walkBlocks[i]));
+                            enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Pale_Finger, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
                         }else if(rand < 28){
-                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Pale_Tongue, v_walkBlocks[i]));
+                            enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Pale_Tongue, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }
+                        }/**/
                         break;
                     }
                     case Global::Environments::Jungle:{
-                        /**/if(rand < 16){
-                            Global::Enemies().push_back(jv::Enemy(Actor_data::Id::Snakes, v_walkBlocks[i]));
+                        if(rand < 16){
+                            enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Snakes, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
                         }
                         break;
@@ -193,9 +194,8 @@ private:
         int mapIndex = roomConfig.option - 1;
         
         switch(roomConfig.option){
-            case Empty:{
+            case Empty:
                 break;
-            }
             case Small1:{
                 bn::vector<bn::point, 49> v_walkBlocks;
                 insert_room(v_walkBlocks);
@@ -447,7 +447,7 @@ private:
 
         // Room generation and population
         entity_checks[0].clear();
-        for(uint8_t i = 0; i < UNIQUECOUNT; i++) { entity_checks[0].push_back(i);}
+        for(uint8_t i = 0; i < UNIQUECOUNT; i++)  entity_checks[0].push_back(i);
         
         for(int k = 0; k < v_roomConfigs.size(); k++){
             for(uint8_t i = 0; i < entity_checks[0].size(); i++){
@@ -561,9 +561,10 @@ private:
             bn::blending::set_transparency_alpha(0.8);
             
             Global::init(&_cam, &_tiled_bg, &_gameAssets);
-            
-            _gameAssets.cat.set_camera(_cam);
+
+            _gameAssets.cat.load_graphics(jv::animation::Id::Walk);
             _gameAssets.healthbar.init();
+
             text_generator.generate(64, -70, "Floor", _txt_sprts);
 
             #if DEV_ENABLED
@@ -678,10 +679,10 @@ private:
         _tiled_bg.init();
         _gameAssets.stairs.set_open(false);
         if(_gameAssets.fog.visible()) _gameAssets.fog.update();
-        for(auto enemy : _gameAssets.v_enemies) if(enemy.is_on_screen() && !enemy.has_graphics) enemy.update();
+        //for(auto enemy : _gameAssets.v_enemies) if(enemy.is_on_screen() && !enemy.has_graphics) enemy.update();
         
         #if DEV_ENABLED
-        //jv::Interface::Log_resources();
+        jv::Interface::Log_resources();
         while(cpu_sprts.size() > 1){ cpu_sprts.erase(cpu_sprts.end() - 1); }
         text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
         bn::core::update();
@@ -705,7 +706,6 @@ private:
 
         // Flush and reset objects
         _gameAssets.clear_objects();
-        _gameAssets.fog.clear();
         _txt_sprts.erase(_txt_sprts.begin() + 1);
 
         #if DEV_ENABLED
@@ -731,7 +731,7 @@ private:
                 // Debug Stuff
                 #if DEV_ENABLED
                 if(bn::keypad::l_pressed()) [[unlikely]] {
-                    int value = jv::Global::Map().cell(_gameAssets.cat.x()>>3, (_gameAssets.cat.y()+4)>>3);
+                    int value = _tiled_bg.game_map().cell(_gameAssets.cat.x()>>3, (_gameAssets.cat.y()+4)>>3);
                     BN_LOG("x: ", _gameAssets.cat.x()>>3, " y: ", (_gameAssets.cat.x()+4)>>3, " Value: ", value);
                 }else if(bn::keypad::select_pressed()) [[unlikely]] {
                     set_all_visible(false);

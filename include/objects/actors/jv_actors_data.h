@@ -35,7 +35,7 @@ namespace jv:: Actor_data{
         graphics_data( 4, bn::sprite_items::pale_tongue), 
         graphics_data( 4, bn::sprite_items::pale_finger), 
         graphics_data(10, bn::sprite_items::snakes),
-        graphics_data( 4, bn::sprite_items::cow), 
+        graphics_data(10, bn::sprite_items::cow), 
         graphics_data(10, bn::sprite_items::fox)
     };
 
@@ -45,7 +45,7 @@ namespace jv:: Actor_data{
         meta_data( 8, 0, 46, 20, 40, {16, 16}, {16, 16}), 
         meta_data(24, 0, 70, 40, 40, {32, 58}, {16, 16}), 
         meta_data(-2, 1, 46, 18, 40, {16, 16}, {12, 32}),
-        meta_data( 8, 0, 70, 40, 40, {16, 16}, {20, 20}), 
+        meta_data( 8, 1, 70, 40, 40, {16, 16}, {20, 20}), 
         meta_data( 8, 0, 46, 18, 40, {16, 16}, {20, 20})
     };
     

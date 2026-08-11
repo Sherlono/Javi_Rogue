@@ -1,5 +1,7 @@
 #include "jv_cow.h"
 
+#include "bn_log.h"
+
 #include "jv_math.h"
 #include "jv_global.h"
 #include "jv_dialog.h"
@@ -9,20 +11,30 @@
 #include "bn_sprite_items_cow.h"
 
 namespace jv{
-Cow::Cow(bn::point position):   // Constructor
+// Destructor
+Cow::~Cow(){
+    BN_LOG("Cow Destructor called.");    
+}
+
+// Constructor
+Cow::Cow(bn::point position):   
     NPC(Actor_data::Id::Cow, position)
     {
-        //if(is_on_screen()) load_graphics(animation::Id::Walk);
+        BN_LOG("Cow Constructor called.");
+        if(is_on_screen()) load_graphics(animation::Id::Walk);
     }
 
 void Cow::update(){
     if(is_on_screen()){
-        if(!has_graphics) load_graphics(animation::Id::Walk); 
+        if(!Global::Graphics_Manager().find(graphics_key)) load_graphics(animation::Id::Walk);
 
-        if(Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() > sprite().y()){
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() + 1);
+        Graphics& my_graphics = Global::Graphics_Manager()[graphics_key];
+        Graphics& player_graphics = Global::Graphics_Manager()[Global::Player().get_graphics_key()];
+
+        if(player_graphics.y() > my_graphics.y()){
+            my_graphics.set_z_order(player_graphics.z_order() + 1);
         }else{
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() - 1);
+            my_graphics.set_z_order(player_graphics.z_order() - 1);
         }
 
         if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()) [[likely]] {
@@ -39,11 +51,9 @@ void Cow::update(){
             }
         }
 
-        //Global::Actor_Graphic(graphics_id).animation.update();
     }else{
-        if(has_graphics){
+        if(Global::Graphics_Manager().find(graphics_key)){
             Global::Graphics_Manager().erase_sprite(graphics_key);
-            has_graphics = false;
         }
     }
 }

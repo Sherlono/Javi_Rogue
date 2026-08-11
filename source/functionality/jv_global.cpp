@@ -24,8 +24,6 @@ void Global::init(bn::camera_ptr* cam, jv::tiled_bg* t_bg, GameAssets* assets){
     _cam = cam;
     _tiled_bg = t_bg;
     _assets = assets;
-
-    _assets->cat.load_graphics(jv::animation::Id::Walk);
 }
 
 void Global::reset(){
@@ -77,7 +75,7 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 
 void Global::update_entity_animations(){
     Global::update();
-    Global::_assets->graphics_update();
+    Global::_assets->graphicsManager.graphics_update();
 }
 
 void Global::clear_bg_map(){

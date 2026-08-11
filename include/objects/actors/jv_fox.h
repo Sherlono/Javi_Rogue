@@ -6,7 +6,7 @@
 namespace jv{
 class Fox: public NPC{
 public:
-    ~Fox() = default;
+    ~Fox();
     // Constructor
     Fox(bn::point position);
     

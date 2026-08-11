@@ -6,12 +6,11 @@
 namespace jv{
 class Cow: public NPC{
 public:
-    ~Cow() = default;
+    ~Cow();
     // Constructor
     Cow(bn::point position);
 
     // Functionality
-    //void _movement() override {};
     void update() override;
     
 private:

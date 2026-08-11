@@ -1,6 +1,7 @@
 #include "jv_actors.h"
 
 #include "bn_array.h"
+#include "bn_string_view.h"
 
 #include "jv_math.h"
 #include "jv_global.h"
@@ -12,18 +13,54 @@
 
 namespace jv{
 // ************** Actor *************
+Actor::~Actor() {
+    BN_LOG("Actor Destructor called");
+}
 Actor::Actor(const uint8_t actor_id, const bn::point p):
-    id(actor_id), graphics_key(Global::Graphics_Manager().front_key()),
-    _rect(bn::rect(p.x(), p.y(), Actor_data::meta[id].rect_shape.width(), Actor_data::meta[id].rect_shape.height()))
+    id(actor_id), graphics_key(255),
+    _rect(bn::rect(p.x(), p.y(), Actor_data::meta[actor_id].rect_shape.width(), Actor_data::meta[actor_id].rect_shape.height()))
     {
-        //Global::Graphics_Manager().create_sprite(actor_id, animation::Id::Walk, p);
+        BN_LOG("Actor Constructor called");
+        /*bn::string_view actor_type_s = {};
+        switch(actor_id){
+            case Actor_data::Id::Player:{
+                actor_type_s = "Player";
+                break;
+            }
+            case Actor_data::Id::Bad_Cat:{
+                actor_type_s = "Bad_Cat";
+                break;
+            }
+            case Actor_data::Id::Pale_Tongue:{
+                actor_type_s = "Pale_Tongue";
+                break;
+            }
+            case Actor_data::Id::Pale_Finger:{
+                actor_type_s = "Pale_Finger";
+                break;
+            }
+            case Actor_data::Id::Cow:{
+                actor_type_s = "Cow";
+                break;
+            }
+            case Actor_data::Id::Fox:{
+                actor_type_s = "Fox";
+                break;
+            }
+            default:{
+                BN_BASIC_ASSERT("Bad id: ", actor_id);
+            }
+        }
+        BN_LOG("Actor Constructed: ", actor_type_s);*/
     }
 
 void Actor::set_position(const bn::fixed x, const bn::fixed y){
+    //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to position nonexistent sprite.");
     sprite().set_position(x, y);
     _rect.set_position(x.floor_integer(), y.floor_integer() + Actor_data::meta[id].sprt_y_offset);
 }
 void Actor::set_position(const bn::fixed_point point){
+    //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to position nonexistent sprite.");
     sprite().set_position(point.x(), point.y());
     _rect.set_position(point.x().floor_integer(), point.y().floor_integer() + Actor_data::meta[id].sprt_y_offset);
 }
@@ -35,13 +72,16 @@ bn::fixed_point Actor::Graphics::sprite_position = bn::fixed_point(0, 0);
 animation_type Actor::Graphics::frames = animation::Walk_do[0];
 
 [[nodiscard]] bn::sprite_ptr& Actor::sprite() {
+    //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to get nonexistent sprite.");
     return Global::Graphics_Manager()[graphics_key];
 }
 void Actor::set_visible(bool visible){
-    Global::Graphics_Manager()[graphics_key].set_visible(visible);
+    //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to access nonexistent sprite.");
+    sprite().set_visible(visible);
 }
 void Actor::set_camera(bn::camera_ptr& c){
-    Global::Graphics_Manager()[graphics_key].set_camera(c);
+    //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to access nonexistent sprite.");
+    sprite().set_camera(c);
 }
 
 [[nodiscard]] bool Actor::is_on_screen() const {
@@ -92,10 +132,49 @@ void Actor::set_camera(bn::camera_ptr& c){
 
 // Creates graphics of the respective id, direction and action in graphics manager
 void Actor::load_graphics(const animation::Id action){
-    BN_ASSERT(!has_graphics, "");
     Graphics::configure_animation(id, _dir, action, bn::point(x(), y() - Actor_data::meta[id].sprt_y_offset));
-    Global::Graphics_Manager().create_sprite();
-    has_graphics = true;
+
+    /*bn::string_view actor_type_s = {};
+    switch(id){
+        case Actor_data::Id::Player:{
+            actor_type_s = "Player";
+            break;
+        }
+        case Actor_data::Id::Bad_Cat:{
+            actor_type_s = "Bad_Cat";
+            break;
+        }
+        case Actor_data::Id::Pale_Tongue:{
+            actor_type_s = "Pale_Tongue";
+            break;
+        }
+        case Actor_data::Id::Pale_Finger:{
+            actor_type_s = "Pale_Finger";
+            break;
+        }
+        case Actor_data::Id::Cow:{
+            actor_type_s = "Cow";
+            break;
+        }
+        case Actor_data::Id::Fox:{
+            actor_type_s = "Fox";
+            break;
+        }
+        default:{
+            BN_BASIC_ASSERT("Bad id: ", id);
+        }
+    }*/
+    
+    /*BN_LOG("Before create sprite:");
+    BN_LOG("Graphics key: ", graphics_key, " | Graphics Type: ", actor_type_s);
+    BN_LOG("Key/Value is created: ", Global::Graphics_Manager().find(graphics_key));
+    BN_LOG("Key is available: ", Global::Graphics_Manager().is_available(graphics_key));*/
+
+    Global::Graphics_Manager().create_sprite(graphics_key);
+    /*BN_LOG("After create sprite:");
+    BN_LOG("Graphics key: ", graphics_key, " | Graphics Type: ", actor_type_s);
+    BN_LOG("Key/Value is created: ", Global::Graphics_Manager().find(graphics_key));
+    BN_LOG("Key is available: ", Global::Graphics_Manager().is_available(graphics_key));*/
 }
 
 
@@ -173,6 +252,7 @@ void Actor::Graphics::configure_animation(const uint8_t actor_id, const uint8_t 
 
 // Releases animation_action based on current Graphics configuration and action performed
 bn::sprite_animate_action<animation::MAX_FRAMES> Actor::Graphics::create_animation(){
+    set_horizontal_flip(horizontal_flip);
     if(action != animation::Id::Attack){
         return bn::sprite_animate_action<animation::MAX_FRAMES>::forever(*this,
                                                                          Actor_data::data[sprite_item_id].wait_frames,
@@ -189,7 +269,9 @@ bn::sprite_animate_action<animation::MAX_FRAMES> Actor::Graphics::create_animati
 
 
 // ************** Enemy *************
-Enemy::~Enemy() = default;
+Enemy::~Enemy(){
+    BN_LOG("Enemy Destructor called.");
+}
 
 void Enemy::got_hit(int attack){
     _attack_cooldown = 0;
@@ -206,13 +288,14 @@ void Enemy::got_hit(int attack){
     }
 }
 
-void Enemy::_start_attack(){
+void Enemy::_start_attack(Graphics& my_graphics){
     if(!_attack_cooldown){
         _attack_cooldown = Actor_data::meta[id].atk_end_cooldown;
-        Global::Graphics_Manager()[graphics_key].configure_animation(id, _dir, animation::Id::Attack, position());
+        Actor::Graphics::configure_animation(id, _dir, animation::Id::Attack, position());
+        my_graphics.animation = my_graphics.create_animation();
     }
 }
-void Enemy::_attack_update(){
+void Enemy::_attack_update(Graphics& my_graphics){
         _prev_attack_cooldown = _attack_cooldown;
         if(_attack_cooldown) _attack_cooldown--;
         if(_state != State::HURTING){
@@ -223,19 +306,21 @@ void Enemy::_attack_update(){
             bn::fixed_point player_direction = Global::Player().normalized_vector(position());
             look_at(player_direction);
 
-            Global::Graphics_Manager()[graphics_key].configure_animation(id, _dir, animation::Id::Walk, position());
+            Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
+            my_graphics.animation = my_graphics.create_animation();
         }
     }
 
-void Enemy::_simple_fsm_update(){
+void Enemy::_simple_fsm_update(Graphics& my_graphics){    
     if(get_state() == State::HURTING){
-        if(Global::Graphics_Manager()[graphics_key].animation.done()){
+        if(my_graphics.animation.done()){
             set_state(State::NORMAL);
             if(!_idle_time) _dir = NEUTRAL;
-            Global::Graphics_Manager()[graphics_key].configure_animation(id, _dir, animation::Id::Walk, position());
+            Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
+            my_graphics.animation = my_graphics.create_animation();
         }
     }else if(!is_attacking(40)){
-        _movement();
+        _movement(my_graphics);
     }
     // Combat
     if(Global::Player().alive()){
@@ -249,17 +334,17 @@ void Enemy::_simple_fsm_update(){
         }
     }
 
-    if(!Global::Graphics_Manager()[graphics_key].animation.done()){ Global::Graphics_Manager()[graphics_key].animation.update();}
+    if(!my_graphics.animation.done()){ my_graphics.animation.update();}
     _prev_dir = _dir;
 }
 
-void Enemy::_movement(){
+void Enemy::_movement(Graphics& my_graphics){
     bn::fixed_point player_direction = Global::Player().normalized_vector(position());
     
     // Player within range
     if(is_in_range(Global::Player().position(), Actor_data::meta[id].attack_range)){
         look_at(player_direction);
-        _start_attack();
+        _start_attack(my_graphics);
         
         if(_idle_time <= 2*60){
             _idle_time++;
@@ -271,7 +356,7 @@ void Enemy::_movement(){
         if(_idle_time <= 2*60){
             _idle_time++;
         }
-        bn::fixed target_x = Global::Graphics_Manager()[graphics_key].x(), target_y = Global::Graphics_Manager()[graphics_key].y();
+        bn::fixed target_x = my_graphics.x(), target_y = my_graphics.y();
         if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
             target_x += player_direction.x()*Actor_data::stats[id].speed;
         }
@@ -293,57 +378,63 @@ void Enemy::_movement(){
             _idle_time = 0;
         }
 
-        _displace(bn::fixed(0.5));
+        _displace(bn::fixed(0.5), my_graphics.position());
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
-            Global::Graphics_Manager()[graphics_key].configure_animation(id, _dir, animation::Id::Walk, position());
+            Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
+            my_graphics.animation = my_graphics.create_animation();
         }
     }
 }
 
-void Enemy::_displace(const bn::fixed speed){
+void Enemy::_displace(const bn::fixed speed, bn::fixed_point position){
     // If direction is valid
     if(_dir != NEUTRAL && _dir < 9){
         // Move if dir not obstructed
         if((_dir == NORTH || _dir == NORTHWEST || _dir == NORTHEAST) && _map_obstacle( NORTH)){          // UP
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHWEST || _dir == NORTHEAST);
-            set_position(Global::Graphics_Manager()[graphics_key].x(), Global::Graphics_Manager()[graphics_key].y() - speed*diagonal); 
+            set_position(position.x(), position.y() - speed*diagonal); 
         }else if((_dir == SOUTH || _dir == SOUTHWEST || _dir == SOUTHEAST) && _map_obstacle(SOUTH)){  // DOWN
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == SOUTHWEST || _dir == SOUTHEAST);
-            set_position(Global::Graphics_Manager()[graphics_key].x(), Global::Graphics_Manager()[graphics_key].y() + speed*diagonal);
+            set_position(position.x(), position.y() + speed*diagonal);
         }
         if((_dir == WEST || _dir == NORTHWEST || _dir == SOUTHWEST) && _map_obstacle(WEST)){  // LEFT
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHWEST || _dir == SOUTHWEST);
-            set_position(Global::Graphics_Manager()[graphics_key].x() - speed*diagonal, Global::Graphics_Manager()[graphics_key].y());
+            set_position(position.x() - speed*diagonal, position.y());
         }else if((_dir == EAST || _dir == NORTHEAST || _dir == SOUTHEAST) && _map_obstacle(EAST)){ // RIGHT
             bn::fixed diagonal = 1 - ONEMSQRTTWODTWO*(_dir == NORTHEAST || _dir == SOUTHEAST);
-            set_position(Global::Graphics_Manager()[graphics_key].x() + speed*diagonal, Global::Graphics_Manager()[graphics_key].y());
+            set_position(position.x() + speed*diagonal, position.y());
         }
     }
 }
 
 void Enemy::update(){
     if(is_on_screen()){
-        if(!has_graphics) load_graphics(animation::Id::Walk);
+        if(!Global::Graphics_Manager().find(graphics_key)) load_graphics(animation::Id::Walk);
+        
+        Graphics& my_graphics = Global::Graphics_Manager()[graphics_key];
+        bn::sprite_ptr& player_sprite = Global::Player().sprite();
 
-        if(Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() > sprite().y()){ sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() + 1);}
-        else{ sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() - 1);}
+        if(player_sprite.y() > my_graphics.y()){ my_graphics.set_z_order(player_sprite.z_order() + 1);}
+        else{ my_graphics.set_z_order(player_sprite.z_order() - 1);}
 
         if(alive()) [[likely]] {
-            _attack_update();
+            _attack_update(my_graphics);
 
             // Movement and Animations
             if(get_state() == State::HURTING){
-                if(Global::Graphics_Manager()[graphics_key].animation.done()){
+                if(my_graphics.animation.done()){
                     set_state(State::NORMAL);
                     if(!_idle_time) _dir = NEUTRAL;
-                    Global::Graphics_Manager()[graphics_key].configure_animation(id, _dir, animation::Id::Walk, position());
+                    Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
+                    my_graphics.animation = my_graphics.create_animation();
                 }
             }else if(!is_attacking(40)){
-                _movement();
+                _movement(my_graphics);
             }
+            
             // Combat
             if(Global::Player().alive()){
                 bool player_attack_connected = Global::Player().get_state() == State::ATTACKING && Global::Player().get_hitbox().intersects(rect());
@@ -359,16 +450,14 @@ void Enemy::update(){
             _prev_dir = _dir;
         }
     }else{
-        if(has_graphics){
-            Global::Graphics_Manager().erase_sprite(graphics_key);
-            has_graphics = false;
-        }
+        if(Global::Graphics_Manager().find(graphics_key)) Global::Graphics_Manager().erase_sprite(graphics_key);
     }
 }
 
 
 // ************* NPCs **************
-NPC::~NPC() = default;
-
+NPC::~NPC(){
+    BN_LOG("NPC Destructor called.");
+}
 
 }

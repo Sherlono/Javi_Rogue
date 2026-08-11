@@ -177,6 +177,7 @@ private:
             options[i].print(X_OFFSET + 8*maxStringSize, -70 + 9*i, v_text, text_generator);
         }
     }
+    
     static constexpr int8_t X_OFFSET = -124;
     int maxStringSize = 0;
     jv::menu_option* options;

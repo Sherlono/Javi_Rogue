@@ -31,7 +31,7 @@ using animation_type = bn::span<const uint16_t>;
 
 class Actor{
 public:
-    ~Actor() = default;
+    ~Actor();
     // Constructor
     Actor(const uint8_t actor_id, const bn::point p);
 
@@ -124,11 +124,10 @@ public:
         bn::sprite_animate_action<animation::MAX_FRAMES> animation;
     };
 
-    bool has_graphics = false;
+    uint8_t id, graphics_key;
 protected:
     [[nodiscard]] bool _map_obstacle(const uint8_t direction);
     
-    uint8_t id, graphics_key;
     uint8_t _prev_dir = SOUTH, _dir = SOUTH;
     bn::rect _rect;
 };
@@ -171,13 +170,13 @@ public:
     void update();
 
 private:
-    void _start_attack();
-    void _attack_update();
+    void _start_attack(Graphics& my_graphics);
+    void _attack_update(Graphics& my_graphics);
 
-    void _movement();
-    void _displace(const bn::fixed speed);
+    void _movement(Graphics& my_graphics);
+    void _displace(const bn::fixed speed, bn::fixed_point position);
     
-    void _simple_fsm_update();
+    void _simple_fsm_update(Graphics& my_graphics);
 
 protected:
     uint8_t _state = State::NORMAL, _idle_time = 0, hp;

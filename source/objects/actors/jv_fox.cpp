@@ -10,20 +10,25 @@
 #include "bn_sprite_items_cursor.h"
 
 namespace jv{
+Fox::~Fox(){
+    BN_LOG("Fox Destructor called.");
+}
 Fox::Fox(bn::point position):   // Constructor
     NPC(Actor_data::Id::Fox, position)
     {
-        //if(is_on_screen()) load_graphics(animation::Id::Walk);
+        BN_LOG("Fox Constructor called.");
+        if(is_on_screen()) load_graphics(animation::Id::Walk);
     }
 
 void Fox::force_move_player(){
+    Actor::Graphics& player_graphics = Global::Graphics_Manager()[Global::Player().get_graphics_key()];
     bn::fixed player_speed = Global::Player().get_speed()/2;
     bn::fixed_point player_target = this->position() + bn::point(0, 14);
-    bn::fixed_point player_direction = jv::normalize(player_target - Global::Graphics_Manager()[Global::Player().get_graphics_key()].position());
+    bn::fixed_point player_direction = jv::normalize(player_target - player_graphics.position());
     
     while(true){
         Global::update();
-        bn::fixed target_x = Global::Graphics_Manager()[Global::Player().get_graphics_key()].x(), target_y = Global::Graphics_Manager()[Global::Player().get_graphics_key()].y();
+        bn::fixed target_x = player_graphics.x(), target_y = player_graphics.y();
         if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
             target_x += player_direction.x()*player_speed;
         }
@@ -32,18 +37,19 @@ void Fox::force_move_player(){
         }
         Global::Player().set_position(target_x, target_y);
 
-        if(Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() > sprite().y()){
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() + 1);
+        if(player_graphics.y() > sprite().y()){
+            sprite().set_z_order(player_graphics.z_order() + 1);
         }else{
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() - 1);
+            sprite().set_z_order(player_graphics.z_order() - 1);
         }
         
-        Global::Graphics_Manager()[Global::Player().get_graphics_key()].animation.update();
+        player_graphics.animation.update();
         Global::Graphics_Manager()[graphics_key].animation.update();
 
-        if(player_target.y() - Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() < 0){
+        if(player_target.y() - player_graphics.y() < 0){
             Global::Player().set_position(player_target);
-            Global::Graphics_Manager()[Global::Player().get_graphics_key()].configure_animation(Actor_data::Id::Player, NORTH, animation::Id::Walk, Global::Player().position());
+            Actor::Graphics::configure_animation(Actor_data::Id::Player, NORTH, animation::Id::Walk, Global::Player().position());
+            player_graphics.animation = player_graphics.create_animation();
             break;
         }
         bn::core::update();
@@ -83,56 +89,57 @@ void Fox::choice(){
 
 void Fox::update(){
     if(is_on_screen()){
-        if(!has_graphics) load_graphics(animation::Id::Walk);
+        if(!Global::Graphics_Manager().find(graphics_key)) load_graphics(animation::Id::Walk);
 
-        if(Global::Graphics_Manager()[Global::Player().get_graphics_key()].y() > sprite().y()){
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() + 1);
+        Graphics& my_graphics = Global::Graphics_Manager()[graphics_key];
+        Graphics& player_graphics = Global::Graphics_Manager()[Global::Player().get_graphics_key()];
+
+        if(player_graphics.y() > my_graphics.y()){
+            my_graphics.set_z_order(player_graphics.z_order() + 1);
         }else{
-            sprite().set_z_order(Global::Graphics_Manager()[Global::Player().get_graphics_key()].z_order() - 1);
+            my_graphics.set_z_order(player_graphics.z_order() - 1);
         }
         
         if(Global::Player().get_state() == State::NORMAL && !Global::Player().is_attacking()) [[likely]] {
             // Dialog
             if(bn::keypad::a_pressed() && Global::Player().rect().intersects(rect()) && Global::Player().can_interact()){
-                Global::Player().get_hitbox().set_position(Global::Graphics_Manager()[graphics_key].x().floor_integer(), Global::Graphics_Manager()[graphics_key].y().floor_integer());
+                Global::Player().get_hitbox().set_position(my_graphics.x().floor_integer(), my_graphics.y().floor_integer());
 
                 force_move_player();
                 
                 jv::Dialog::init("Kekeke. Hello there delver. I got", "something you might like. All you", "have to do is guess correctly.");
                 
-                Global::Graphics_Manager()[graphics_key].animation = bn::create_sprite_animate_action_once(sprite(), 8, bn::sprite_items::fox.tiles_item(), 3, 4, 5, 6, 7);
+                my_graphics.animation = bn::create_sprite_animate_action_once(my_graphics, 8, bn::sprite_items::fox.tiles_item(), 3, 4, 5, 6, 7);
 
-                while(!Global::Graphics_Manager()[graphics_key].animation.done()){
+                while(!my_graphics.animation.done()){
                     Global::update();
-                    Global::Graphics_Manager()[Global::Player().get_graphics_key()].animation.update();
-                    Global::Graphics_Manager()[graphics_key].animation.update();
+                    player_graphics.animation.update();
+                    my_graphics.animation.update();
                     bn::core::update();
                 }
                 for(int stall = 0; stall < 30; stall++){
                     Global::update();
-                    Global::Graphics_Manager()[Global::Player().get_graphics_key()].animation.update();
+                    player_graphics.animation.update();
                     bn::core::update();
                 }
 
                 jv::Dialog::init("So tell me. Is it in your left or", "my right?.");
-                Global::Graphics_Manager()[graphics_key].animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 8, 9, 8, 10);
+                my_graphics.animation = bn::create_sprite_animate_action_forever(my_graphics, 8, bn::sprite_items::fox.tiles_item(), 8, 9, 8, 10);
 
                 choice();
 
-                Global::Graphics_Manager()[graphics_key].animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 7, 7, 7);
+                my_graphics.animation = bn::create_sprite_animate_action_forever(my_graphics, 8, bn::sprite_items::fox.tiles_item(), 7, 7, 7);
                 jv::Dialog::init("Sorry pal. Wrong paw. Better luck", "next time ;)");
-                Global::Graphics_Manager()[graphics_key].animation = bn::create_sprite_animate_action_forever(sprite(), 8, bn::sprite_items::fox.tiles_item(), 0, 1, 0, 2);
+                my_graphics.animation = bn::create_sprite_animate_action_forever(my_graphics, 8, bn::sprite_items::fox.tiles_item(), 0, 1, 0, 2);
                 
                 Global::Player().look_at({0, -1});
                 Global::Player().spend_interact_token();
             }
         }
 
-        //Global::Actor_Graphic(graphics_id).animation.update();
     }else{
-        if(has_graphics){
+        if(Global::Graphics_Manager().find(graphics_key)){
             Global::Graphics_Manager().erase_sprite(graphics_key);
-            has_graphics = false;
         }
     }
 }
