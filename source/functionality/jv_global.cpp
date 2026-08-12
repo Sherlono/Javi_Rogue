@@ -75,7 +75,7 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
 
 void Global::update_entity_animations(){
     Global::update();
-    Global::_assets->graphicsManager.graphics_update();
+    Global::_assets->graphicsManager.update();
 }
 
 void Global::clear_bg_map(){
@@ -90,6 +90,16 @@ void Global::clear_bg_map(){
 [[nodiscard]] jv::Player& Global::Player(){
     return _assets->cat;
 }
+[[nodiscard]] NPCs_ref_t Global::NPCs(){
+    return _assets->v_npcs;
+}
+[[nodiscard]] enemy_ref_t Global::Enemies(){
+    return _assets->v_enemies;
+}
+[[nodiscard]] projectiles_ref_t Global::Projectiles(){
+    return _assets->v_projectiles;
+}
+
 [[nodiscard]] jv::Stairs& Global::Stairs(){
     return _assets->stairs;
 }
@@ -109,15 +119,5 @@ void Global::clear_bg_map(){
     return _assets->graphicsManager;
 }
 
-
-[[nodiscard]] NPCs_ref_t Global::NPCs(){
-    return _assets->v_npcs;
-}
-[[nodiscard]] enemy_ref_t Global::Enemies(){
-    return _assets->v_enemies;
-}
-[[nodiscard]] projectiles_ref_t Global::Projectiles(){
-    return _assets->v_projectiles;
-}
 
 }

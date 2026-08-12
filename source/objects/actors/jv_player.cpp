@@ -21,10 +21,9 @@ void Player::reset_at(bn::point p){
     _moved = false;
     _hitbox.set_position(x(), y() + 16);
     
-    /*BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Nonexistent sprite is about to be accessed.");
-    Actor::Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
+    /*Actor::Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
 
-    Actor::Graphics::configure_animation(Actor_data::Id::Player, _dir, animation::Id::Walk, position());
+    Actor::Graphics::configure_animation(graphics_key, _dir, animation::Id::Walk, position());
     player_graphics.animation = player_graphics.create_animation();
     player_graphics.animation.update();*/
 }

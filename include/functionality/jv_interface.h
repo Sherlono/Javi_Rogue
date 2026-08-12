@@ -23,8 +23,7 @@
     static_assert(DEV_ENABLED, "Log is not enabled");
 #endif
 
-namespace jv{
-namespace Interface{
+namespace jv::Interface{
 inline void resetcombo(){
     if(bn::keypad::a_held() && bn::keypad::b_held() && bn::keypad::start_held() && bn::keypad::select_held()){ bn::core::reset();}
 }
@@ -62,27 +61,25 @@ inline void fade(const bool fadeIn, const unsigned char speed, const bool fademu
     }
 }
 
-inline void Log_skipped_frames(){
 #if DEV_ENABLED
+inline void Log_skipped_frames(){
     int skipped = bn::core::last_missed_frames();
     if(skipped != 0){
         //BN_LOG("******************");
         BN_LOG("Frames skipped: ", skipped);
         //BN_LOG("******************");
     }
-#endif
 }
 
 inline void Log_resources(){
-#if DEV_ENABLED
     BN_LOG("Sprites count: ", bn::sprites::used_items_count(), " Backgrounds count: ", bn::bgs::used_items_count());
     BN_LOG("Used alloc ewram: ", bn::memory::used_alloc_ewram(), " Available alloc ewram: ", bn::memory::available_alloc_ewram());
     BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
-#endif
 }
 
 void Log_zone_layout(GameMap& z);
-}
+#endif
+
 }
 
 #endif

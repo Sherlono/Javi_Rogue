@@ -20,7 +20,7 @@ public:
     [[nodiscard]] bool can_interact() const { return _interact_token;}
     [[nodiscard]] bool moved() const { return _moved;}
     [[nodiscard]] bn::point prev_position() const { return _prev_pos;}
-    [[nodiscard]] bn::fixed_point normalized_vector(bn::point entity_pos){
+    [[nodiscard]] inline bn::fixed_point normalized_vector(bn::point entity_pos){
         return jv::normalize(position() - entity_pos);
     }
 
@@ -50,7 +50,7 @@ public:
         _interact_token = false;
     }
 
-    bool invulnerable = false, noClip = false;
+    bool invulnerable = false, invisible = false, noClip = false;
     Inventory playerInventory;
 
 private:

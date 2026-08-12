@@ -3,8 +3,8 @@
 #include "jv_map_classes.h"
 
 namespace jv::Interface{
-void Log_zone_layout([[maybe_unused]] GameMap& zone){
 #if DEV_ENABLED
+void Log_zone_layout([[maybe_unused]] GameMap& zone){
     //BN_LOG("Level Layout. x: ", zone.width(), " y: ", zone.height());
     for(int y = 0; y < zone.height(); y++){
         bn::string_view line = "";
@@ -13,7 +13,7 @@ void Log_zone_layout([[maybe_unused]] GameMap& zone){
         }
         BN_LOG(line);
     }
-#endif
 }
+#endif
 
 }

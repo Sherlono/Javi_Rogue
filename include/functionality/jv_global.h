@@ -48,14 +48,15 @@ public:
     [[nodiscard]] static bn::camera_ptr& Camera();
     [[nodiscard]] static jv::Player& Player();
     [[nodiscard]] static jv::Stairs& Stairs();
+    [[nodiscard]] static NPCs_ref_t NPCs();
+    [[nodiscard]] static enemy_ref_t Enemies();
+    [[nodiscard]] static projectiles_ref_t Projectiles();
+    
     [[nodiscard]] static jv::Fog<MAX_ROOMS>& Fog();
     [[nodiscard]] static jv::tiled_bg& Tiled_Bg();
     [[nodiscard]] static jv::GameMap& Map();
     [[nodiscard]] static bn::random& Random();
     [[nodiscard]] static jv::Graphics_Manager& Graphics_Manager();
-    [[nodiscard]] static NPCs_ref_t NPCs();
-    [[nodiscard]] static enemy_ref_t Enemies();
-    [[nodiscard]] static projectiles_ref_t Projectiles();
 
     [[nodiscard]] static bn::point cam_pos(){
         return _cam_position;

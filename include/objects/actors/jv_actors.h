@@ -64,7 +64,7 @@ public:
     //Functionality
     void look_at(bn::fixed_point normalizedVector){
         bn::fixed abs_x = bn::abs(normalizedVector.x()), abs_y = bn::abs(normalizedVector.y());
-
+        //_prev_dir = _dir;
         if(normalizedVector.y() < -0.5){
             if(abs_y > abs_x){
                 _dir = NORTH;
@@ -133,14 +133,12 @@ protected:
 };
 
 namespace Actor_data{
-    constexpr bn::array<Actor::basic_stats, ACTOR_COUNT> stats = {
-        Actor::basic_stats(1, 1, 5, bn::fixed(1.5)),
-        Actor::basic_stats{1, 1, 3, bn::fixed(1.0)},
-        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},
-        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},
-        Actor::basic_stats{1, 1, 3, bn::fixed(1.0)},
-        Actor::basic_stats{1, 1, 1, bn::fixed(0)},
-        Actor::basic_stats{1, 1, 1, bn::fixed(0)}
+    constexpr bn::array<Actor::basic_stats, ACTOR_COUNT - NPCS_COUNT> stats = {
+        Actor::basic_stats(1, 1, 5, bn::fixed(1.5)),    // good cat
+        Actor::basic_stats{1, 1, 3, bn::fixed(1.1)},    // bad cat
+        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},    // pale tongue
+        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},    // pale finger
+        Actor::basic_stats{1, 1, 3, bn::fixed(1.1)}     // snakes
     };
 }
 
