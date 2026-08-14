@@ -1,7 +1,6 @@
 #include "jv_actors.h"
 
 #include "bn_array.h"
-#include "bn_string_view.h"
 
 #include "jv_math.h"
 #include "jv_global.h"
@@ -22,7 +21,13 @@ Actor::Actor(const uint8_t actor_id, const bn::point p):
     _rect(bn::rect(p.x(), p.y(),
           Actor_data::meta[actor_id].rect_shape.width(),
           Actor_data::meta[actor_id].rect_shape.height())) { }
-
+Actor::Actor(Actor& other){
+    _prev_dir = other._prev_dir;
+    _dir = other._dir;
+    id = other.id;
+    _rect = other._rect;
+    graphics_key = 255;
+}
 void Actor::set_position(const bn::fixed x, const bn::fixed y){
     //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to position nonexistent sprite.");
     sprite().set_position(x, y);
@@ -254,10 +259,12 @@ void Enemy::got_hit(int attack){
 }
 
 void Enemy::_start_attack(Graphics& my_graphics){
-    if(!_attack_cooldown){
-        _attack_cooldown = 60;
+    bool is_finger = id == Actor_data::Pale_Finger;
+    if(!(_attack_cooldown + is_finger*_idle_time)){
+        _attack_cooldown = Actor_data::meta[id].atk_end_cooldown;
         Actor::Graphics::configure_animation(id, _dir, animation::Id::Attack, position());
         my_graphics.animation = my_graphics.create_animation();
+        if(is_finger) Global::create_projectile(x(), y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
 void Enemy::_attack_update(Graphics& my_graphics){
@@ -268,8 +275,7 @@ void Enemy::_attack_update(Graphics& my_graphics){
         if(_attack_cooldown == 40) _state = State::ATTACKING;
     }
     if(attack_ended(40)){
-        bn::fixed_point player_direction = Global::Player().normalized_vector(position());
-        look_at(player_direction);
+        look_at(Global::Player().normalized_vector(position()));
 
         Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
         my_graphics.animation = my_graphics.create_animation();
@@ -282,7 +288,6 @@ void Enemy::_simple_fsm_update(Graphics& my_graphics){
         if(my_graphics.animation.done()){
             set_state(State::NORMAL);
             if(!_idle_time){
-                BN_LOG("Dong!");
                 _dir = NEUTRAL;
             }
             Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
@@ -299,41 +304,74 @@ void Enemy::_simple_fsm_update(Graphics& my_graphics){
         if(player_attack_connected){
             got_hit(player_ref.get_attack());
         }
-        bool attack_connected_player = get_state() == State::ATTACKING && is_in_range(player_ref.position(), 25);
-        if(attack_connected_player){
-            player_ref.got_hit(Actor_data::stats[id].attack);
+        if(id != Actor_data::Pale_Finger) {
+            bool attack_connected_player = get_state() == State::ATTACKING && is_in_range(player_ref.position(), 25);
+            if(attack_connected_player){
+                player_ref.got_hit(Actor_data::stats[id].attack);
+            }
         }
     }
 }
 
 void Enemy::_movement(Graphics& my_graphics){
-    bn::fixed_point player_direction = Global::Player().normalized_vector(position());
+    bn::fixed_point player_direction = Global::Player().normalized_vector(position() - bn::point(0, 8*(id == Actor_data::Pale_Finger)));
     
     // Player within range
     if(is_in_range(Global::Player().position(), Actor_data::meta[id].attack_range)){
         if(!Global::Player().invisible){
             look_at(player_direction);
-            _start_attack(my_graphics);
-            
-            if(_idle_time <= 2*60){
-                _idle_time++;
-            }else{
-                _idle_time = 0;
+            if(id != Actor_data::Pale_Finger){
+                _start_attack(my_graphics);
+                
+                if(_idle_time <= 2*60){
+                    _idle_time++;
+                }else{
+                    _idle_time = 0;
+                }
+            }
+            else{
+                if(_idle_time <= 2*60){
+                    _idle_time++;
+                }
+                bn::fixed target_x = my_graphics.x(), target_y = my_graphics.y();
+
+                if((player_direction.x() < 0 && _map_obstacle(EAST)) || (player_direction.x() > 0 && _map_obstacle(WEST))){
+                    target_x -= player_direction.x()*Actor_data::stats[id].speed;
+                }
+                if((player_direction.y() < 0 && _map_obstacle(SOUTH)) || (player_direction.y() > 0 && _map_obstacle(NORTH))){
+                    target_y -= player_direction.y()*Actor_data::stats[id].speed;
+                }
+
+                set_position(target_x, target_y);
             }
         }
     }else if(is_in_range(Global::Player().position(), Actor_data::meta[id].view_range)){
         if(!Global::Player().invisible){
             look_at(player_direction);
-            if(_idle_time <= 2*60) _idle_time++;
             
-            bn::fixed target_x = my_graphics.x(), target_y = my_graphics.y();
-            if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
-                target_x += player_direction.x()*Actor_data::stats[id].speed;
+            if(id != Actor_data::Pale_Finger){
+                if(_idle_time <= 2*60) _idle_time++;
+                
+                bn::fixed target_x = my_graphics.x(), target_y = my_graphics.y();
+                if((player_direction.x() > 0 && _map_obstacle(EAST)) || (player_direction.x() < 0 && _map_obstacle(WEST))){
+                    target_x += player_direction.x()*Actor_data::stats[id].speed;
+                }
+                if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
+                    target_y += player_direction.y()*Actor_data::stats[id].speed;
+                }
+                
+                set_position(target_x, target_y);
             }
-            if((player_direction.y() > 0 && _map_obstacle(SOUTH)) || (player_direction.y() < 0 && _map_obstacle(NORTH))){
-                target_y += player_direction.y()*Actor_data::stats[id].speed;
+            else{
+                if(_idle_time == 0){
+                    _start_attack(my_graphics);
+                    _idle_time++;
+                }else if(_idle_time <= 2*60){
+                    _idle_time++;
+                }else{
+                    _idle_time = 0;
+                }
             }
-            set_position(target_x, target_y);
         }
     }
 
@@ -389,7 +427,7 @@ void Enemy::update(){
         Graphics& my_graphics = Global::Graphics_Manager()[graphics_key];
         bn::sprite_ptr& player_sprite = Global::Player().sprite();
 
-        if(player_sprite.y() > my_graphics.y()){ my_graphics.set_z_order(player_sprite.z_order() + 1);}
+        if(Global::Player().y() > y()){ my_graphics.set_z_order(player_sprite.z_order() + 1);}
         else{ my_graphics.set_z_order(player_sprite.z_order() - 1);}
 
         if(alive()) [[likely]] {

@@ -33,7 +33,10 @@ class Actor{
 public:
     ~Actor();
     // Constructor
+    Actor() = delete;
     Actor(const uint8_t actor_id, const bn::point p);
+    Actor(Actor& other);
+    Actor(Actor&& other) = delete;
 
     enum Direction { NEUTRAL, NORTH, SOUTH, WEST, NORTHWEST, SOUTHWEST, EAST, NORTHEAST, SOUTHEAST};
     enum State { NORMAL, ATTACKING, HURTING, CHARGING, DEAD};

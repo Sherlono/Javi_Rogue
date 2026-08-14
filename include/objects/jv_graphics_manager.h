@@ -51,6 +51,9 @@ public:
     void set_all_visible(bool visible){
         for(auto it = um_graphics.begin(); it != um_graphics.end(); it++) it->second.set_visible(visible);
     }
+    void clear(){
+        for(auto g : um_graphics) um_graphics.erase(g.first);
+    }
     void update();
 
 private:

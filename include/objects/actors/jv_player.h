@@ -7,7 +7,7 @@
 namespace jv{
 class Player: public Actor{
 public:
-    ~Player() = default;
+    ~Player();
     // Constructor
     Player(bn::point position);
 

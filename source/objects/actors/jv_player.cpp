@@ -5,7 +5,15 @@
 
 #include "bn_sprite_items_good_cat.h"
 
+#if DEV_ENABLED
+    #include "bn_log.h"
+    #include "bn_string.h"
+    static_assert(DEV_ENABLED, "Log is not enabled");
+#endif
+
 namespace jv{
+Player::~Player() {}
+
 Player::Player(bn::point position): // Constructor
     Actor(Actor_data::Id::Player, position),
     _stats(basic_stats(1, 1, 5, bn::fixed(1.5))),
@@ -19,13 +27,14 @@ void Player::reset_at(bn::point p){
     _prev_dir = NEUTRAL;
     _dir = SOUTH;
     _moved = false;
-    _hitbox.set_position(x(), y() + 16);
+    _hitbox.set_position(x(), y() + 12);
     
-    /*Actor::Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
+    Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
 
-    Actor::Graphics::configure_animation(graphics_key, _dir, animation::Id::Walk, position());
-    player_graphics.animation = player_graphics.create_animation();
-    player_graphics.animation.update();*/
+    player_graphics.set_horizontal_flip(false);
+    player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 4, bn::sprite_items::good_cat.tiles_item(), animation::Walk_do[0]);
+    player_graphics.animation.update();/**/
+    
 }
 
 bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction){
@@ -75,7 +84,7 @@ bool Player::_enemy_obstacle(const int x, const int  y, const uint8_t direction)
 }
 
 void Player::got_hit(int damage, bool ignoreDef){
-    if(!invulnerable){
+    if(!invulnerable && alive()){
         _state = State::HURTING;
         _attack_cooldown = 0;
         _prev_attack_cooldown = 0;
@@ -85,14 +94,18 @@ void Player::got_hit(int damage, bool ignoreDef){
         else dmg = damage/_stats.defense;
         _hp = dmg > _hp ? 0 : _hp - dmg;
 
+        Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
+
         if(_hp > 0) [[likely]] {
-            sprite().set_horizontal_flip(_dir == WEST);
-            Global::Graphics_Manager()[graphics_key].animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(sprite(), 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
+            player_graphics.set_horizontal_flip(_dir == WEST);
+            player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
         }else{
             bn::sound_items::death.play(0.5);
             _state = State::DEAD;
-            sprite().set_horizontal_flip(false);
-            sprite().set_tiles(bn::sprite_items::good_cat.tiles_item().create_tiles(23));
+            player_graphics.set_horizontal_flip(false);
+            const bn::array<uint16_t, 2> dead_animation = {23, 23};
+            animation_type frames = dead_animation;
+            player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 8, bn::sprite_items::good_cat.tiles_item(), frames);
             _hitbox.set_position(_rect.position());
         }
     }

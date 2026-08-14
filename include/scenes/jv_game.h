@@ -46,7 +46,8 @@
 
 namespace jv::Scenes{
 enum class Tag {Restart, Main, Credits, Blocks, Tiles};
-struct MainGame{
+class MainGame{
+public:
     static void Start(bn::random& r){
         MainGame instance(r);
     }
@@ -101,6 +102,8 @@ private:
                 update();
                 level_end();
             }
+
+            Global::Graphics_Manager().clear();
 
             bn::sprites::set_blending_bottom_enabled(true);
             bn::music::stop();
@@ -247,7 +250,7 @@ private:
             // Player update
             _gameAssets.cat.update();
 
-            if(_gameAssets.cat.alive()) [[likely]] {
+            if(_gameAssets.cat.alive()) /*heh*/ [[likely]] {
                 _next_level = _gameAssets.stairs.climb();
                 _gameAssets.scene_items_update();
 
@@ -310,7 +313,9 @@ private:
             text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
             #endif
 
+            #if DEV_ENABLED
             if(bn::keypad::r_held()) for(int i = 0; i < 8; i++) bn::core::update(); // Slow down game
+            #endif
 
             jv::Interface::resetcombo();
             bn::core::update();
