@@ -10,13 +10,11 @@
 #include "bn_sprite_items_cursor.h"
 
 namespace jv{
-Fox::~Fox(){
-    BN_LOG("Fox Destructor called.");
-}
+Fox::~Fox() {}
 Fox::Fox(bn::point position):   // Constructor
     NPC(Actor_data::Id::Fox, position)
     {
-        BN_LOG("Fox Constructor called.");
+        //BN_LOG("Fox Constructor called.");
         if(is_on_screen()) load_graphics(animation::Id::Walk);
     }
 
@@ -42,9 +40,6 @@ void Fox::force_move_player(){
         }else{
             sprite().set_z_order(player_graphics.z_order() - 1);
         }
-        
-        player_graphics.animation.update();
-        Global::Graphics_Manager()[graphics_key].animation.update();
 
         if(player_target.y() - player_graphics.y() < 0){
             Global::Player().set_position(player_target);
@@ -52,6 +47,7 @@ void Fox::force_move_player(){
             player_graphics.animation = player_graphics.create_animation();
             break;
         }
+        Global::update_animations();
         bn::core::update();
     }
 }
@@ -112,14 +108,11 @@ void Fox::update(){
                 my_graphics.animation = bn::create_sprite_animate_action_once(my_graphics, 8, bn::sprite_items::fox.tiles_item(), 3, 4, 5, 6, 7);
 
                 while(!my_graphics.animation.done()){
-                    Global::update();
-                    player_graphics.animation.update();
-                    my_graphics.animation.update();
+                    Global::update_animations();
                     bn::core::update();
                 }
                 for(int stall = 0; stall < 30; stall++){
-                    Global::update();
-                    player_graphics.animation.update();
+                    Global::update_animations();
                     bn::core::update();
                 }
 

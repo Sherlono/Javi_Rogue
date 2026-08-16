@@ -43,7 +43,7 @@ bool Actor::Graphics::horizontal_flip = false;
 animation::Id Actor::Graphics::action = animation::Id::Walk;
 uint16_t Actor::Graphics::sprite_item_id = 0;
 bn::fixed_point Actor::Graphics::sprite_position = bn::fixed_point(0, 0);
-animation_type Actor::Graphics::frames = animation::Walk_do[0];
+animation_type Actor::Graphics::frames = animation::W_down[0];
 
 [[nodiscard]] bn::sprite_ptr& Actor::sprite() {
     //BN_ASSERT(Global::Graphics_Manager().find(graphics_key), "Tried to get nonexistent sprite.");
@@ -59,10 +59,17 @@ void Actor::set_camera(bn::camera_ptr& c){
 }
 
 [[nodiscard]] bool Actor::is_on_screen() const {
-    uint8_t x_offset = 120 + Actor_data::meta[id].half_size.width(), y_offset = Actor_data::meta[id].half_size.height() + 80 + Actor_data::meta[id].sprt_y_offset;
-    bool up = y() > Global::cam_pos().y() - y_offset, down = y() < Global::cam_pos().y() + y_offset;
-    bool left = x() > Global::cam_pos().x() - x_offset, right = x() < Global::cam_pos().x() + x_offset;
-    return left && right && up && down;
+    const int aux_x = _rect.x() - Global::cam_pos().x(), aux_y = _rect.y() - Global::cam_pos().y();
+    if(aux_y <= -Actor_data::meta[id].on_screen_offset.height()){
+        return false;
+    }else if(aux_y >= Actor_data::meta[id].on_screen_offset.height()){
+        return false;
+    }else if(aux_x <= -Actor_data::meta[id].on_screen_offset.width()){
+        return false;
+    }else if(aux_x >= Actor_data::meta[id].on_screen_offset.width()){
+        return false;
+    }
+    return true;
 }
 
 [[nodiscard]] bool Actor::_map_obstacle(const uint8_t direction){
@@ -170,16 +177,16 @@ void Actor::Graphics::configure_animation(const uint8_t actor_id, const uint8_t 
         case animation::Id::Walk:{
             if(dir == NORTH || dir == NORTHWEST || dir == NORTHEAST){        // UP
                 horizontal_flip = false;
-                frames = animation::Walk_up[Actor_data::meta[actor_id].anim_set];
+                frames = animation::W_up[Actor_data::meta[actor_id].anim_set];
             }else if(dir == SOUTH || dir == SOUTHWEST || dir == SOUTHEAST){  // DOWN
                 horizontal_flip = false;
-                frames = animation::Walk_do[Actor_data::meta[actor_id].anim_set];
+                frames = animation::W_down[Actor_data::meta[actor_id].anim_set];
             }else if(dir == WEST){                            // LEFT
                 horizontal_flip = true;
-                frames = animation::Walk_ho[Actor_data::meta[actor_id].anim_set];
+                frames = animation::W_horiz[Actor_data::meta[actor_id].anim_set];
             }else if(dir == EAST){                            // RIGHT
                 horizontal_flip = false;
-                frames = animation::Walk_ho[Actor_data::meta[actor_id].anim_set];
+                frames = animation::W_horiz[Actor_data::meta[actor_id].anim_set];
             }else{
                 horizontal_flip = false;
                 frames = animation::idle[Actor_data::meta[actor_id].anim_set];
@@ -190,16 +197,16 @@ void Actor::Graphics::configure_animation(const uint8_t actor_id, const uint8_t 
         case animation::Id::Attack:{
             if(dir == NORTH || dir == NORTHWEST || dir == NORTHEAST){        // UP
                 horizontal_flip = false;
-                frames = animation::Attack_up[Actor_data::meta[actor_id].anim_set];
+                frames = animation::Atk_up[Actor_data::meta[actor_id].anim_set];
             }else if(dir == SOUTH || dir == SOUTHWEST || dir == SOUTHEAST){  // DOWN
                 horizontal_flip = false;
-                frames = animation::Attack_do[Actor_data::meta[actor_id].anim_set];
+                frames = animation::Atk_do[Actor_data::meta[actor_id].anim_set];
             }else if(dir == WEST){                            // LEFT
                 horizontal_flip = true;
-                frames = animation::Attack_ho[Actor_data::meta[actor_id].anim_set];
+                frames = animation::Atk_horiz[Actor_data::meta[actor_id].anim_set];
             }else if(dir == EAST){                            // RIGHT
                 horizontal_flip = false;
-                frames = animation::Attack_ho[Actor_data::meta[actor_id].anim_set];
+                frames = animation::Atk_horiz[Actor_data::meta[actor_id].anim_set];
             }else{
                 horizontal_flip = false;
                 frames = animation::idle[Actor_data::meta[actor_id].anim_set];
@@ -214,7 +221,7 @@ void Actor::Graphics::configure_animation(const uint8_t actor_id, const uint8_t 
         }
         default:{
             horizontal_flip = false;
-            frames = animation::Walk_do[Actor_data::meta[actor_id].anim_set];
+            frames = animation::W_down[Actor_data::meta[actor_id].anim_set];
             break;
         }
     }
@@ -231,7 +238,7 @@ bn::sprite_animate_action<animation::MAX_FRAMES> Actor::Graphics::create_animati
     }
     else {
         return bn::sprite_animate_action<animation::MAX_FRAMES>::once(*this,
-                                                                      Actor_data::data[sprite_item_id].wait_frames,
+                                                                      4,
                                                                       Actor_data::data[sprite_item_id].sprite_item_ref.tiles_item(),
                                                                       frames);
     }
@@ -251,7 +258,7 @@ void Enemy::got_hit(int attack){
     if(hp > 0) [[likely]] {
         _state = State::HURTING;
         my_graphics.set_horizontal_flip(_dir == WEST);
-        my_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(my_graphics, 8, Actor_data::data[id].sprite_item_ref.tiles_item(), animation::hurt);
+        my_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(my_graphics, 8, Actor_data::data[id].sprite_item_ref.tiles_item(), animation::hurt[Actor_data::meta[id].anim_set]);
     }else{
         my_graphics.set_horizontal_flip(false);
         _state = State::DEAD;
@@ -313,12 +320,26 @@ void Enemy::_simple_fsm_update(Graphics& my_graphics){
     }
 }
 
+// Random direction
+void Enemy::_idle(Graphics& my_graphics){
+    if(_idle_time == 0){
+        _dir = Global::Random().get_int(12);
+        _idle_time++;
+    }else if(_idle_time <= 1*60 + _dir*2){
+        _idle_time++;
+    }else{
+        _idle_time = 0;
+    }
+
+    _displace(bn::fixed(0.5), my_graphics.position());
+}
+
 void Enemy::_movement(Graphics& my_graphics){
     bn::fixed_point player_direction = Global::Player().normalized_vector(position() - bn::point(0, 8*(id == Actor_data::Pale_Finger)));
     
     // Player within range
-    if(is_in_range(Global::Player().position(), Actor_data::meta[id].attack_range)){
-        if(!Global::Player().invisible){
+    if(!Global::Player().invisible){
+        if(is_in_range(Global::Player().position(), Actor_data::meta[id].attack_range)){
             look_at(player_direction);
             if(id != Actor_data::Pale_Finger){
                 _start_attack(my_graphics);
@@ -344,9 +365,7 @@ void Enemy::_movement(Graphics& my_graphics){
 
                 set_position(target_x, target_y);
             }
-        }
-    }else if(is_in_range(Global::Player().position(), Actor_data::meta[id].view_range)){
-        if(!Global::Player().invisible){
+        }else if(is_in_range(Global::Player().position(), Actor_data::meta[id].view_range)){
             look_at(player_direction);
             
             if(id != Actor_data::Pale_Finger){
@@ -373,26 +392,20 @@ void Enemy::_movement(Graphics& my_graphics){
                 }
             }
         }
-    }
-
-    // Random direction
-    else{
-        if(_idle_time == 0){
-            _dir = Global::Random().get_int(12);
-            _idle_time++;
-        }else if(_idle_time <= 1*60 + _dir*2){
-            _idle_time++;
-        }else{
-            _idle_time = 0;
+        else{
+            _idle(my_graphics);
         }
-
-        _displace(bn::fixed(0.5), my_graphics.position());
+        
+    }
+    else{
+        _idle(my_graphics);
     }
     
     if(_state == State::NORMAL && !is_attacking(40)){
         if(_prev_dir != _dir){
             Actor::Graphics::configure_animation(id, _dir, animation::Id::Walk, position());
             my_graphics.animation = my_graphics.create_animation();
+            _rotate_rect();
         }
     }
 }
@@ -427,13 +440,14 @@ void Enemy::update(){
         Graphics& my_graphics = Global::Graphics_Manager()[graphics_key];
         bn::sprite_ptr& player_sprite = Global::Player().sprite();
 
-        if(Global::Player().y() > y()){ my_graphics.set_z_order(player_sprite.z_order() + 1);}
-        else{ my_graphics.set_z_order(player_sprite.z_order() - 1);}
+        if(Global::Player().y() > y()){ my_graphics.set_z_order(player_sprite.z_order() + 1); }
+        else{ my_graphics.set_z_order(player_sprite.z_order() - 1); }
 
         if(alive()) [[likely]] {
             _attack_update(my_graphics);
             _simple_fsm_update(my_graphics);
         }
+
         _prev_dir = _dir;
     }else{
         if(Global::Graphics_Manager().find(graphics_key)) Global::Graphics_Manager().erase_sprite(graphics_key);

@@ -12,15 +12,13 @@
 
 namespace jv{
 // Destructor
-Cow::~Cow(){
-    BN_LOG("Cow Destructor called.");    
-}
+Cow::~Cow() {}
 
 // Constructor
 Cow::Cow(bn::point position):   
     NPC(Actor_data::Id::Cow, position)
     {
-        BN_LOG("Cow Constructor called.");
+        //BN_LOG("Cow Constructor called.");
         if(is_on_screen()) load_graphics(animation::Id::Walk);
     }
 

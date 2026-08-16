@@ -50,11 +50,11 @@ inline void init(const bn::string_view line_1, const bn::string_view line_2 = ""
         txt_sprts[0].clear();
         text = text + letter;
         text_generator.generate(-88, 42, text, txt_sprts[0]);
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
     while(!bn::keypad::a_pressed() && !bn::keypad::b_pressed()){
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
 
@@ -63,11 +63,11 @@ inline void init(const bn::string_view line_1, const bn::string_view line_2 = ""
         txt_sprts[1].clear();
         text = text + letter;
         text_generator.generate(-88, 52, text, txt_sprts[1]);
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
     while(!bn::keypad::a_pressed() && !bn::keypad::b_pressed()){
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
 
@@ -76,12 +76,12 @@ inline void init(const bn::string_view line_1, const bn::string_view line_2 = ""
         txt_sprts[2].clear();
         text = text + letter;
         text_generator.generate(-88, 62, text, txt_sprts[2]);
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
 
     while(!bn::keypad::a_pressed() && !bn::keypad::b_pressed()){
-        Global::update_entity_animations();
+        Global::update_animations();
         bn::core::update();
     }
 

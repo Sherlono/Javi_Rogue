@@ -93,16 +93,6 @@ public:
         }
     }
     void load_graphics(const animation::Id action);
-    void rotate_rect(){
-        bool was_ho = _prev_dir == Direction::EAST || _prev_dir == Direction::WEST;
-        bool is_ho = _dir == Direction::EAST || _dir == Direction::WEST;
-        if(is_ho != was_ho){
-            int rect_width = _rect.width();
-            _rect.set_width(_rect.height());
-            _rect.set_height(rect_width);
-        }
-    }
-
     struct basic_stats{
         constexpr basic_stats(const uint8_t att, const uint8_t def, const uint8_t maxhp, const bn::fixed spe):
             attack(att), defense(def), max_hp(maxhp), speed(spe){}
@@ -130,6 +120,16 @@ public:
     uint8_t id, graphics_key;
 protected:
     [[nodiscard]] bool _map_obstacle(const uint8_t direction);
+    void _rotate_rect(){
+        bool was_ho = _prev_dir == Direction::EAST || _prev_dir == Direction::WEST;
+        bool is_ho = _dir == Direction::EAST || _dir == Direction::WEST;
+        if(is_ho != was_ho){
+            int rect_width = _rect.width();
+            _rect.set_width(_rect.height());
+            _rect.set_height(rect_width);
+        }
+    }
+
     
     uint8_t _prev_dir = SOUTH, _dir = SOUTH;
     bn::rect _rect;
@@ -174,9 +174,9 @@ private:
     void _start_attack(Graphics& my_graphics);
     void _attack_update(Graphics& my_graphics);
 
-    void _movement(Graphics& my_graphics);
+    void _idle(Graphics& my_graphics);
     void _displace(const bn::fixed speed, bn::fixed_point position);
-    
+    void _movement(Graphics& my_graphics);
     void _simple_fsm_update(Graphics& my_graphics);
 
 protected:

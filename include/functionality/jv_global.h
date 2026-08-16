@@ -41,7 +41,7 @@ public:
     static void reset();
     static void update();   // Must be called at the start of any game loop
     static void create_projectile(const int x, const  int y, const uint8_t option);
-    static void update_entity_animations();
+    static void update_animations();
     static void clear_bg_map();
 
     // Getters

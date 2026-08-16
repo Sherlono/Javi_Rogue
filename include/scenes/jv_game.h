@@ -45,7 +45,6 @@
 #endif
 
 namespace jv::Scenes{
-enum class Tag {Restart, Main, Credits, Blocks, Tiles};
 class MainGame{
 public:
     static void Start(bn::random& r){
@@ -204,8 +203,7 @@ private:
         // Initialize visuals
         _tiled_bg.init();
         _gameAssets.stairs.set_open(false);
-        if(_gameAssets.fog.visible()) _gameAssets.fog.update();
-        //for(auto enemy : _gameAssets.v_enemies) if(enemy.is_on_screen() && !enemy.has_graphics) enemy.update();
+        Global::update_animations();
         
         #if DEV_ENABLED
         jv::Interface::Log_resources();
@@ -307,9 +305,7 @@ private:
             _gameAssets.update();
             
             #if DEV_ENABLED
-            while(cpu_sprts.size() > 1){
-                cpu_sprts.erase(cpu_sprts.end() - 1);
-            }
+            while(cpu_sprts.size() > 1) cpu_sprts.erase(cpu_sprts.end() - 1);
             text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
             #endif
 
@@ -357,6 +353,7 @@ void IntroScene(){
     jv::Interface::fade(FADE_OUT, fadespeed::MEDIUM, false);
 }
 
+enum class Tag {Restart, Main, Credits, Blocks, Tiles};
 Tag StartScene(bn::random& randomizer){
     bn::regular_bg_ptr card = bn::regular_bg_items::intro_card.create_bg(0, 0);
     bn::regular_bg_ptr bg = bn::regular_bg_items::intro_card_bg.create_bg(0, -54);
@@ -383,7 +380,6 @@ Tag StartScene(bn::random& randomizer){
         #if DEV_ENABLED
         text_generator.generate(64, -70, "Dev. Mode", menu_sprts);
         text_generator.generate(-110, y_offset + 8, "Block test", menu_sprts);
-        //text_generator.generate(-110, y_offset + 16,"Tile test", menu_sprts);
         #else
         bn::string<16> line = "V ";
         line.append(Version);
@@ -398,7 +394,6 @@ Tag StartScene(bn::random& randomizer){
     bn::string_view explain_text[2][5] = {
         {"", "A: Interact", "B: Attack", "L: Log tile", "SELECT: Debug menu"},
         {"A: Select tile", "L: Copy tile", "R: Paste tile", "SELECT: Toggle index", "START: Print to log"},
-        //{"", "L: Next highlighted tile", "R: Prev. highlighted tile", "SELECT: Toggle index"}
     };
     #else
     bn::string_view explain_text[3][5] = {

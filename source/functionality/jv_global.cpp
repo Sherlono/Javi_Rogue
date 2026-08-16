@@ -73,10 +73,10 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
     }
 }
 
-void Global::update_entity_animations(){
+void Global::update_animations(){
     Global::update();
     Global::_assets->graphicsManager.update();
-    if(_assets->fog.visible() && _cam_moved) Global::_assets->fog.update();
+    if(_assets->fog.visible()) Global::_assets->fog.update();
 }
 
 void Global::clear_bg_map(){

@@ -32,8 +32,8 @@ void Player::reset_at(bn::point p){
     Graphics& player_graphics = Global::Graphics_Manager()[graphics_key];
 
     player_graphics.set_horizontal_flip(false);
-    player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 4, bn::sprite_items::good_cat.tiles_item(), animation::Walk_do[0]);
-    player_graphics.animation.update();/**/
+    player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 4, bn::sprite_items::good_cat.tiles_item(), animation::W_down[0]);
+    player_graphics.animation.update();
     
 }
 
@@ -98,7 +98,7 @@ void Player::got_hit(int damage, bool ignoreDef){
 
         if(_hp > 0) [[likely]] {
             player_graphics.set_horizontal_flip(_dir == WEST);
-            player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt);
+            player_graphics.animation = bn::sprite_animate_action<animation::MAX_FRAMES>::once(player_graphics, 8, bn::sprite_items::good_cat.tiles_item(), animation::hurt[Actor_data::meta[id].anim_set]);
         }else{
             bn::sound_items::death.play(0.5);
             _state = State::DEAD;
