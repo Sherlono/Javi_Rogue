@@ -35,7 +35,7 @@ void Global::reset(){
     _cam = nullptr;
     _tiled_bg = nullptr;
 
-    environment_id = 0;
+    environment_id = Environments::Fortress;
     autoCamControl = true;
     _cam_moved = false;
     _cam_position = {0, 0};
@@ -61,7 +61,7 @@ void Global::update(){
     /* Other possible code */
 }
 
-void Global::create_projectile(const int x,const  int y,const  uint8_t option){
+void Global::create_projectile(const int x, const int y, const uint8_t option){
     switch(option){
         case 0:{
             _assets->v_projectiles.push_back(new EnergyOrb(x, y));
@@ -72,6 +72,14 @@ void Global::create_projectile(const int x,const  int y,const  uint8_t option){
             break;
     }
 }
+
+/*bool Global::tree_has_value(){
+    return _assets->tree.has_value();
+}
+
+void Global::create_tree(const bn::point p){
+    _assets->tree.emplace(p);
+}*/
 
 void Global::update_animations(){
     Global::update();

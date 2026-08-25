@@ -38,10 +38,10 @@ public:
     }
     
     [[nodiscard]] cell_type raw_cell(const int x, const int y) const {
-        if(x < 0 || y < 0 || x >= _width || y >= _height){
+        if(x >= _width || y >= _height || x < 0 || y < 0){
             return 0;
         }else{
-            return this->_data[x + y*_width];
+            return this->_data[x + y*_width] != 0;
         }
     }
     

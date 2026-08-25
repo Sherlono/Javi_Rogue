@@ -11,4 +11,6 @@
 #include "bn_sprite_items_cow.h"
 #include "bn_sprite_items_fox.h"
 
+#include "bn_sprite_items_tree.h"
+
 #endif

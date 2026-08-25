@@ -136,11 +136,11 @@ protected:
 };
 
 namespace Actor_data{
-    constexpr bn::array<Actor::basic_stats, ACTOR_COUNT - NPCS_COUNT> stats = {
+    constexpr bn::array<Actor::basic_stats, ACTOR_COUNT - 1 - NPCS_COUNT> stats = {
         Actor::basic_stats(1, 1, 5, bn::fixed(1.5)),    // good cat
         Actor::basic_stats{1, 1, 3, bn::fixed(1.1)},    // bad cat
-        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},    // pale tongue
-        Actor::basic_stats{2, 1, 5, bn::fixed(0.3)},    // pale finger
+        Actor::basic_stats{2, 1, 5, bn::fixed(0.5)},    // pale tongue
+        Actor::basic_stats{2, 1, 5, bn::fixed(0.5)},    // pale finger
         Actor::basic_stats{1, 1, 3, bn::fixed(1.1)}     // snakes
     };
 }
@@ -150,8 +150,8 @@ class Enemy: public Actor{
 public:
     ~Enemy();
     // Constructor
-    Enemy(const uint8_t actor_id, bn::point pos_and_dimensions):
-        Actor(actor_id, pos_and_dimensions),
+    Enemy(const uint8_t actor_id, bn::point position):
+        Actor(actor_id, position),
         hp(Actor_data::stats[id].max_hp) {}
 
     // Getters

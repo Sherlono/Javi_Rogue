@@ -58,6 +58,9 @@ public:
     [[nodiscard]] static bn::random& Random();
     [[nodiscard]] static jv::Graphics_Manager& Graphics_Manager();
 
+    /*[[nodiscard]] static bool tree_has_value();
+    static void create_tree(const bn::point p);*/
+
     [[nodiscard]] static bn::point cam_pos(){
         return _cam_position;
     }

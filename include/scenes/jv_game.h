@@ -203,7 +203,9 @@ private:
         // Initialize visuals
         _tiled_bg.init();
         _gameAssets.stairs.set_open(false);
-        Global::update_animations();
+        for(auto enemy : Global::Enemies()) enemy->update();
+        Global::Graphics_Manager().update();
+        if(Global::Fog().visible()) Global::Fog().update();
         
         #if DEV_ENABLED
         jv::Interface::Log_resources();
@@ -251,7 +253,7 @@ private:
             if(_gameAssets.cat.alive()) /*heh*/ [[likely]] {
                 _next_level = _gameAssets.stairs.climb();
                 _gameAssets.scene_items_update();
-
+                
                 // Debug Stuff
                 #if DEV_ENABLED
                 if(bn::keypad::l_pressed()) [[unlikely]] {
@@ -287,7 +289,6 @@ private:
                     }
                 }
                 #endif
-
             }else{  // Death sequence
                 if(_gameover_delay == 120){
                     _game_over = true;
@@ -296,7 +297,7 @@ private:
                 _gameover_delay++;
             }
 
-            if(_gameAssets.cat.get_state() != Actor::State::DEAD && _gameAssets.cat.moved()){    // Backdrop movement
+            if(_gameAssets.cat.moved()){    // Backdrop movement
                 _backdrop.set_position(_backdrop.x() + (_gameAssets.cat.prev_position().x() - _gameAssets.cat.x())*bn::fixed(0.15),
                                        _backdrop.y() + (_gameAssets.cat.prev_position().y() - _gameAssets.cat.y())*bn::fixed(0.15));
             }
@@ -307,9 +308,6 @@ private:
             #if DEV_ENABLED
             while(cpu_sprts.size() > 1) cpu_sprts.erase(cpu_sprts.end() - 1);
             text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
-            #endif
-
-            #if DEV_ENABLED
             if(bn::keypad::r_held()) for(int i = 0; i < 8; i++) bn::core::update(); // Slow down game
             #endif
 

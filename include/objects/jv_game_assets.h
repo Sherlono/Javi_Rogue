@@ -8,6 +8,7 @@
 
 #include "jv_fog.h"
 #include "jv_items.h"
+#include "jv_tree.h"
 #include "jv_actors.h"
 #include "jv_player.h"
 #include "jv_stairs.h"
@@ -69,6 +70,7 @@ struct GameAssets{
     Stairs stairs;
     Healthbar healthbar;
     Fog<MAX_ROOMS> fog;
+    //bn::optional<JungleTree> tree;
 
     NPCs_vector_t v_npcs;
     enemies_vector_t v_enemies;

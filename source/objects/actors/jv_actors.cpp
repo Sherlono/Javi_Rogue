@@ -267,11 +267,10 @@ void Enemy::got_hit(int attack){
 
 void Enemy::_start_attack(Graphics& my_graphics){
     bool is_finger = id == Actor_data::Pale_Finger;
-    if(!(_attack_cooldown + is_finger*_idle_time)){
+    if((is_finger ? _attack_cooldown + _idle_time : _attack_cooldown) == 0){
         _attack_cooldown = Actor_data::meta[id].atk_end_cooldown;
         Actor::Graphics::configure_animation(id, _dir, animation::Id::Attack, position());
         my_graphics.animation = my_graphics.create_animation();
-        if(is_finger) Global::create_projectile(x(), y() - 40, Projectile::IDs::ENERGYORB);
     }
 }
 void Enemy::_attack_update(Graphics& my_graphics){
@@ -289,7 +288,7 @@ void Enemy::_attack_update(Graphics& my_graphics){
     }
 }
 
-void Enemy::_simple_fsm_update(Graphics& my_graphics){    
+void Enemy::_simple_fsm_update(Graphics& my_graphics){
     // Movement and Animations
     if(get_state() == State::HURTING){
         if(my_graphics.animation.done()){
@@ -317,6 +316,11 @@ void Enemy::_simple_fsm_update(Graphics& my_graphics){
                 player_ref.got_hit(Actor_data::stats[id].attack);
             }
         }
+        else{
+            if(get_state() == State::ATTACKING){
+                Global::create_projectile(x(), y() - 40, Projectile::IDs::ENERGYORB);
+            }
+        }
     }
 }
 
@@ -335,7 +339,7 @@ void Enemy::_idle(Graphics& my_graphics){
 }
 
 void Enemy::_movement(Graphics& my_graphics){
-    bn::fixed_point player_direction = Global::Player().normalized_vector(position() - bn::point(0, 8*(id == Actor_data::Pale_Finger)));
+    bn::fixed_point player_direction = Global::Player().normalized_vector(position() - bn::point(0, 2*(id == Actor_data::Pale_Finger)));
     
     // Player within range
     if(!Global::Player().invisible){
@@ -351,9 +355,8 @@ void Enemy::_movement(Graphics& my_graphics){
                 }
             }
             else{
-                if(_idle_time <= 2*60){
-                    _idle_time++;
-                }
+                if(_idle_time <= 2*60) _idle_time++;
+                
                 bn::fixed target_x = my_graphics.x(), target_y = my_graphics.y();
 
                 if((player_direction.x() < 0 && _map_obstacle(EAST)) || (player_direction.x() > 0 && _map_obstacle(WEST))){

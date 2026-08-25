@@ -67,6 +67,7 @@ void GameAssets::update(){
     projectiles_update();
     healthbar.update();
     graphicsManager.update();
+    //if(tree.has_value()) tree.value().update();
 }
 
 }

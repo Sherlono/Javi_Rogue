@@ -77,7 +77,7 @@ inline void Log_resources(){
     BN_LOG("Stack iwram: ", bn::memory::used_stack_iwram(), " Static iwram: ", bn::memory::used_static_iwram());
 }
 
-void Log_zone_layout(GameMap& z);
+void Log_zone_layout(GameMap& z, bn::point p_cell);
 #endif
 
 }
