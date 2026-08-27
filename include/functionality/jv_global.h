@@ -12,17 +12,6 @@
 #include "jv_game_assets.h"
 
 namespace jv{
-class tiled_bg;
-class NPC;
-class Item;
-class Actor;
-class Enemy;
-class Player;
-class Stairs;
-class Projectile;
-class GameMap;
-struct GameAssets;
-
 using NPCs_ref_t = bn::ivector<NPC*>&;
 using enemy_ref_t = bn::ivector<Enemy*>&;
 using projectiles_ref_t = bn::ivector<Projectile*>&;

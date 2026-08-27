@@ -39,17 +39,19 @@ private:
     enum EntityTag {Cow, Fox, Stairs, Player};
     enum RoomTag {Empty, Small1, Tall1, Tall2, Tall3, Wide1, Wide2, Big1, Big2};
     enum CorridorTag {V_Corr, H_Corr};
+    using roomsValuesType = bn::vector<uint8_t, jv::prefab_map::ROOM_PREFAB_COUNT>;
 
     void block_factory(const bool blockFlip){
         const int block_index = (blockConfig.value < BLOCK_TOTAL) ? blockConfig.value : 0;
+        constexpr uint8_t MAX_BLOCK_TILES = 4*4;
         
         if(blockConfig.value == 1){
             blocks::cell_span_t span = jv::blocks::get_block(block_index);
-            bn::array<GameMap::cell_type, 16> arr = {0}; 
+            bn::array<GameMap::cell_type, MAX_BLOCK_TILES> arr = {0}; 
             if(Global::Random().get_int(32) < 6){
-                for(int i = 0; i < 16; i++) arr[i] = span[i] + 16;
+                for(int i = 0; i < MAX_BLOCK_TILES; i++) arr[i] = span[i] + 16;
             }else{
-                for(int i = 0; i < 16; i++) arr[i] = span[i];
+                for(int i = 0; i < MAX_BLOCK_TILES; i++) arr[i] = span[i];
             }
             Map.insert_data(4, 4, arr, blockConfig.top_left);
         }else{
@@ -125,6 +127,7 @@ private:
         // Populate Enemies
         for(int i = 0; i < v_walkBlocks.size(); i++){
             if(enemies_ref.full()) break;
+
             const bn::point enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
             if(player_cell != enemy_cell){
                 int rand = Global::Random().get_int(128);
@@ -350,29 +353,28 @@ private:
     }
 
     void generate_rooms(){
-        using rooms_type = bn::vector<uint8_t, jv::prefab_map::ROOM_PREFAB_COUNT>;
-        rooms_type validRooms;
+        roomsValuesType validRooms;
         uint8_t emptyCount = 0;
         
-        player_cell = {Global::Random().get_int(0, zone.width()), Global::Random().get_int(0, zone.height())};
-        roomConfig.top_left = player_cell;
-        roomConfig.value = Small1;
-
-        v_roomConfigs.push_back(roomConfig);
-
         {
+            player_cell = {Global::Random().get_int(0, zone.width()), Global::Random().get_int(0, zone.height())};
+            roomConfig.top_left = player_cell;
+            roomConfig.value = Small1;
+
+            v_roomConfigs.push_back(roomConfig);
+
             const bn::point player_occupied = prefab_maps::data[roomConfig.value - 1].zones;
             for(int row = roomConfig.top_left.y(); row < roomConfig.top_left.y() + player_occupied.y(); row++){
                 for(int column = roomConfig.top_left.x(); column < roomConfig.top_left.x() + player_occupied.x(); column++){
                     zone.set_cell(column, row, roomConfig.value);
                 }
             }
+
+            entity_checks[1].push_back(EntityTag::Player);
+            room_factory();
         }
 
-        entity_checks[1].push_back(EntityTag::Player);
-        room_factory();
-
-        // Choosing room shape and location
+        // Generating room shapes and locations
         for(int y = 0; y < zone.height(); y++){
             for(int x = 0; x < zone.width(); x++){
                 if(zone.cell(x, y)) continue;
@@ -432,9 +434,9 @@ private:
             }
         }
 
-        // Room generation and population
+        // Room creation and population
         for(uint8_t i = 0; i < NPCS_COUNT; i++)  entity_checks[0].push_back(i);
-        const bn::point stairs_cell = v_roomConfigs[Global::Random().get_int(0, v_roomConfigs.size())].top_left;
+        const uint8_t stairs_room = Global::Random().get_int(0, v_roomConfigs.size());
 
         for(int k = 0; k < v_roomConfigs.size(); k++){
             for(uint8_t i = 0; i < entity_checks[0].size(); i++){
@@ -446,7 +448,7 @@ private:
             }
 
             roomConfig = v_roomConfigs[k];
-            if(roomConfig.top_left == stairs_cell) entity_checks[1].push_back(EntityTag::Stairs);
+            if(k == stairs_room) entity_checks[1].push_back(EntityTag::Stairs);
             room_factory();
         }
     }
