@@ -208,7 +208,7 @@ private:
         if(Global::Fog().visible()) Global::Fog().update();
         
         #if DEV_ENABLED
-        jv::Interface::Log_resources();
+        //jv::Interface::Log_resources();
         while(cpu_sprts.size() > 1){ cpu_sprts.erase(cpu_sprts.end() - 1); }
         text_generator.generate(-4, -70, bn::to_string<7>(bn::core::last_cpu_usage()), cpu_sprts);
         bn::core::update();

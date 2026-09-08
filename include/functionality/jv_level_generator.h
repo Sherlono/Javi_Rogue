@@ -83,20 +83,13 @@ private:
     void populate(bn::ivector<bn::point>& v_walkBlocks){
         enemy_ref_t enemies_ref = Global::Enemies();
         NPCs_ref_t npcs_ref = Global::NPCs();
+        bn::point enemy_cell;
             
         // Populate unique entities
         for(int i = 0; i < entity_checks[1].size(); i++){
             int index = Global::Random().get_int(v_walkBlocks.size());
 
             switch(entity_checks[1][i]){
-                case EntityTag::Player:
-                    Global::Player().reset_at(v_walkBlocks[index]);
-                    Global::Camera().set_position(Global::Player().get_hitbox().position());
-                    Global::update();
-                    #if DEV_ENABLED
-                    BN_LOG("Player was positioned.");
-                    #endif
-                    break;
                 case EntityTag::Cow:
                     npcs_ref.push_back(new jv::Cow(v_walkBlocks[index]));
                     #if DEV_ENABLED
@@ -109,13 +102,20 @@ private:
                     BN_LOG("Fox was created.");
                     #endif
                     break;
-                case EntityTag::Stairs:{
+                case EntityTag::Stairs:
                     Global::Stairs().set_position(v_walkBlocks[index]);
                     #if DEV_ENABLED
                     BN_LOG("Stairs were positioned.");
                     #endif
                     break;
-                }
+                case EntityTag::Player:
+                    Global::Player().reset_at(v_walkBlocks[index]);
+                    Global::Camera().set_position(Global::Player().get_hitbox().position());
+                    Global::update();
+                    #if DEV_ENABLED
+                    BN_LOG("Player was positioned.");
+                    #endif
+                    break;
                 default:
                     BN_ERROR("Invalid entity tag: ", entity_checks[1][i]);
                     break;
@@ -127,38 +127,47 @@ private:
         // Populate Enemies
         for(int i = 0; i < v_walkBlocks.size(); i++){
             if(enemies_ref.full()) break;
-
-            const bn::point enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
-            if(player_cell != enemy_cell){
-                int rand = Global::Random().get_int(128);
-                switch(Global::environment_id){
-                    case Global::Environments::Fortress:{
-                        if(rand < 16){
+            
+            int rand = Global::Random().get_int(128);
+            switch(Global::environment_id){
+                case Global::Environments::Fortress:{
+                    if(rand < 16){
+                        enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
+                        if(player_cell != enemy_cell){
                             enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Bad_Cat, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }else if(rand < 20){
+                        }
+                    }else if(rand < 20){
+                        enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
+                        if(player_cell != enemy_cell){
                             enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Pale_Finger, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }else if(rand < 32){
+                        }
+                    }else if(rand < 32){
+                        enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
+                        if(player_cell != enemy_cell){
                             enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Pale_Tongue, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }/**/
-                        break;
-                    }
-                    case Global::Environments::Jungle:{
-                        if(rand < 16){
+                        }
+                    }/**/
+                    break;
+                }
+                case Global::Environments::Jungle:{
+                    if(rand < 16){
+                        enemy_cell = {(v_walkBlocks[i].x() - 8)/224, (v_walkBlocks[i].y() - 8)/224};
+                        if(player_cell != enemy_cell){
                             enemies_ref.push_back(new jv::Enemy(Actor_data::Id::Snakes, v_walkBlocks[i]));
                             v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }/*else if(rand < 24 && !Global::tree_has_value()){
-                            Global::create_tree(v_walkBlocks[i]);
-                            v_walkBlocks.erase(v_walkBlocks.begin() + i);
-                        }*/
-                        break;
-                    }
-                    default:{
-                        BN_BASIC_ASSERT("Invalid Environment id", Global::environment_id);
-                        break;
-                    }
+                        }
+                    }/*else if(rand < 24 && !Global::tree_has_value()){
+                        Global::create_tree(v_walkBlocks[i]);
+                        v_walkBlocks.erase(v_walkBlocks.begin() + i);
+                    }*/
+                    break;
+                }
+                default:{
+                    BN_BASIC_ASSERT("Invalid Environment id", Global::environment_id);
+                    break;
                 }
             }
         }
@@ -421,7 +430,6 @@ private:
 
                 if(roomConfig.value != Empty){
                     v_roomConfigs.push_back(roomConfig);
-
                     // Sectors update
                     const bn::point occupied = prefab_maps::data[roomConfig.value - 1].zones;
                     for(int row = y; row < y + occupied.y(); row++){
@@ -436,7 +444,7 @@ private:
 
         // Room creation and population
         for(uint8_t i = 0; i < NPCS_COUNT; i++)  entity_checks[0].push_back(i);
-        const uint8_t stairs_room = Global::Random().get_int(0, v_roomConfigs.size());
+        const uint8_t stairs_room = Global::Random().get_int(0, v_roomConfigs.size() - 1);
 
         for(int k = 0; k < v_roomConfigs.size(); k++){
             for(uint8_t i = 0; i < entity_checks[0].size(); i++){
